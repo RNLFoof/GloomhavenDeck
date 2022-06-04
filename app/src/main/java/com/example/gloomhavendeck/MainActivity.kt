@@ -282,7 +282,7 @@ class MainActivity : AppCompatActivity() {
             val dialogBuilder = AlertDialog.Builder(this)
 
             dialogBuilder.setItems(arrayOf("Inventory", "Enemies", "HP (Currently ${player.hp})",
-                "Statuses", "Power Potion Threshold (Currently ${player.powerPotionThreshold})",
+                "Statuses (Currently ${player.statuses})", "Power Potion Threshold (Currently ${player.powerPotionThreshold})",
                 "HP Danger Threshold (Currently ${player.hpDangerThreshold})",
                 "Skeleton Locations (Currently ${player.skeletonLocations})", "Go")
             ) { _, which ->

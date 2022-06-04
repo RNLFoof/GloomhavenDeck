@@ -23,8 +23,8 @@ data class Card(
         var ret = ""
         ret += " ["
 
-        if (stun) {ret += "💥"}
-        if (muddle) {ret += "❓"}
+        if (stun) {ret += Status.STUN.icon}
+        if (muddle) {ret += Status.MUDDLE.icon}
         if (refresh){ret += "\uD83D\uDC5C"}
         if (extraTarget) {ret += "\uD83C\uDFAF"}
         if (pierce > 0) {ret += "$pierce➺"}
