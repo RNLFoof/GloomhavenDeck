@@ -276,8 +276,8 @@ class MainActivity : AppCompatActivity() {
         btnPipis.setOnClickListener {
             val dialogBuilder = AlertDialog.Builder(this)
 
-            dialogBuilder.setItems(arrayOf("Inventory", "Enemies", "Power Potion Threshold",
-                "HP Danger Threshold", "Go")
+            dialogBuilder.setItems(arrayOf("Inventory", "Enemies", "HP", "Statuses",
+                "Power Potion Threshold", "HP Danger Threshold", "Go")
             ) { _, which ->
                 when (which) {
                     0 -> {}
