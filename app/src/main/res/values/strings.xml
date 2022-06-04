@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">GloomhavenDeck</string>
+    <string name="view_cards">View Cards</string>
+    <string name="attack">Attack</string>
+    <string name="curse">Curse</string>
+    <string name="advantage">Advantage</string>
+    <string name="disadvantage">Disadvantage</string>
+    <string name="pipis">Pipis</string>
+    <string name="bless">Bless</string>
+    <string name="cheat">Cheat</string>
+    <string name="textview">TextView</string>
+</resources>
