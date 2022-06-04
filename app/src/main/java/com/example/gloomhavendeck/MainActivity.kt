@@ -306,11 +306,34 @@ class MainActivity : AppCompatActivity() {
                         alert.show()
                     }
                     // Statuses
-                    3 -> {}
+                    3 -> {
+                        val alert = AlertDialog.Builder(this)
+                        alert.setTitle("New Statuses?")
+                        val scrollView = ScrollView(this)
+                        val linearLayout = LinearLayout(this)
+                        scrollView.addView(linearLayout)
+                        linearLayout.orientation = LinearLayout.VERTICAL
+                        for (status in Status.values()) {
+                            val checkBox = CheckBox(this)
+                            checkBox.setText(status.name)
+                            checkBox.isChecked = status in player.statuses
+                            checkBox.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                if (on) {
+                                    player.statuses.add(status)
+                                } else {
+                                    player.statuses.remove(status)
+                                }
+                            }
+                            linearLayout.addView(checkBox)
+                        }
+                        alert.setView(scrollView)
+                        alert.setPositiveButton("Done") {_,_ ->}
+                        alert.show()
+                    }
                     // Power Potion Threshold
                     4 -> {
                         val alert = AlertDialog.Builder(this)
-                        alert.setTitle("New HP?")
+                        alert.setTitle("New Power Potion Threshold?")
                         val input = EditText(this)
                         input.inputType = InputType.TYPE_CLASS_NUMBER
                         input.setRawInputType(Configuration.KEYBOARD_12KEY)
@@ -324,7 +347,7 @@ class MainActivity : AppCompatActivity() {
                     // HP Danger Threshold
                     5 -> {
                         val alert = AlertDialog.Builder(this)
-                        alert.setTitle("New HP?")
+                        alert.setTitle("New HP Danger Threshold?")
                         val input = EditText(this)
                         input.inputType = InputType.TYPE_CLASS_NUMBER
                         input.setRawInputType(Configuration.KEYBOARD_12KEY)
@@ -338,7 +361,7 @@ class MainActivity : AppCompatActivity() {
                     // Skeleton Locations
                     6 -> {
                         val alert = AlertDialog.Builder(this)
-                        alert.setTitle("New HP?")
+                        alert.setTitle("New Skeleton Locations?")
                         val input = EditText(this)
                         input.inputType = InputType.TYPE_CLASS_NUMBER
                         input.setRawInputType(Configuration.KEYBOARD_12KEY)
