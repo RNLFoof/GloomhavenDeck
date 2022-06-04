@@ -1,17 +1,14 @@
 package com.example.gloomhavendeck
 
+import android.content.DialogInterface
 import android.media.MediaPlayer
 import android.os.Bundle
-import android.util.Log
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.children
 import androidx.core.view.size
 import java.util.*
+
 
 class MainActivity : AppCompatActivity() {
     lateinit var tvLog : TextView
@@ -239,6 +236,7 @@ class MainActivity : AppCompatActivity() {
             alert.setTitle("Cards")
             alert.show()
         }
+
         // Undos
         btnUndo.setOnClickListener {
             deck.Undo()
@@ -273,6 +271,26 @@ class MainActivity : AppCompatActivity() {
             effectQueue.add(Effect(selectTopRow = true, showBottomRow = true))
             deck.disadvantage()
             endAction(btnDisadvantage)
+        }
+
+        btnPipis.setOnClickListener {
+            val dialogBuilder = AlertDialog.Builder(this)
+
+            dialogBuilder.setItems(arrayOf("Inventory", "Enemies", "Power Potion Threshold",
+                "HP Danger Threshold", "Go")
+            ) { _, which ->
+                when (which) {
+                    0 -> {}
+                    1 -> {}
+                    2 -> {}
+                    3 -> {}
+                    4 -> {}
+                }
+            }
+
+            val alert = dialogBuilder.create()
+            alert.setTitle("Pipis Menu")
+            alert.show()
         }
 
         // Card movement
