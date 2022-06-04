@@ -1,8 +1,10 @@
 package com.example.gloomhavendeck
 
 import android.content.DialogInterface
+import android.content.res.Configuration
 import android.media.MediaPlayer
 import android.os.Bundle
+import android.text.InputType
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -20,6 +22,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var btnRedo : Button
 
     lateinit var deck : Deck
+    lateinit var player : Player
     var effectQueue = LinkedList<Effect>()
     lateinit var selectedCardRow : LinearLayout
     var currentlyDoingDisadvantage = false
@@ -196,6 +199,8 @@ class MainActivity : AppCompatActivity() {
         deck = MainActivityDeck()
         deck.addBaseDeck()
 
+        player = Player()
+
         // Adding cards
         btnBless.setOnClickListener {
             startAction(btnBless)
@@ -276,15 +281,76 @@ class MainActivity : AppCompatActivity() {
         btnPipis.setOnClickListener {
             val dialogBuilder = AlertDialog.Builder(this)
 
-            dialogBuilder.setItems(arrayOf("Inventory", "Enemies", "HP", "Statuses",
-                "Power Potion Threshold", "HP Danger Threshold", "Skeleton Locations", "Go")
+            dialogBuilder.setItems(arrayOf("Inventory", "Enemies", "HP (Currently ${player.hp})",
+                "Statuses", "Power Potion Threshold (Currently ${player.powerPotionThreshold})",
+                "HP Danger Threshold (Currently ${player.hpDangerThreshold})",
+                "Skeleton Locations (Currently ${player.skeletonLocations})", "Go")
             ) { _, which ->
                 when (which) {
+                    // Inventory
                     0 -> {}
+                    // Enemies
                     1 -> {}
-                    2 -> {}
+                    // HP
+                    2 -> {
+                        val alert = AlertDialog.Builder(this)
+                        alert.setTitle("New HP?")
+                        val input = EditText(this)
+                        input.inputType = InputType.TYPE_CLASS_NUMBER
+                        input.setRawInputType(Configuration.KEYBOARD_12KEY)
+                        input.setText(player.hp.toString())
+                        alert.setView(input)
+                        alert.setPositiveButton("Set") { _, _ ->
+                            player.hp = input.text.toString().toInt()
+                        }
+                        alert.show()
+                    }
+                    // Statuses
                     3 -> {}
-                    4 -> {}
+                    // Power Potion Threshold
+                    4 -> {
+                        val alert = AlertDialog.Builder(this)
+                        alert.setTitle("New HP?")
+                        val input = EditText(this)
+                        input.inputType = InputType.TYPE_CLASS_NUMBER
+                        input.setRawInputType(Configuration.KEYBOARD_12KEY)
+                        input.setText(player.powerPotionThreshold.toString())
+                        alert.setView(input)
+                        alert.setPositiveButton("Set") { _, _ ->
+                            player.powerPotionThreshold = input.text.toString().toInt()
+                        }
+                        alert.show()
+                    }
+                    // HP Danger Threshold
+                    5 -> {
+                        val alert = AlertDialog.Builder(this)
+                        alert.setTitle("New HP?")
+                        val input = EditText(this)
+                        input.inputType = InputType.TYPE_CLASS_NUMBER
+                        input.setRawInputType(Configuration.KEYBOARD_12KEY)
+                        input.setText(player.hpDangerThreshold.toString())
+                        alert.setView(input)
+                        alert.setPositiveButton("Set") { _, _ ->
+                            player.hpDangerThreshold = input.text.toString().toInt()
+                        }
+                        alert.show()
+                    }
+                    // Skeleton Locations
+                    6 -> {
+                        val alert = AlertDialog.Builder(this)
+                        alert.setTitle("New HP?")
+                        val input = EditText(this)
+                        input.inputType = InputType.TYPE_CLASS_NUMBER
+                        input.setRawInputType(Configuration.KEYBOARD_12KEY)
+                        input.setText(player.skeletonLocations.toString())
+                        alert.setView(input)
+                        alert.setPositiveButton("Set") { _, _ ->
+                            player.skeletonLocations = input.text.toString().toInt()
+                        }
+                        alert.show()
+                    }
+                    // Go
+                    7 -> {}
                 }
             }
 
