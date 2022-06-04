@@ -289,6 +289,7 @@ class MainActivity : AppCompatActivity() {
                 "Power Potion Threshold (Currently ${player.powerPotionThreshold})",
                 "HP Danger Threshold (Currently ${player.hpDangerThreshold})",
                 "Skeleton Locations (Currently ${player.skeletonLocations})",
+                "Pierce (Currently ${player.pierce})",
                 "Go")
             ) { _, which ->
                 when (which) {
@@ -405,8 +406,22 @@ class MainActivity : AppCompatActivity() {
                         }
                         alert.show()
                     }
+                    // Pierce
+                    7 -> {
+                        val alert = AlertDialog.Builder(this)
+                        alert.setTitle("New Pierce?")
+                        val input = EditText(this)
+                        input.inputType = InputType.TYPE_CLASS_NUMBER
+                        input.setRawInputType(Configuration.KEYBOARD_12KEY)
+                        input.setText(player.pierce.toString())
+                        alert.setView(input)
+                        alert.setPositiveButton("Set") { _, _ ->
+                            player.pierce = input.text.toString().toInt()
+                        }
+                        alert.show()
+                    }
                     // Go
-                    7 -> {}
+                    8 -> {}
                 }
             }
 

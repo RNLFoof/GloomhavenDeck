@@ -21,4 +21,5 @@ class Player() {
     var powerPotionThreshold = 6
     var hpDangerThreshold = 10
     var skeletonLocations = 1
+    var pierce = 0
 }
