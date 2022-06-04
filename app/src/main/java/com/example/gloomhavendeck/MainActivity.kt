@@ -264,8 +264,6 @@ class MainActivity : AppCompatActivity() {
             currentlyDoingDisadvantage = false
             effectQueue.add(Effect(selectTopRow = true, showBottomRow = true))
             deck.advantage()
-//            effectQueue.add(Effect(selectBottomRow = true))
-//            deck.attack()
             endAction(btnAdvantage)
         }
 
@@ -273,9 +271,7 @@ class MainActivity : AppCompatActivity() {
             startAction(btnDisadvantage)
             currentlyDoingDisadvantage = true
             effectQueue.add(Effect(selectTopRow = true, showBottomRow = true))
-            deck.attack()
-            effectQueue.add(Effect(selectBottomRow = true))
-            deck.attack()
+            deck.disadvantage()
             endAction(btnDisadvantage)
         }
 

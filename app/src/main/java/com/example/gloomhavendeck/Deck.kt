@@ -244,4 +244,18 @@ open class Deck {
         logIndent -= 1;
         addUndoPoint()
     }
+
+    fun disadvantage() {
+        logIndent += 1
+        val drawnRow1 = drawRow()
+        val drawnRow2 = drawRow()
+        if ((drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
+            log("Can't infer the result without a base value, nerd.");
+        } else {
+            val loser = if (drawnRow1.last() < drawnRow2.last()) drawnRow1.last() else drawnRow2.last()
+            log("Effectively drew a $loser");
+        }
+        logIndent -= 1;
+        addUndoPoint()
+    }
 }
