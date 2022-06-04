@@ -281,14 +281,47 @@ class MainActivity : AppCompatActivity() {
         btnPipis.setOnClickListener {
             val dialogBuilder = AlertDialog.Builder(this)
 
-            dialogBuilder.setItems(arrayOf("Inventory", "Enemies", "HP (Currently ${player.hp})",
-                "Statuses (Currently ${player.statuses})", "Power Potion Threshold (Currently ${player.powerPotionThreshold})",
+            dialogBuilder.setItems(arrayOf(
+                "Inventory (Currently ${player.usableItems.size}/${player.usableItems.size+player.unusableItems.size})",
+                "Enemies",
+                "HP (Currently ${player.hp})",
+                "Statuses (Currently ${player.statuses})",
+                "Power Potion Threshold (Currently ${player.powerPotionThreshold})",
                 "HP Danger Threshold (Currently ${player.hpDangerThreshold})",
-                "Skeleton Locations (Currently ${player.skeletonLocations})", "Go")
+                "Skeleton Locations (Currently ${player.skeletonLocations})",
+                "Go")
             ) { _, which ->
                 when (which) {
                     // Inventory
-                    0 -> {}
+                    0 -> {
+                        val alert = AlertDialog.Builder(this)
+                        alert.setTitle("New Usable Items?")
+                        val scrollView = ScrollView(this)
+                        val linearLayout = LinearLayout(this)
+                        scrollView.addView(linearLayout)
+                        linearLayout.orientation = LinearLayout.VERTICAL
+                        for (item in player.usableItems + player.unusableItems) {
+                            if (item.permanent) {
+                                continue
+                            }
+                            val checkBox = CheckBox(this)
+                            checkBox.setText(item.name)
+                            checkBox.isChecked = item in player.usableItems
+                            checkBox.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                if (on) {
+                                    player.usableItems.add(item)
+                                    player.unusableItems.remove(item)
+                                } else {
+                                    player.usableItems.remove(item)
+                                    player.unusableItems.add(item)
+                                }
+                            }
+                            linearLayout.addView(checkBox)
+                        }
+                        alert.setView(scrollView)
+                        alert.setPositiveButton("Done") {_,_ ->}
+                        alert.show()
+                    }
                     // Enemies
                     1 -> {}
                     // HP

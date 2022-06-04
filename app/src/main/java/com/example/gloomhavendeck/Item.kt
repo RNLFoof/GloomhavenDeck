@@ -1,7 +1,7 @@
 package com.example.gloomhavendeck
 
-enum class Item(val graphic: Int, val sound: Int=R.raw.stone2) {
-    CLOAK_OF_POCKETS(R.drawable.card_cloak),
+enum class Item(val graphic: Int, val sound: Int=R.raw.stone2, val permanent: Boolean =false) {
+    CLOAK_OF_POCKETS(R.drawable.card_cloak, permanent = true),
     MAJOR_CURE_POTION(R.drawable.card_cure),
     MAJOR_POWER_POTION(R.drawable.card_power),
     MAJOR_STAMINA_POTION(R.drawable.card_majorstamina),
