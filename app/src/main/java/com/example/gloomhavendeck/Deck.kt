@@ -222,11 +222,22 @@ open class Deck {
         if ((drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
             log("Can't infer the result without a base value, nerd.");
         } else {
-            val winner = if (drawnRow1.last() > drawnRow2.last()) drawnRow1.last() else drawnRow2.last()
+            val winner : Card
+            // Prioritize refreshes
+            if (drawnRow1.last().refresh) {
+                winner = drawnRow1.last()
+            }
+            else if (drawnRow2.last().refresh) {
+                winner = drawnRow2.last()
+            }
+            // Otherwise..
+            else {
+                winner = if (drawnRow1.last() > drawnRow2.last()) drawnRow1.last() else drawnRow2.last()
+            }
             val combined = (
-                    drawnRow1.slice(0 until drawnRow1.size-1)
-                    + drawnRow2.slice(0 until drawnRow2.size-1)
-                    + listOf(winner)
+                drawnRow1.slice(0 until drawnRow1.size-1)
+                + drawnRow2.slice(0 until drawnRow2.size-1)
+                + listOf(winner)
             ).sum()
             log("Effectively drew a ${combined}");
         }
