@@ -213,8 +213,6 @@ open class Deck {
         }
         logIndent -= 1;
         addUndoPoint()
-        //val combinedCard = Card.combineCards(drawnRow)
-        //log("Effectively drew $combinedCard")
     }
 
     fun advantage() {
@@ -233,8 +231,6 @@ open class Deck {
             log("Effectively drew a ${combined}");
         }
         logIndent -= 1;
-        //val combinedCard = Card.combineCards(drawnRow)
-        //log("Effectively drew $combinedCard")
         addUndoPoint()
     }
 }

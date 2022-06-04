@@ -45,6 +45,9 @@ data class Card(
 
     // Uhhhh
     fun toInt(): Int {
+        if (value == 0 && multiplier) {
+            return -99
+        }
         return value * 2 + (
             if (pierce > 0 || stun || muddle || extraTarget || refresh) 1 else 0
         )
