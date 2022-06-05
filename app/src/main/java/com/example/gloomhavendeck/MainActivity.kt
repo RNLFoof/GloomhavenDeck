@@ -5,6 +5,7 @@ import android.content.res.Configuration
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.text.InputType
+import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -201,6 +202,16 @@ class MainActivity : AppCompatActivity() {
 
         player = Player()
 
+        Log.d("hey", "")
+        for (enemy in Enemy.createMany("""Dog 1 77
+Dog 2 78
+3 88,ball
+4 88,ball,shield 3
+Dog 2 88,ball,3 shield
+Dog 2 88,ball,3shield
+Dog 2 88,ball,shield3""")) {
+        }
+            //Enemy("Dog 2 g")
         // Adding cards
         btnBless.setOnClickListener {
             startAction(btnBless)
