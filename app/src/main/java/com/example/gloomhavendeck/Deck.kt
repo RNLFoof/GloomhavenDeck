@@ -431,9 +431,15 @@ open class Deck {
                 allowedToContinue = true
             }
             logIndent -= 1
+            activeCardsToDiscardPile()
         }
-        activeCardsToDiscardPile()
         log("Recovered $arbitraryCardsRecovered arbitrary card(s)")
+        for (enemy in enemies) {
+            log(enemy.toString())
+        }
+        log("Player HP: ${player.hp}")
+        log("Player Statuses: ${player.statuses}")
+        log("Player Skeleton Spots: ${player.skeletonLocations}")
         logIndent -= 1
         addUndoPoint()
     }
