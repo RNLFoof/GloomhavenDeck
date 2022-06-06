@@ -1,9 +1,12 @@
 package com.example.gloomhavendeck
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import java.lang.Integer.max
 import java.lang.Integer.min
 
+@RequiresApi(Build.VERSION_CODES.N)
 open class Deck {
     // Cards
     var drawPile = mutableListOf<Card>()
@@ -284,11 +287,99 @@ open class Deck {
             }
             return aggregatedPower >= player.powerPotionThreshold
         }
+
+        class RecoveryCandidate(var item: Item, var useImmediately: Boolean)
+        fun getRecoveryCandidates() = sequence {
+            while (true) {
+                if (player.unusableItems.contains(Item.MAJOR_POWER_POTION)) {
+                    yield(RecoveryCandidate(Item.MAJOR_POWER_POTION, false))
+                    continue
+                }
+                if (player.unusableItems.contains(Item.RING_OF_BRUTALITY)) {
+                    yield(RecoveryCandidate(Item.RING_OF_BRUTALITY, false))
+                    continue
+                }
+                if (player.unusableItems.contains(Item.MAJOR_CURE_POTION)
+                    && (
+                            player.statuses.contains(Status.MUDDLE)
+                            || player.statuses.contains(Status.MUDDLE)
+                        )
+                    ) {
+                    yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, true))
+                    continue
+                }
+                if (player.unusableItems.contains(Item.SUPER_HEALING_POTION)
+                    && player.hp <= player.hpDangerThreshold) {
+                    yield(RecoveryCandidate(Item.SUPER_HEALING_POTION, true))
+                    continue
+                }
+                if (player.unusableItems.contains(Item.MAJOR_POWER_POTION)) {
+                    yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, false))
+                    continue
+                }
+                if (player.unusableItems.contains(Item.MAJOR_CURE_POTION)) {
+                    yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, false))
+                    continue
+                }
+                if (player.unusableItems.contains(Item.SUPER_HEALING_POTION)) {
+                    yield(RecoveryCandidate(Item.SUPER_HEALING_POTION, player.hp <= 19))
+                    continue
+                }
+                if (player.unusableItems.contains(Item.RING_OF_SKULLS)) {
+                    yield(RecoveryCandidate(Item.RING_OF_SKULLS, false))
+                    continue
+                }
+                if (player.unusableItems.contains(Item.MINOR_STAMINA_POTION)) {
+                    yield(RecoveryCandidate(Item.MINOR_STAMINA_POTION, false))
+                    continue
+                }
+                if (player.unusableItems.contains(Item.TOWER_SHIELD)) {
+                    yield(RecoveryCandidate(Item.TOWER_SHIELD, false))
+                    continue
+                }
+                if (player.unusableItems.contains(Item.SPIKED_SHIELD)) {
+                    yield(RecoveryCandidate(Item.SPIKED_SHIELD, false))
+                    continue
+                }
+                break
+            }
+        }
+        fun recover() {
+            // Pendant logic is kept separate because otherwise it could try to revive itself
+            // and other such nonsense
+            var itemsRecovered = 0
+            for (recoveryCandidate in getRecoveryCandidates()) {
+                itemsRecovered += 1
+                player.usableItems.add(recoveryCandidate.item)
+                player.unusableItems.remove(recoveryCandidate.item)
+                if (recoveryCandidate.useImmediately) {
+                    player.useItem(recoveryCandidate.item)
+                    log("Recovered and immediately used ${recoveryCandidate.item}")
+                } else {
+                    log("Recovered ${recoveryCandidate.item}")
+                }
+                if (itemsRecovered >= 2) {
+                    player.usableItems.add(Item.PENDANT_OF_DARK_PACTS)
+                    player.unusableItems.remove(Item.PENDANT_OF_DARK_PACTS)
+                    player.useItem(Item.PENDANT_OF_DARK_PACTS)
+                    curse()
+                    break
+                }
+            }
+            if (itemsRecovered == 0) {
+                player.usableItems.add(Item.PENDANT_OF_DARK_PACTS)
+                player.unusableItems.remove(Item.PENDANT_OF_DARK_PACTS)
+            }
+        }
+
         log("Pipis...")
         logIndent += 1
         var arbitraryCardsRecovered = 0
         var allowedToContinue = true
+        var loops = 0
         while (allowedToContinue) {
+            log("Loop ${++loops}...")
+            logIndent += 1
             allowedToContinue = false
             val usingBallistaInstead = false
             // Power?
@@ -317,6 +408,9 @@ open class Deck {
                                         else attack(basePower)
                     enemy.getAttacked(combinedCard, player)
                     log("Used a $combinedCard, resulting in ($enemy)")
+                    if (combinedCard.refresh) {
+                        recover()
+                    }
                 }
             }
             // One more time?
@@ -336,6 +430,7 @@ open class Deck {
                 player.useItem(Item.RING_OF_BRUTALITY)
                 allowedToContinue = true
             }
+            logIndent -= 1
         }
         activeCardsToDiscardPile()
         log("Recovered $arbitraryCardsRecovered arbitrary card(s)")

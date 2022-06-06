@@ -1,5 +1,9 @@
 package com.example.gloomhavendeck
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+
+@RequiresApi(Build.VERSION_CODES.N)
 open class Player() {
     var hp = 26
     val usableItems = mutableListOf(
@@ -22,6 +26,7 @@ open class Player() {
     var hpDangerThreshold = 10
     var skeletonLocations = 1
     var pierce = 0
+    val maxHp = 26
 
     open fun useItem(item: Item) {
         if (!usableItems.contains(item)) {
@@ -29,5 +34,6 @@ open class Player() {
         }
         usableItems.remove(item)
         unusableItems.add(item)
+        item.getUsed(this)
     }
 }
