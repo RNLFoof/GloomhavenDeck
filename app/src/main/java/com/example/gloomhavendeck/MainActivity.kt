@@ -2,10 +2,12 @@ package com.example.gloomhavendeck
 
 import android.content.res.Configuration
 import android.media.MediaPlayer
+import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.util.Log
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.size
@@ -13,6 +15,7 @@ import java.lang.Exception
 import java.util.*
 
 
+@RequiresApi(Build.VERSION_CODES.N)
 class MainActivity : AppCompatActivity() {
     lateinit var tvLog : TextView
     lateinit var llTopCardRow : LinearLayout
@@ -28,10 +31,13 @@ class MainActivity : AppCompatActivity() {
     var effectQueue = LinkedList<Effect>()
     lateinit var selectedCardRow : LinearLayout
     var currentlyDoingDisadvantage = false
+    val baseEffectSpeed = 1_000/3L
+    var effectSpeed = baseEffectSpeed
 
     inner class Effect(var sound: Int? = null, var card: Int? = null, var wipe: Boolean = false,
                        var selectTopRow: Boolean = false, var selectBottomRow: Boolean = false,
                        var showBottomRow: Boolean = false, var hideBottomRow: Boolean = false) {
+        var speed = effectSpeed
         fun run() {
             if (sound != null) {
                 val player: MediaPlayer = MediaPlayer.create(this@MainActivity, sound!!)
@@ -91,7 +97,7 @@ class MainActivity : AppCompatActivity() {
                     val effect = effectQueue.remove()
                     effect.run()
                     if (effect.sound != null) {
-                        Thread.sleep(1_000/3)
+                        Thread.sleep(effect.speed)
                     }
                 }
                 else {
@@ -473,9 +479,11 @@ class MainActivity : AppCompatActivity() {
                     }
                     // Go
                     8 -> {
+                        effectSpeed = 1_000/2L
                         endAction(btnPipis)
                         deck.pipis(player, enemies)
                         endAction(btnPipis)
+                        effectSpeed = baseEffectSpeed
                     }
                 }
             }
