@@ -1,6 +1,6 @@
 package com.example.gloomhavendeck
 
-class Player() {
+open class Player() {
     var hp = 26
     val usableItems = mutableListOf(
         Item.CLOAK_OF_POCKETS,
@@ -22,4 +22,12 @@ class Player() {
     var hpDangerThreshold = 10
     var skeletonLocations = 1
     var pierce = 0
+
+    open fun useItem(item: Item) {
+        if (!usableItems.contains(item)) {
+            throw Exception("You don't HAVE a $item, dumbass")
+        }
+        usableItems.remove(item)
+        unusableItems.add(item)
+    }
 }

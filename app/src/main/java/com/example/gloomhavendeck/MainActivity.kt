@@ -23,7 +23,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var btnRedo : Button
 
     lateinit var deck : Deck
-    lateinit var player : Player
+    lateinit var player : MainActivityPlayer
     var enemies : MutableList<Enemy> = mutableListOf()
     var effectQueue = LinkedList<Effect>()
     lateinit var selectedCardRow : LinearLayout
@@ -194,6 +194,14 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    inner class MainActivityPlayer() : Player() {
+        override fun useItem(item: Item) {
+            super.useItem(item)
+            effectQueue.add(Effect(card = item.graphic, sound = item.sound, selectTopRow = true))
+            deck.log("Used a $item")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -219,7 +227,7 @@ class MainActivity : AppCompatActivity() {
         deck = MainActivityDeck()
         deck.addBaseDeck()
 
-        player = Player()
+        player = MainActivityPlayer()
         enemies = Enemy.createMany("""Dog 1 12
 2 8
 3 15,shield 1

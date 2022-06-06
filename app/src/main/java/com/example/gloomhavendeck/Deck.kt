@@ -277,27 +277,51 @@ open class Deck {
     fun pipis(player : Player, enemies : Iterable<Enemy>) {
         log("Pipis...")
         logIndent += 1
-        for (enemy in enemies) {
-            log("Targeting ($enemy)...")
-            if (!enemy.dead) {
-                var advantage = 0
-                if (player.statuses.contains(Status.STRENGTHEN)) {
-                    advantage += 1
-                }
-                if (player.statuses.contains(Status.MUDDLE)) {
-                    advantage -= 1
-                }
-                if (enemy.inMeleeRange) { // Make sure to set this when ballista is added
-                    advantage -= 1
-                }
+        var arbitraryCardsRecovered = 0
+        var allowedToContinue = true
+        while (allowedToContinue) {
+            allowedToContinue = false
+            // Attacks
+            for (enemy in enemies) {
+                log("Targeting ($enemy)...")
+                if (!enemy.dead) {
+                    var advantage = 0
+                    if (player.statuses.contains(Status.STRENGTHEN)) {
+                        advantage += 1
+                    }
+                    if (player.statuses.contains(Status.MUDDLE)) {
+                        advantage -= 1
+                    }
+                    if (enemy.inMeleeRange) { // Make sure to set this when ballista is added
+                        advantage -= 1
+                    }
 
-                val combinedCard =   if (advantage > 0) advantage(1)
-                                    else if (advantage < 0) disadvantage(1)
-                                    else attack(1)
-                enemy.getAttacked(combinedCard, player)
-                log("Used a $combinedCard, resulting in ($enemy)")
+                    val combinedCard =   if (advantage > 0) advantage(1)
+                                        else if (advantage < 0) disadvantage(1)
+                                        else attack(1)
+                    enemy.getAttacked(combinedCard, player)
+                    log("Used a $combinedCard, resulting in ($enemy)")
+                }
+            }
+            // One more time?
+            if (player.usableItems.contains(Item.MINOR_STAMINA_POTION)
+                && player.usableItems.contains(Item.RING_OF_BRUTALITY)
+                ) {
+                arbitraryCardsRecovered += 1
+                player.useItem(Item.MINOR_STAMINA_POTION)
+                player.useItem(Item.RING_OF_BRUTALITY)
+                allowedToContinue = true
+            }
+            else if (player.usableItems.contains(Item.MAJOR_STAMINA_POTION)
+                && player.usableItems.contains(Item.RING_OF_BRUTALITY)
+                ) {
+                arbitraryCardsRecovered += 2
+                player.useItem(Item.MAJOR_STAMINA_POTION)
+                player.useItem(Item.RING_OF_BRUTALITY)
+                allowedToContinue = true
             }
         }
+        log("Recovered $arbitraryCardsRecovered arbitrary card(s)")
         logIndent -= 1
         addUndoPoint()
     }
