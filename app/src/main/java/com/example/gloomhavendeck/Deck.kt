@@ -1,6 +1,8 @@
 package com.example.gloomhavendeck
 
 import android.util.Log
+import java.lang.Integer.max
+import java.lang.Integer.min
 
 open class Deck {
     // Cards
@@ -275,15 +277,29 @@ open class Deck {
     }
 
     fun pipis(player : Player, enemies : Iterable<Enemy>) {
+        fun powerPotThresholdReached() : Boolean {
+            var aggregatedPower = 0
+            for (enemy in enemies) {
+                aggregatedPower += min(enemy.hp, max(0, 2-enemy.effectiveShield(player)))
+            }
+            return aggregatedPower >= player.powerPotionThreshold
+        }
         log("Pipis...")
         logIndent += 1
         var arbitraryCardsRecovered = 0
         var allowedToContinue = true
         while (allowedToContinue) {
             allowedToContinue = false
+            val usingBallistaInstead = false
+            // Power?
+            var basePower = if (usingBallistaInstead) 4 else 1
+            if (powerPotThresholdReached() && player.usableItems.contains(Item.MAJOR_POWER_POTION)) {
+                basePower += 2
+                player.useItem(Item.MAJOR_POWER_POTION)
+            }
             // Attacks
             for (enemy in enemies) {
-                log("Targeting ($enemy)...")
+                log("Targeting ($enemy) with $basePower...")
                 if (!enemy.dead) {
                     var advantage = 0
                     if (player.statuses.contains(Status.STRENGTHEN)) {
@@ -292,13 +308,13 @@ open class Deck {
                     if (player.statuses.contains(Status.MUDDLE)) {
                         advantage -= 1
                     }
-                    if (enemy.inMeleeRange) { // Make sure to set this when ballista is added
+                    if (enemy.inMeleeRange and !usingBallistaInstead) {
                         advantage -= 1
                     }
 
-                    val combinedCard =   if (advantage > 0) advantage(1)
-                                        else if (advantage < 0) disadvantage(1)
-                                        else attack(1)
+                    val combinedCard =   if (advantage > 0) advantage(basePower)
+                                        else if (advantage < 0) disadvantage(basePower)
+                                        else attack(basePower)
                     enemy.getAttacked(combinedCard, player)
                     log("Used a $combinedCard, resulting in ($enemy)")
                 }
@@ -321,6 +337,7 @@ open class Deck {
                 allowedToContinue = true
             }
         }
+        activeCardsToDiscardPile()
         log("Recovered $arbitraryCardsRecovered arbitrary card(s)")
         logIndent -= 1
         addUndoPoint()
