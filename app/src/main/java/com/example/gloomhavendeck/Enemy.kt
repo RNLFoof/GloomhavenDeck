@@ -1,12 +1,15 @@
 package com.example.gloomhavendeck
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import org.intellij.lang.annotations.RegExp
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.memberProperties
 
+@RequiresApi(Build.VERSION_CODES.N)
 data class Enemy(var creationString: String) {
     // Defaults
     var hp: Int = 0
@@ -17,6 +20,8 @@ data class Enemy(var creationString: String) {
     var inBallistaRange = false
     var extraTarget = false
     var poisoned = false
+    var stunned = false
+    var muddled = false
     // Parse
     init {
         val chunks = creationString.split(",")
@@ -115,6 +120,12 @@ data class Enemy(var creationString: String) {
         dead = hp <= 0
         if (dead && inMeleeRange) {
             player.skeletonLocations += 1
+        }
+        if (card.stun) {
+            stunned = true
+        }
+        if (card.muddle) {
+            muddled = true
         }
     }
 
