@@ -130,7 +130,9 @@ data class Enemy(var creationString: String) {
             // Ints
             if (property.returnType == Int::class.createType()
                 && property.getter.call(this) as Int != 0) {
-                ret += ", ${property.getter.call(this)} ${property.name}"
+                if (property.name != "hp") {
+                    ret += ", ${property.getter.call(this)} ${property.name}"
+                }
             }
         }
         return ret

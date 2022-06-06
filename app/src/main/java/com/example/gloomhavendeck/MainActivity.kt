@@ -10,6 +10,7 @@ import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.size
+import java.lang.Exception
 import java.util.*
 
 
@@ -24,6 +25,7 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var deck : Deck
     lateinit var player : Player
+    var enemies : MutableList<Enemy> = mutableListOf()
     var effectQueue = LinkedList<Effect>()
     lateinit var selectedCardRow : LinearLayout
     var currentlyDoingDisadvantage = false
@@ -335,7 +337,31 @@ Dog 2 88,ball,shield3""")) {
                         alert.show()
                     }
                     // Enemies
-                    1 -> {}
+                    1 -> {
+                        // This will eventually stack overflow if the user is sufficiently stupid but whatever lol
+                        var text = enemies.joinToString(separator = "\n") { it.toString() }
+                        var title = "New enemies?"
+                        fun showAlert() {
+                            val alert = AlertDialog.Builder(this)
+                            alert.setTitle(title)
+                            val input = EditText(this)
+                            input.setText(text)
+                            alert.setView(input)
+                            alert.setPositiveButton("Set") { _, _ ->
+                                try {
+                                    text = input.text.toString()
+                                    enemies = Enemy.createMany(text).toMutableList()
+                                    text = enemies.joinToString(separator = "\n") { it.toString() }
+                                    title = "Result:"
+                                } catch (e: Exception) {
+                                    title = e.message.toString()
+                                }
+                                showAlert()
+                            }
+                            alert.show()
+                        }
+                        showAlert()
+                    }
                     // HP
                     2 -> {
                         val alert = AlertDialog.Builder(this)
