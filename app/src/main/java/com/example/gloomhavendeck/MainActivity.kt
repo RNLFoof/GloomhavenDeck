@@ -1,6 +1,5 @@
 package com.example.gloomhavendeck
 
-import android.content.DialogInterface
 import android.content.res.Configuration
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -175,6 +174,24 @@ class MainActivity : AppCompatActivity() {
             }
             super.activeCardsToDiscardPile(userDirectlyRequested)
         }
+
+        override fun attack(basePower: Int, userDirectlyRequested: Boolean) : Card {
+            currentlyDoingDisadvantage = false
+            effectQueue.add(Effect(selectTopRow = true, hideBottomRow = true, wipe=true))
+            return super.attack(basePower, userDirectlyRequested)
+        }
+
+        override fun advantage(basePower: Int, userDirectlyRequested: Boolean) : Card {
+            currentlyDoingDisadvantage = false
+            effectQueue.add(Effect(selectTopRow = true, showBottomRow = true, wipe=true))
+            return super.advantage(basePower, userDirectlyRequested)
+        }
+
+        override fun disadvantage(basePower: Int, userDirectlyRequested: Boolean) : Card {
+            currentlyDoingDisadvantage = true
+            effectQueue.add(Effect(selectTopRow = true, showBottomRow = true, wipe=true))
+            return super.disadvantage(basePower, userDirectlyRequested)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -203,16 +220,11 @@ class MainActivity : AppCompatActivity() {
         deck.addBaseDeck()
 
         player = Player()
+        enemies = Enemy.createMany("""Dog 1 12
+2 8
+3 15,shield 1
+4 4""").toMutableList()
 
-        Log.d("hey", "")
-        for (enemy in Enemy.createMany("""Dog 1 77
-Dog 2 78
-3 88,ball
-4 88,ball,shield 3
-Dog 2 88,ball,3 shield
-Dog 2 88,ball,3shield
-Dog 2 88,ball,shield3""")) {
-        }
             //Enemy("Dog 2 g")
         // Adding cards
         btnBless.setOnClickListener {
@@ -269,25 +281,19 @@ Dog 2 88,ball,shield3""")) {
         // Attacks
         btnAttack.setOnClickListener {
             startAction(btnAttack)
-            currentlyDoingDisadvantage = false
-            effectQueue.add(Effect(selectTopRow = true, hideBottomRow = true))
-            deck.attack()
+            deck.attack(userDirectlyRequested=true)
             endAction(btnAttack)
         }
 
         btnAdvantage.setOnClickListener {
             startAction(btnAdvantage)
-            currentlyDoingDisadvantage = false
-            effectQueue.add(Effect(selectTopRow = true, showBottomRow = true))
-            deck.advantage()
+            deck.advantage(userDirectlyRequested=true)
             endAction(btnAdvantage)
         }
 
         btnDisadvantage.setOnClickListener {
             startAction(btnDisadvantage)
-            currentlyDoingDisadvantage = true
-            effectQueue.add(Effect(selectTopRow = true, showBottomRow = true))
-            deck.disadvantage()
+            deck.disadvantage(userDirectlyRequested=true)
             endAction(btnDisadvantage)
         }
 
@@ -458,7 +464,11 @@ Dog 2 88,ball,shield3""")) {
                         alert.show()
                     }
                     // Go
-                    8 -> {}
+                    8 -> {
+                        endAction(btnPipis)
+                        deck.pipis(player, enemies)
+                        endAction(btnPipis)
+                    }
                 }
             }
 
@@ -486,6 +496,7 @@ Dog 2 88,ball,shield3""")) {
     }
 
     fun startAction(button: Button) {
+        deck.log("")
         deck.log("[${button.text.toString().uppercase()}]")
         effectQueue.add(Effect(wipe = true))
     }

@@ -107,12 +107,12 @@ data class Enemy(var creationString: String) {
         }
     }
 
-    fun getAttacked(damage: Int, player: Player) {
+    fun getAttacked(card: Card, player: Player) {
         if (dead) {
             throw Exception("Shouldn't be attacking a dead guy.")
         }
         val effectiveShield = Integer.max(0, shield - player.pierce)
-        hp -= Integer.max(0, damage - effectiveShield) + if (poisoned) 1 else 0
+        hp -= Integer.max(0, card.value - effectiveShield) + if (poisoned) 1 else 0
         dead = hp <= 0
         if (dead && inMeleeRange) {
             player.skeletonLocations += 1

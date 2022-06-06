@@ -1,8 +1,6 @@
 package com.example.gloomhavendeck
 
 import android.util.Log
-import java.util.*
-import kotlin.properties.Delegates
 
 open class Deck {
     // Cards
@@ -203,59 +201,104 @@ open class Deck {
             addUndoPoint()
     }
 
-    fun attack() {
+    open fun attack(basePower: Int = 0, userDirectlyRequested: Boolean = false) : Card {
         logIndent += 1
         val drawnRow = drawRow()
-        if (drawnRow.any{it.multiplier && it.value == 2}) {
-            log("Can't infer the result without a base value, nerd.");
+        val baseCard = Card(basePower)
+        drawnRow.add(0, baseCard)
+        val combinedCard = drawnRow.sum()
+        if (basePower == 0 && drawnRow.any{it.multiplier && it.value == 2}) {
+            log("Can't infer the result without a base value, nerd.")
         } else {
-            log("Effectively drew a ${drawnRow.sum()}");
+            log("Effectively drew a ${combinedCard}");
         }
         logIndent -= 1;
-        addUndoPoint()
+        if (userDirectlyRequested)
+            addUndoPoint()
+        return combinedCard
     }
 
-    fun advantage() {
+    open fun advantage(basePower: Int = 0, userDirectlyRequested: Boolean = false) : Card {
         logIndent += 1
         val drawnRow1 = drawRow()
         val drawnRow2 = drawRow()
-        if ((drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
-            log("Can't infer the result without a base value, nerd.");
-        } else {
-            val winner : Card
-            // Prioritize refreshes
-            if (drawnRow1.last().refresh) {
-                winner = drawnRow1.last()
-            }
-            else if (drawnRow2.last().refresh) {
-                winner = drawnRow2.last()
-            }
-            // Otherwise..
-            else {
-                winner = if (drawnRow1.last() > drawnRow2.last()) drawnRow1.last() else drawnRow2.last()
-            }
-            val combined = (
+        val baseCard = Card(basePower)
+        drawnRow1.add(0, baseCard) // Doesn't matter which row it goes into
+
+        val winner : Card
+        // Prioritize refreshes
+        if (drawnRow1.last().refresh) {
+            winner = drawnRow1.last()
+        }
+        else if (drawnRow2.last().refresh) {
+            winner = drawnRow2.last()
+        }
+        // Otherwise..
+        else {
+            winner = if (drawnRow1.last() > drawnRow2.last()) drawnRow1.last() else drawnRow2.last()
+        }
+        val combinedCard = (
                 drawnRow1.slice(0 until drawnRow1.size-1)
-                + drawnRow2.slice(0 until drawnRow2.size-1)
-                + listOf(winner)
-            ).sum()
-            log("Effectively drew a ${combined}");
+                        + drawnRow2.slice(0 until drawnRow2.size-1)
+                        + listOf(winner)
+                ).sum()
+
+        if (basePower == 0 && (drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
+            log("Can't infer the result without a base value, nerd.");
+        } else {
+            log("Effectively drew a ${combinedCard}");
         }
-        logIndent -= 1;
-        addUndoPoint()
+        logIndent -= 1
+        if (userDirectlyRequested)
+            addUndoPoint()
+        return combinedCard
     }
 
-    fun disadvantage() {
+    open fun disadvantage(basePower: Int = 0, userDirectlyRequested: Boolean = false) : Card {
         logIndent += 1
         val drawnRow1 = drawRow()
         val drawnRow2 = drawRow()
-        if ((drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
+        val baseCard = Card(basePower)
+
+        val loser = if (drawnRow1.last() < drawnRow2.last()) drawnRow1.last() else drawnRow2.last()
+        val combinedCard = baseCard + loser
+
+        if (basePower == 0 && (drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
             log("Can't infer the result without a base value, nerd.");
         } else {
-            val loser = if (drawnRow1.last() < drawnRow2.last()) drawnRow1.last() else drawnRow2.last()
-            log("Effectively drew a $loser");
+            log("Effectively drew a $loser")
         }
         logIndent -= 1;
+        if (userDirectlyRequested)
+            addUndoPoint()
+        return combinedCard
+    }
+
+    fun pipis(player : Player, enemies : Iterable<Enemy>) {
+        log("Pipis...")
+        logIndent += 1
+        for (enemy in enemies) {
+            log("Targeting ($enemy)...")
+            if (!enemy.dead) {
+                var advantage = 0
+                if (player.statuses.contains(Status.STRENGTHEN)) {
+                    advantage += 1
+                }
+                if (player.statuses.contains(Status.MUDDLE)) {
+                    advantage -= 1
+                }
+                if (enemy.inMeleeRange) { // Make sure to set this when ballista is added
+                    advantage -= 1
+                }
+
+                val combinedCard =   if (advantage > 0) advantage(1)
+                                    else if (advantage < 0) disadvantage(1)
+                                    else attack(1)
+                enemy.getAttacked(combinedCard, player)
+                log("Used a $combinedCard, resulting in ($enemy)")
+            }
+        }
+        logIndent -= 1
         addUndoPoint()
     }
 }
