@@ -40,6 +40,11 @@ open class Deck {
 
     // Meta
     open fun log(text: String) {
+        // Override any "future" logs
+        while (logsToHide > 0) {
+            logsToHide -= 1
+            logList.removeLast()
+        }
         logList.add("----".repeat(logIndent) + text)
         while (logList.size > 100) {
             logList.removeFirst()
@@ -58,11 +63,6 @@ open class Deck {
         while (undosBack > 0) {
             undosBack -= 1
             undoPoints.removeLast()
-        }
-        // Override any "future" logs
-        while (logsToHide > 0) {
-            logsToHide -= 1
-            logList.removeLast()
         }
         // Add a new one
         undoPoints.add(UndoPoint())
