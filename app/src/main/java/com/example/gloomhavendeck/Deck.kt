@@ -23,13 +23,13 @@ open class Deck {
     val undoPoints = mutableListOf<UndoPoint>()
     var undosBack = 0
 
-    inner class UndoPoint() {
+    open inner class UndoPoint() {
         val drawPile : MutableList<Card> = this@Deck.drawPile.toMutableList()
         val activeCards : MutableList<Card> = this@Deck.activeCards.toMutableList()
         val discardPile : MutableList<Card> = this@Deck.discardPile.toMutableList()
         var logCount = this@Deck.logCount
 
-        fun use() {
+        open fun use() {
             this@Deck.drawPile = drawPile.toMutableList()
             this@Deck.activeCards = activeCards.toMutableList()
             this@Deck.discardPile = discardPile.toMutableList()
@@ -65,7 +65,12 @@ open class Deck {
             undoPoints.removeLast()
         }
         // Add a new one
-        undoPoints.add(UndoPoint())
+        undoPoints.add(getUndoPoint())
+    }
+
+    // Done like this so the object can be replaced with an expanded one.
+    open fun getUndoPoint(): UndoPoint {
+        return UndoPoint()
     }
 
     fun Undo() {

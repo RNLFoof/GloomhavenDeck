@@ -11,8 +11,14 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.size
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.lang.Exception
 import java.util.*
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.full.createType
+import kotlin.reflect.full.memberProperties
 
 
 @RequiresApi(Build.VERSION_CODES.N)
@@ -90,6 +96,31 @@ class MainActivity : AppCompatActivity() {
     }
 
     inner class MainActivityDeck() : Deck() {
+
+        inner class UndoPoint : Deck.UndoPoint() {
+            var playerJson = Json.encodeToString(player as Player)
+            init {
+                deck.log(playerJson)
+            }
+            override fun use() {
+                // Done like this because inner classes can't be serialized and you can't cast a
+                // super into a child class
+                // Could be done faster if I manually mapped every field but fuck that lol
+                val decodedPlayer = Json.decodeFromString<Player>(playerJson)
+                player = MainActivityPlayer() // New one is made because default values aren't serialized
+                for (property in Player::class.memberProperties) {
+                    try {
+                        (property as KMutableProperty<*>).setter.call(player, (property.get(decodedPlayer))
+                    )}
+                    catch (e: Exception)
+                    {}
+                }
+            }
+        }
+
+        override fun getUndoPoint(): Deck.UndoPoint {
+            return UndoPoint()
+        }
 
         val effectLoop = Thread {
             while (true) {
@@ -230,14 +261,14 @@ class MainActivity : AppCompatActivity() {
         selectedCardRow = llTopCardRow
         tvLog = findViewById<TextView>(R.id.tvLog)
 
-        deck = MainActivityDeck()
-        deck.addBaseDeck()
-
         player = MainActivityPlayer()
         enemies = Enemy.createMany("""Dog 1 12
 2 8
 3 15,shield 1
 4 4""").toMutableList()
+        // Because the deck has player undos it needs to be made after
+        deck = MainActivityDeck()
+        deck.addBaseDeck()
 
             //Enemy("Dog 2 g")
         // Adding cards

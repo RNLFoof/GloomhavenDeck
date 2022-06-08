@@ -2,11 +2,13 @@ package com.example.gloomhavendeck
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import kotlinx.serialization.Serializable
 
 @RequiresApi(Build.VERSION_CODES.N)
+@Serializable
 open class Player() {
     var hp = 26
-    val usableItems = mutableListOf(
+    var usableItems = mutableListOf(
         Item.CLOAK_OF_POCKETS,
         Item.MAJOR_CURE_POTION,
         Item.MAJOR_POWER_POTION,
@@ -20,8 +22,8 @@ open class Player() {
         Item.SUPER_HEALING_POTION,
         Item.TOWER_SHIELD,
     )
-    val unusableItems = mutableListOf<Item>()
-    val statuses = mutableListOf<Status>()
+    var unusableItems = mutableListOf<Item>()
+    var statuses = mutableListOf<Status>()
     var powerPotionThreshold = 6
     var hpDangerThreshold = 10
     var skeletonLocations = 1
