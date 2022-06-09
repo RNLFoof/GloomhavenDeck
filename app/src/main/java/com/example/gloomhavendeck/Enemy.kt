@@ -123,9 +123,6 @@ data class Enemy(var creationString: String) {
         }
         taken += Integer.max(0, card.value - effectiveShield(player)) + if (poisoned) 1 else 0
         dead = taken >= maxHp
-        if (dead && inMeleeRange) {
-            player.skeletonLocations += 1
-        }
         if (!dead && inRetaliateRange) {
             player.hp -= retaliate
         }

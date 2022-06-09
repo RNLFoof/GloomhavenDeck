@@ -26,7 +26,6 @@ open class Player() {
     var statuses = mutableListOf<Status>()
     var powerPotionThreshold = 6
     var hpDangerThreshold = 10
-    var skeletonLocations = 1
     var pierce = 0
     val maxHp = 26
 

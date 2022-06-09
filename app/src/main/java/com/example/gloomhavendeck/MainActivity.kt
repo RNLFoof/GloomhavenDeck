@@ -353,7 +353,6 @@ class MainActivity : AppCompatActivity() {
                 "Statuses (Currently ${player.statuses})",
                 "Power Potion Threshold (Currently ${player.powerPotionThreshold})",
                 "HP Danger Threshold (Currently ${player.hpDangerThreshold})",
-                "Skeleton Locations (Currently ${player.skeletonLocations})",
                 "Pierce (Currently ${player.pierce})",
                 "Go")
             ) { _, which ->
@@ -502,25 +501,8 @@ class MainActivity : AppCompatActivity() {
                         }
                         alert.show()
                     }
-                    // Skeleton Locations
-                    6 -> {
-                        val alert = AlertDialog.Builder(this)
-                        alert.setTitle("New Skeleton Locations?")
-                        val input = EditText(this)
-                        input.inputType = InputType.TYPE_CLASS_NUMBER
-                        input.setRawInputType(Configuration.KEYBOARD_12KEY)
-                        input.setText(player.skeletonLocations.toString())
-                        alert.setView(input)
-                        alert.setPositiveButton("Set") { _, _ ->
-                            player.skeletonLocations = input.text.toString().toInt()
-                            deck.log("SKELETON")
-                            deck.addUndoPoint()
-                            endAction(btnPipis)
-                        }
-                        alert.show()
-                    }
                     // Pierce
-                    7 -> {
+                    6 -> {
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("New Pierce?")
                         val input = EditText(this)
@@ -537,7 +519,7 @@ class MainActivity : AppCompatActivity() {
                         alert.show()
                     }
                     // Go
-                    8 -> {
+                    7 -> {
                         effectSpeed = 1_000/2L
                         deck.pipis(player, enemies)
                         effectSpeed = baseEffectSpeed

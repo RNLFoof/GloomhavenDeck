@@ -447,7 +447,6 @@ open class Deck {
         }
         log("Player HP: ${player.hp}")
         log("Player Statuses: ${player.statuses}")
-        log("Player Skeleton Spots: ${player.skeletonLocations}")
         logIndent -= 1
         addUndoPoint()
     }
