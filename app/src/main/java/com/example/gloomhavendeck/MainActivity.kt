@@ -100,7 +100,7 @@ class MainActivity : AppCompatActivity() {
         inner class UndoPoint : Deck.UndoPoint() {
             var playerJson = Json.encodeToString(player as Player)
             var enemyBlock = enemies.joinToString(separator = "\n") { it.toString() }
-            
+
             override fun use() {
                 // Done like this because inner classes can't be serialized and you can't cast a
                 // super into a child class
@@ -366,7 +366,7 @@ class MainActivity : AppCompatActivity() {
                         val linearLayout = LinearLayout(this)
                         scrollView.addView(linearLayout)
                         linearLayout.orientation = LinearLayout.VERTICAL
-                        for (item in player.usableItems + player.unusableItems) {
+                        for (item in (player.usableItems + player.unusableItems).sortedBy { it.name }) {
                             if (item.permanent) {
                                 continue
                             }
