@@ -100,9 +100,7 @@ class MainActivity : AppCompatActivity() {
         inner class UndoPoint : Deck.UndoPoint() {
             var playerJson = Json.encodeToString(player as Player)
             var enemyBlock = enemies.joinToString(separator = "\n") { it.toString() }
-            init {
-                deck.log(playerJson)
-            }
+            
             override fun use() {
                 // Done like this because inner classes can't be serialized and you can't cast a
                 // super into a child class
@@ -383,6 +381,9 @@ class MainActivity : AppCompatActivity() {
                                     player.usableItems.remove(item)
                                     player.unusableItems.add(item)
                                 }
+                                deck.log("Updated items.")
+                                deck.addUndoPoint()
+                                endAction(btnPipis)
                             }
                             linearLayout.addView(checkBox)
                         }
@@ -411,6 +412,9 @@ class MainActivity : AppCompatActivity() {
                                     title = e.message.toString()
                                 }
                                 showAlert()
+                                deck.log("Updated enemies.")
+                                deck.addUndoPoint()
+                                endAction(btnPipis)
                             }
                             alert.show()
                         }
@@ -427,6 +431,9 @@ class MainActivity : AppCompatActivity() {
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
                             player.hp = input.text.toString().toInt()
+                            deck.log("Updated HP.")
+                            deck.addUndoPoint()
+                            endAction(btnPipis)
                         }
                         alert.show()
                     }
@@ -445,8 +452,14 @@ class MainActivity : AppCompatActivity() {
                             checkBox.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
                                 if (on) {
                                     player.statuses.add(status)
+                                    deck.log("Updated statuses.")
+                                    deck.addUndoPoint()
+                                    endAction(btnPipis)
                                 } else {
                                     player.statuses.remove(status)
+                                    deck.log("Updated statuses.")
+                                    deck.addUndoPoint()
+                                    endAction(btnPipis)
                                 }
                             }
                             linearLayout.addView(checkBox)
@@ -466,6 +479,9 @@ class MainActivity : AppCompatActivity() {
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
                             player.powerPotionThreshold = input.text.toString().toInt()
+                            deck.log("Updated power pot threshold.")
+                            deck.addUndoPoint()
+                            endAction(btnPipis)
                         }
                         alert.show()
                     }
@@ -480,6 +496,9 @@ class MainActivity : AppCompatActivity() {
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
                             player.hpDangerThreshold = input.text.toString().toInt()
+                            deck.log("Updated HP danger threshold.")
+                            deck.addUndoPoint()
+                            endAction(btnPipis)
                         }
                         alert.show()
                     }
@@ -494,6 +513,9 @@ class MainActivity : AppCompatActivity() {
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
                             player.skeletonLocations = input.text.toString().toInt()
+                            deck.log("SKELETON")
+                            deck.addUndoPoint()
+                            endAction(btnPipis)
                         }
                         alert.show()
                     }
@@ -508,16 +530,18 @@ class MainActivity : AppCompatActivity() {
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
                             player.pierce = input.text.toString().toInt()
+                            deck.log("Updated pierce.")
+                            deck.addUndoPoint()
+                            endAction(btnPipis)
                         }
                         alert.show()
                     }
                     // Go
                     8 -> {
                         effectSpeed = 1_000/2L
-                        endAction(btnPipis)
                         deck.pipis(player, enemies)
-                        endAction(btnPipis)
                         effectSpeed = baseEffectSpeed
+                        endAction(btnPipis)
                     }
                 }
             }
