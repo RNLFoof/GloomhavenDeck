@@ -20,7 +20,7 @@ data class Enemy(var creationString: String) {
     var inRetaliateRange = false
     var inMeleeRange = false
     var inBallistaRange = false
-    var targeted = true
+    var targeted = false
     var extraTarget = false
     var poisoned = false
     var stunned = false

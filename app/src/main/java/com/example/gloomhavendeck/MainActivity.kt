@@ -1,11 +1,13 @@
 package com.example.gloomhavendeck
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.util.Log
+import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
@@ -240,6 +242,8 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.Q)
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -349,6 +353,7 @@ class MainActivity : AppCompatActivity() {
             dialogBuilder.setItems(arrayOf(
                 "Inventory (Currently ${player.usableItems.size}/${player.usableItems.size+player.unusableItems.size})",
                 "Enemies",
+                "Enemy Menu",
                 "HP (Currently ${player.hp})",
                 "Statuses (Currently ${player.statuses})",
                 "Power Potion Threshold (Currently ${player.powerPotionThreshold})",
@@ -419,8 +424,75 @@ class MainActivity : AppCompatActivity() {
                         }
                         showAlert()
                     }
-                    // HP
+                    // Enemy menu
                     2 -> {
+                        val alert = AlertDialog.Builder(this)
+                        alert.setTitle("Enemy Menu")
+                        val scrollView = ScrollView(this)
+                        val llRows = LinearLayout(this)
+                        scrollView.addView(llRows)
+                        llRows.orientation = LinearLayout.VERTICAL
+                        for (enemy in enemies.sortedBy { it.name }) {
+                            val llRow = LinearLayout(this)
+                            llRow.orientation = LinearLayout.HORIZONTAL
+                            llRows.addView(llRow)
+                            // Name
+                            val tvName = TextView(this)
+                            tvName.text = enemy.name
+                            llRow.addView(tvName)
+                            // Taken
+                            val npTaken = NumberPicker(this)
+                            npTaken.minValue = 0
+                            npTaken.maxValue = enemy.maxHp
+                            npTaken.value = enemy.taken
+                            npTaken.layoutParams = ViewGroup.LayoutParams(300,100)
+                            npTaken.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
+                                enemy.taken = new
+                            }
+                            llRow.addView(npTaken)
+                            // Targeted checkbox
+                            val cbTargeted = CheckBox(this)
+                            cbTargeted.text = "Targ"
+                            cbTargeted.isChecked = enemy.targeted
+                            cbTargeted.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                enemy.targeted = !enemy.targeted
+                            }
+                            llRow.addView(cbTargeted)
+                            // Extra Target checkbox
+                            val cbExtraTarget = CheckBox(this)
+                            cbExtraTarget.text = "ExT"
+                            cbExtraTarget.isChecked = enemy.extraTarget
+                            cbExtraTarget.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                enemy.extraTarget = !enemy.extraTarget
+                            }
+                            llRow.addView(cbExtraTarget)
+                            // Melee Range checkbox
+                            val cbMeleeRange = CheckBox(this)
+                            cbMeleeRange.text = "MR"
+                            cbMeleeRange.isChecked = enemy.inMeleeRange
+                            cbMeleeRange.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                enemy.inMeleeRange = !enemy.inMeleeRange
+                            }
+                            llRow.addView(cbMeleeRange)
+                            // Retaliate Range checkbox
+                            val cbRetaliateRange = CheckBox(this)
+                            cbRetaliateRange.text = "RR"
+                            cbRetaliateRange.isChecked = enemy.inRetaliateRange
+                            cbRetaliateRange.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                enemy.inRetaliateRange = !enemy.inRetaliateRange
+                            }
+                            llRow.addView(cbRetaliateRange)
+                        }
+                        alert.setView(scrollView)
+                        alert.setOnDismissListener{
+                            deck.log("Updated enemies via menu.")
+                            deck.addUndoPoint()
+                            endAction(btnPipis)
+                        }
+                        alert.show()
+                    }
+                    // HP
+                    3 -> {
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("New HP?")
                         val input = EditText(this)
@@ -437,7 +509,7 @@ class MainActivity : AppCompatActivity() {
                         alert.show()
                     }
                     // Statuses
-                    3 -> {
+                    4 -> {
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("New Statuses?")
                         val scrollView = ScrollView(this)
@@ -468,7 +540,7 @@ class MainActivity : AppCompatActivity() {
                         alert.show()
                     }
                     // Power Potion Threshold
-                    4 -> {
+                    5 -> {
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("New Power Potion Threshold?")
                         val input = EditText(this)
@@ -485,7 +557,7 @@ class MainActivity : AppCompatActivity() {
                         alert.show()
                     }
                     // HP Danger Threshold
-                    5 -> {
+                    6 -> {
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("New HP Danger Threshold?")
                         val input = EditText(this)
@@ -502,7 +574,7 @@ class MainActivity : AppCompatActivity() {
                         alert.show()
                     }
                     // Pierce
-                    6 -> {
+                    7 -> {
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("New Pierce?")
                         val input = EditText(this)
@@ -519,7 +591,7 @@ class MainActivity : AppCompatActivity() {
                         alert.show()
                     }
                     // Go
-                    7 -> {
+                    8 -> {
                         effectSpeed = 1_000/2L
                         deck.pipis(player, enemies)
                         effectSpeed = baseEffectSpeed
