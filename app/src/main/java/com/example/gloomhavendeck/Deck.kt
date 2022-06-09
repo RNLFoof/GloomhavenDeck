@@ -354,18 +354,12 @@ open class Deck {
         fun recover() {
             // Pendant logic is kept separate because otherwise it could try to revive itself
             // and other such nonsense
-            var itemsRecovered = 0
+            val itemsRecovered = mutableListOf<RecoveryCandidate>()
             for (recoveryCandidate in getRecoveryCandidates()) {
-                itemsRecovered += 1
+                itemsRecovered.add(recoveryCandidate)
                 player.usableItems.add(recoveryCandidate.item)
                 player.unusableItems.remove(recoveryCandidate.item)
-                if (recoveryCandidate.useImmediately) {
-                    player.useItem(recoveryCandidate.item)
-                    log("Recovered and immediately used ${recoveryCandidate.item}")
-                } else {
-                    log("Recovered ${recoveryCandidate.item}")
-                }
-                if (itemsRecovered >= 2) {
+                if (itemsRecovered.size >= 2) {
                     player.usableItems.add(Item.PENDANT_OF_DARK_PACTS)
                     player.unusableItems.remove(Item.PENDANT_OF_DARK_PACTS)
                     player.useItem(Item.PENDANT_OF_DARK_PACTS)
@@ -373,7 +367,15 @@ open class Deck {
                     break
                 }
             }
-            if (itemsRecovered == 0) {
+            for (recoveryCandidate in itemsRecovered) {
+                if (recoveryCandidate.useImmediately) {
+                    player.useItem(recoveryCandidate.item)
+                    log("Recovered and immediately used ${recoveryCandidate.item}")
+                } else {
+                    log("Recovered ${recoveryCandidate.item}")
+                }
+            }
+            if (itemsRecovered.size == 0) {
                 player.usableItems.add(Item.PENDANT_OF_DARK_PACTS)
                 player.unusableItems.remove(Item.PENDANT_OF_DARK_PACTS)
             }
