@@ -288,7 +288,9 @@ open class Deck {
         fun powerPotThresholdReached() : Boolean {
             var aggregatedPower = 0
             for (enemy in enemies) {
-                aggregatedPower += min(enemy.hp, max(0, 2-enemy.effectiveShield(player)))
+                if (!enemy.dead) {
+                    aggregatedPower += min(enemy.getHp(), max(0, 2 - enemy.effectiveShield(player)))
+                }
             }
             return aggregatedPower >= player.powerPotionThreshold
         }
@@ -408,7 +410,7 @@ open class Deck {
                         advantage -= 1
                     }
 
-                    val combinedCard =   if (advantage > 0) advantage(basePower)
+                    val combinedCard = if (advantage > 0) advantage(basePower)
                                         else if (advantage < 0) disadvantage(basePower)
                                         else attack(basePower)
                     enemy.getAttacked(combinedCard, player)

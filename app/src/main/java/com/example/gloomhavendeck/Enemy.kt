@@ -12,7 +12,8 @@ import kotlin.reflect.full.memberProperties
 @RequiresApi(Build.VERSION_CODES.N)
 data class Enemy(var creationString: String) {
     // Defaults
-    var hp: Int = 0
+    var taken: Int = 0
+    var maxHp: Int = 0
     var name: String = ""
     var shield = 0
     var retaliate = 0
@@ -27,12 +28,15 @@ data class Enemy(var creationString: String) {
         val chunks = creationString.split(",")
         // HP and name
         val firstChunk = chunks.first().trim()
-        val search = Regex("^(.+?)(\\d+)\$").find(firstChunk)
+        val search = Regex("^(.+?)\\s+?(\\d+)\\s*?(\\d+)?\$").find(firstChunk)
         if (search != null) {
             name = search.groups[1]!!.value.trim()
-            hp = search.groups[2]!!.value.toInt()
+            maxHp = search.groups[2]!!.value.toInt()
+            if (search.groups[3] != null) {
+                taken = search.groups[3]!!.value.toInt()
+            }
         } else {
-            throw Exception("Wasn't able to set name and HP using $firstChunk")
+            throw Exception("Wasn't able to set name and Max HP using $firstChunk")
         }
         // Other stuff
         if (chunks.size > 1) {
@@ -88,7 +92,7 @@ data class Enemy(var creationString: String) {
         }
         Log.d("hey", this.toString())
     }
-    var dead = hp <= 0
+    var dead = taken >= maxHp
 
     companion object {
         fun createMany(block: String) = sequence {
@@ -99,10 +103,9 @@ data class Enemy(var creationString: String) {
             val nameRegex = Regex("^[a-zA-Z]+")
             var previousName = nameRegex.find(block)!!.value
             for (line in block.split("\n")) {
-                Log.d("hey pname", previousName)
                 val currentName = nameRegex.find(line)
                 if (currentName == null) {
-                    yield(Enemy(previousName + " " + line))
+                    yield(Enemy(previousName + line))
                 }
                 else {
                     previousName = currentName.value
@@ -116,8 +119,8 @@ data class Enemy(var creationString: String) {
         if (dead) {
             throw Exception("Shouldn't be attacking a dead guy.")
         }
-        hp -= Integer.max(0, card.value - effectiveShield(player)) + if (poisoned) 1 else 0
-        dead = hp <= 0
+        taken += Integer.max(0, card.value - effectiveShield(player)) + if (poisoned) 1 else 0
+        dead = taken >= maxHp
         if (dead && inMeleeRange) {
             player.skeletonLocations += 1
         }
@@ -133,8 +136,12 @@ data class Enemy(var creationString: String) {
         return Integer.max(0, shield - player.pierce)
     }
 
+    fun getHp(): Int {
+        return maxHp - taken
+    }
+
     override fun toString(): String {
-        var ret = "$name $hp"
+        var ret = "$name $maxHp $taken"
         for (property in Enemy::class.memberProperties) {
             // Bools
             if (property.returnType == Boolean::class.createType()
@@ -144,7 +151,7 @@ data class Enemy(var creationString: String) {
             // Ints
             if (property.returnType == Int::class.createType()
                 && property.getter.call(this) as Int != 0) {
-                if (property.name != "hp") {
+                if (property.name != "maxHp" && property.name != "taken") {
                     ret += ", ${property.getter.call(this)} ${property.name}"
                 }
             }

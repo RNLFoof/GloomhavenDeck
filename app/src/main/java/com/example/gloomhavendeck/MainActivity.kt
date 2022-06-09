@@ -262,7 +262,7 @@ class MainActivity : AppCompatActivity() {
         tvLog = findViewById<TextView>(R.id.tvLog)
 
         player = MainActivityPlayer()
-        enemies = Enemy.createMany("""Dog 1 12
+        enemies = Enemy.createMany("""Dog1 12
 2 8
 3 15,shield 1
 4 4""").toMutableList()
