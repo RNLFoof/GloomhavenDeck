@@ -288,7 +288,7 @@ open class Deck {
         fun powerPotThresholdReached() : Boolean {
             var aggregatedPower = 0
             for (enemy in enemies) {
-                if (!enemy.dead) {
+                if (enemy.getTargetable()) {
                     aggregatedPower += min(enemy.getHp(), max(0, 2 - enemy.effectiveShield(player)))
                 }
             }
@@ -398,7 +398,7 @@ open class Deck {
             // Attacks
             for (enemy in enemies) {
                 log("Targeting ($enemy) with $basePower...")
-                if (!enemy.dead) {
+                if (enemy.getTargetable()) {
                     var advantage = 0
                     if (player.statuses.contains(Status.STRENGTHEN)) {
                         advantage += 1
@@ -423,6 +423,7 @@ open class Deck {
             // One more time?
             if (player.usableItems.contains(Item.MINOR_STAMINA_POTION)
                 && player.usableItems.contains(Item.RING_OF_BRUTALITY)
+                && player.hp - enemies.sumOf { if (!it.getTargetable() || !it.inRetaliateRange) 0 else it.retaliate } >= player.hpDangerThreshold
                 ) {
                 arbitraryCardsRecovered += 1
                 player.useItem(Item.MINOR_STAMINA_POTION)

@@ -17,8 +17,10 @@ data class Enemy(var creationString: String) {
     var name: String = ""
     var shield = 0
     var retaliate = 0
+    var inRetaliateRange = false
     var inMeleeRange = false
     var inBallistaRange = false
+    var targeted = true
     var extraTarget = false
     var poisoned = false
     var stunned = false
@@ -116,13 +118,16 @@ data class Enemy(var creationString: String) {
     }
 
     fun getAttacked(card: Card, player: Player) {
-        if (dead) {
-            throw Exception("Shouldn't be attacking a dead guy.")
+        if (getTargetable()) {
+            throw Exception("Shouldn't be attacking an untargetable guy.")
         }
         taken += Integer.max(0, card.value - effectiveShield(player)) + if (poisoned) 1 else 0
         dead = taken >= maxHp
         if (dead && inMeleeRange) {
             player.skeletonLocations += 1
+        }
+        if (!dead && inRetaliateRange) {
+            player.hp -= retaliate
         }
         if (card.stun) {
             stunned = true
@@ -138,6 +143,10 @@ data class Enemy(var creationString: String) {
 
     fun getHp(): Int {
         return maxHp - taken
+    }
+
+    fun getTargetable(): Boolean {
+        return !dead && targeted
     }
 
     override fun toString(): String {
