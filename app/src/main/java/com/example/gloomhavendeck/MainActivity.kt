@@ -99,6 +99,7 @@ class MainActivity : AppCompatActivity() {
 
         inner class UndoPoint : Deck.UndoPoint() {
             var playerJson = Json.encodeToString(player as Player)
+            var enemyBlock = enemies.joinToString(separator = "\n") { it.toString() }
             init {
                 deck.log(playerJson)
             }
@@ -115,6 +116,8 @@ class MainActivity : AppCompatActivity() {
                     catch (e: Exception)
                     {}
                 }
+                // Enemies
+                enemies = Enemy.createMany(enemyBlock).toMutableList()
             }
         }
 
