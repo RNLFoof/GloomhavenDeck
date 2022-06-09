@@ -104,6 +104,7 @@ class MainActivity : AppCompatActivity() {
             var enemyBlock = enemies.joinToString(separator = "\n") { it.toString() }
 
             override fun use() {
+                super.use()
                 // Done like this because inner classes can't be serialized and you can't cast a
                 // super into a child class
                 // Could be done faster if I manually mapped every field but fuck that lol
