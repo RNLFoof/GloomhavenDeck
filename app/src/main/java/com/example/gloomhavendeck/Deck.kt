@@ -41,10 +41,11 @@ open class Deck {
     // Meta
     open fun log(text: String) {
         // Override any "future" logs
-        while (logsToHide > 0) {
+        while (logsToHide > 0 && logList.size > 0) {
             logsToHide -= 1
             logList.removeLast()
         }
+        logsToHide = 0 // So that if there's more to hide than there is it still resets
         logList.add("----".repeat(logIndent) + text)
         while (logList.size > 100) {
             logList.removeFirst()
@@ -54,7 +55,7 @@ open class Deck {
 
     fun getShownLogs(): MutableList<String> {
         Log.d("undos", "Hiding $logsToHide logs. Final log is ${logList.last()}")
-        return logList.subList(0, logList.size-logsToHide)
+        return logList.subList(0, max(0, logList.size-logsToHide))
     }
 
     fun addUndoPoint() {
@@ -399,8 +400,8 @@ open class Deck {
             }
             // Attacks
             for (enemy in enemies) {
-                log("Targeting ($enemy) with $basePower...")
                 if (enemy.getTargetable()) {
+                    log("Targeting ($enemy) with $basePower...")
                     var advantage = 0
                     if (player.statuses.contains(Status.STRENGTHEN)) {
                         advantage += 1
@@ -425,7 +426,8 @@ open class Deck {
             // One more time?
             if (player.usableItems.contains(Item.MINOR_STAMINA_POTION)
                 && player.usableItems.contains(Item.RING_OF_BRUTALITY)
-                && player.hp - enemies.sumOf { if (!it.getTargetable() || !it.inRetaliateRange) 0 else it.retaliate } >= player.hpDangerThreshold
+                && (player.hp - enemies.sumOf { if (!it.getTargetable() || !it.inRetaliateRange) 0 else it.retaliate } >= player.hpDangerThreshold)
+                && (enemies.sumOf { if (!it.getTargetable()) 0 else "1".toInt() } >= 3)
                 ) {
                 arbitraryCardsRecovered += 1
                 player.useItem(Item.MINOR_STAMINA_POTION)

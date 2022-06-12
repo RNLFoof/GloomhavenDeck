@@ -118,7 +118,7 @@ data class Enemy(var creationString: String) {
     }
 
     fun getAttacked(card: Card, player: Player) {
-        if (getTargetable()) {
+        if (!getTargetable()) {
             throw Exception("Shouldn't be attacking an untargetable guy.")
         }
         taken += Integer.max(0, card.value - effectiveShield(player)) + if (poisoned) 1 else 0
