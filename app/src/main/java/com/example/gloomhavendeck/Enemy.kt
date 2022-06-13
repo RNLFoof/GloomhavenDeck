@@ -199,7 +199,7 @@ data class Enemy(var creationString: String) {
     }
 
     fun getAttacked(card: Card, player: Player) {
-        if (!getTargetable()) {
+        if (!getTargetable(ignoreTargeted = true)) {
             throw Exception("Shouldn't be attacking an untargetable guy.")
         }
         taken += Integer.max(0, card.value - effectiveShield(player)) + if (poisoned) 1 else 0
@@ -223,8 +223,8 @@ data class Enemy(var creationString: String) {
         return maxHp - taken
     }
 
-    fun getTargetable(): Boolean {
-        return !dead && targeted
+    fun getTargetable(ignoreTargeted: Boolean = false): Boolean {
+        return !dead && (targeted || ignoreTargeted)
     }
 
     override fun toString(): String {

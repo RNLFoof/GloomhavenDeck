@@ -16,6 +16,7 @@ open class Deck {
     // Logging
     var logList = mutableListOf<String>()
     var logIndent = 0 // How many spaces to insert before a log, used to indicate that one action is part of another
+    var logMuted = false // So you can make it shut up
     var logCount = 0 // How many logs have been made in general, used instead of index so old stuff can be removed
     var logsToHide = 0 // Used to go back and forth while undoing without like, making entire separate copies of the logs
 
@@ -40,17 +41,19 @@ open class Deck {
 
     // Meta
     open fun log(text: String) {
-        // Override any "future" logs
-        while (logsToHide > 0 && logList.size > 0) {
-            logsToHide -= 1
-            logList.removeLast()
+        if (!logMuted) {
+            // Override any "future" logs
+            while (logsToHide > 0 && logList.size > 0) {
+                logsToHide -= 1
+                logList.removeLast()
+            }
+            logsToHide = 0 // So that if there's more to hide than there is it still resets
+            logList.add("----".repeat(logIndent) + text)
+            while (logList.size > 100) {
+                logList.removeFirst()
+            }
+            logCount += 1
         }
-        logsToHide = 0 // So that if there's more to hide than there is it still resets
-        logList.add("----".repeat(logIndent) + text)
-        while (logList.size > 100) {
-            logList.removeFirst()
-        }
-        logCount += 1
     }
 
     fun getShownLogs(): MutableList<String> {
@@ -376,7 +379,7 @@ open class Deck {
                     log("Recovered ${recoveryCandidate.item}")
                 }
             }
-            if (itemsRecovered.size == 0) {
+            if (itemsRecovered.size == 0 && player.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
                 player.usableItems.add(Item.PENDANT_OF_DARK_PACTS)
                 player.unusableItems.remove(Item.PENDANT_OF_DARK_PACTS)
             }
@@ -387,6 +390,7 @@ open class Deck {
         var arbitraryCardsRecovered = 0
         var allowedToContinue = true
         var loops = 0
+        var gotASpinny = false
         while (allowedToContinue) {
             log("Loop ${++loops}...")
             logIndent += 1
@@ -399,27 +403,54 @@ open class Deck {
                 player.useItem(Item.MAJOR_POWER_POTION)
             }
             // Attacks
+            var gotExtraTarget = false
+            fun attackEnemy(enemy: Enemy) {
+                log("")
+                log("Targeting ($enemy) with $basePower...")
+                var advantage = 0
+                if (player.statuses.contains(Status.STRENGTHEN)) {
+                    advantage += 1
+                }
+                if (player.statuses.contains(Status.MUDDLE)) {
+                    advantage -= 1
+                }
+                if (enemy.inMeleeRange and !usingBallistaInstead) {
+                    advantage -= 1
+                }
+
+                logMuted = true
+                val combinedCard = if (advantage > 0) advantage(basePower)
+                else if (advantage < 0) disadvantage(basePower)
+                else attack(basePower)
+                logMuted = false
+
+                enemy.getAttacked(combinedCard, player)
+                log("Used a $combinedCard, resulting in ($enemy)")
+                if (combinedCard.refresh) {
+                    recover()
+                }
+                if (combinedCard.extraTarget) {
+                    gotExtraTarget = true
+                }
+                if (combinedCard.extraTarget) {
+                    gotASpinny = true
+                }
+            }
+
+            // Basic attacks
             for (enemy in enemies) {
                 if (enemy.getTargetable()) {
-                    log("Targeting ($enemy) with $basePower...")
-                    var advantage = 0
-                    if (player.statuses.contains(Status.STRENGTHEN)) {
-                        advantage += 1
-                    }
-                    if (player.statuses.contains(Status.MUDDLE)) {
-                        advantage -= 1
-                    }
-                    if (enemy.inMeleeRange and !usingBallistaInstead) {
-                        advantage -= 1
-                    }
-
-                    val combinedCard = if (advantage > 0) advantage(basePower)
-                                        else if (advantage < 0) disadvantage(basePower)
-                                        else attack(basePower)
-                    enemy.getAttacked(combinedCard, player)
-                    log("Used a $combinedCard, resulting in ($enemy)")
-                    if (combinedCard.refresh) {
-                        recover()
+                    attackEnemy(enemy)
+                }
+            }
+            // Extra
+            if (gotExtraTarget) {
+                log("")
+                log("Extra target!")
+                for (enemy in enemies) {
+                    if (enemy.getTargetable(ignoreTargeted = true) && enemy.extraTarget) {
+                        attackEnemy(enemy)
+                        break
                     }
                 }
             }
@@ -444,6 +475,9 @@ open class Deck {
             }
             logIndent -= 1
             activeCardsToDiscardPile()
+        }
+        if (gotASpinny) {
+            discardPileToDrawPile()
         }
         log("Recovered $arbitraryCardsRecovered arbitrary card(s)")
         for (enemy in enemies) {
