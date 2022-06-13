@@ -382,9 +382,14 @@ open class Deck {
                     log("Recovered ${recoveryCandidate.item}")
                 }
             }
-            if (itemsRecovered.size == 0 && player.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
-                player.usableItems.add(Item.PENDANT_OF_DARK_PACTS)
-                player.unusableItems.remove(Item.PENDANT_OF_DARK_PACTS)
+            if (itemsRecovered.size == 0) {
+                if (player.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
+                    player.usableItems.add(Item.PENDANT_OF_DARK_PACTS)
+                    player.unusableItems.remove(Item.PENDANT_OF_DARK_PACTS)
+                }
+                else {
+                    log("Nothing to recover :c")
+                }
             }
         }
 
@@ -478,13 +483,18 @@ open class Deck {
             if (gotExtraTarget) {
                 log("")
                 log("Extra target!")
+                var foundExtraTarget = false
                 for (enemy in enemies) {
                     if (enemy.getTargetable(ignoreTargeted = true) && enemy.extraTarget &&
                         (!usingBallistaInstead || enemy.inMeleeRange)
                     ) {
                         attackEnemy(enemy)
+                        foundExtraTarget = true
                         break
                     }
+                }
+                if (!foundExtraTarget) {
+                    log("But couldn't find an extra target.")
                 }
             }
             // One more time?
