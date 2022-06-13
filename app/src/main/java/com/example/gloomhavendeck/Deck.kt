@@ -426,7 +426,7 @@ open class Deck {
             log("Loop ${++loops}...")
             logIndent += 1
             allowedToContinue = false
-            val usingBallistaInstead = false
+            val usingBallistaInstead = enemies.filter { it.getTargetable() }.all { it.inBallistaRange }
             // Power?
             var basePower = if (usingBallistaInstead) 4 else 1
             if (powerPotThresholdReached() && player.usableItems.contains(Item.MAJOR_POWER_POTION)) {
@@ -437,7 +437,7 @@ open class Deck {
             var gotExtraTarget = false
             fun attackEnemy(enemy: Enemy) {
                 log("")
-                log("Targeting ($enemy) with $basePower...")
+                log("Targeting ($enemy) with $basePower${if (usingBallistaInstead) " (using ballista)" else ""}...")
                 var advantage = 0
                 if (player.statuses.contains(Status.STRENGTHEN)) {
                     advantage += 1
@@ -479,7 +479,9 @@ open class Deck {
                 log("")
                 log("Extra target!")
                 for (enemy in enemies) {
-                    if (enemy.getTargetable(ignoreTargeted = true) && enemy.extraTarget) {
+                    if (enemy.getTargetable(ignoreTargeted = true) && enemy.extraTarget &&
+                        (!usingBallistaInstead || enemy.inMeleeRange)
+                    ) {
                         attackEnemy(enemy)
                         break
                     }

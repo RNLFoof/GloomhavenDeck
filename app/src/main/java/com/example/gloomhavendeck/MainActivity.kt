@@ -435,12 +435,14 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
                         val llRows = LinearLayout(this)
                         scrollView.addView(llRows)
                         llRows.orientation = LinearLayout.VERTICAL
+                        val textSize = 8f
                         for (enemy in enemies.sortedBy { it.name }) {
                             val llRow = LinearLayout(this)
                             llRow.orientation = LinearLayout.HORIZONTAL
                             llRows.addView(llRow)
                             // Name
                             val tvName = TextView(this)
+                            tvName.textSize = textSize
                             tvName.text = enemy.name
                             llRow.addView(tvName)
                             // Taken
@@ -455,15 +457,26 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
                             llRow.addView(npTaken)
                             // Targeted checkbox
                             val cbTargeted = CheckBox(this)
-                            cbTargeted.text = "Targ"
+                            cbTargeted.textSize = textSize
+                            cbTargeted.text = "Trgt"
                             cbTargeted.isChecked = enemy.targeted
                             cbTargeted.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
                                 enemy.targeted = !enemy.targeted
                             }
                             llRow.addView(cbTargeted)
+                            // Ballista checkbox
+                            val cbBallista = CheckBox(this)
+                            cbBallista.textSize = textSize
+                            cbBallista.text = "Blst"
+                            cbBallista.isChecked = enemy.inBallistaRange
+                            cbBallista.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                enemy.inBallistaRange = !enemy.inBallistaRange
+                            }
+                            llRow.addView(cbBallista)
                             // Extra Target checkbox
                             val cbExtraTarget = CheckBox(this)
-                            cbExtraTarget.text = "ExT"
+                            cbExtraTarget.textSize = textSize
+                            cbExtraTarget.text = "ExTr"
                             cbExtraTarget.isChecked = enemy.extraTarget
                             cbExtraTarget.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
                                 enemy.extraTarget = !enemy.extraTarget
@@ -471,7 +484,8 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
                             llRow.addView(cbExtraTarget)
                             // Melee Range checkbox
                             val cbMeleeRange = CheckBox(this)
-                            cbMeleeRange.text = "MR"
+                            cbMeleeRange.textSize = textSize
+                            cbMeleeRange.text = "MlRn"
                             cbMeleeRange.isChecked = enemy.inMeleeRange
                             cbMeleeRange.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
                                 enemy.inMeleeRange = !enemy.inMeleeRange
@@ -479,7 +493,8 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
                             llRow.addView(cbMeleeRange)
                             // Retaliate Range checkbox
                             val cbRetaliateRange = CheckBox(this)
-                            cbRetaliateRange.text = "RR"
+                            cbRetaliateRange.textSize = textSize
+                            cbRetaliateRange.text = "RtRn"
                             cbRetaliateRange.isChecked = enemy.inRetaliateRange
                             cbRetaliateRange.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
                                 enemy.inRetaliateRange = !enemy.inRetaliateRange
