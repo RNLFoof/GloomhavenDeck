@@ -525,6 +525,7 @@ open class Deck {
 
         log("End summary:")
         logIndent += 1
+        log("Gained $loops xp")
         log("Recovered $arbitraryCardsRecovered arbitrary card(s)")
         val endSummary = getSummary()
         for (startKv in startSummary) {
