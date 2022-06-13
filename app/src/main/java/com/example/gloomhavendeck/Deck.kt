@@ -5,6 +5,9 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import java.lang.Integer.max
 import java.lang.Integer.min
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.full.createType
+import kotlin.reflect.full.memberProperties
 
 @RequiresApi(Build.VERSION_CODES.N)
 open class Deck {
@@ -385,7 +388,35 @@ open class Deck {
             }
         }
 
+        fun getSummary(): LinkedHashMap<String, Any> {
+            val vars = LinkedHashMap<String, Any>()
+            // Player
+            for (property in Player::class.memberProperties) {
+                if (property.returnType in listOf(Boolean::class.createType(), Integer::class.createType())) {
+                    vars["Player ${property.name}"] = property.getter.call(player) as Any
+                }
+            }
+            // Player Statuses
+            for (status in Status.values()) {
+                vars["Player has $status"] = player.statuses.contains(status)
+            }
+            // Player Items
+            for (item in Item.values()) {
+                vars["Inventory has $item"] = player.usableItems.contains(item)
+            }
+            // Enemy
+            for (enemy in enemies) {
+                for (property in Enemy::class.memberProperties) {
+                    if (property.returnType in listOf(Boolean::class.createType(), Integer::class.createType())) {
+                        vars["${enemy.name} ${property.name}"] = property.getter.call(enemy) as Any
+                    }
+                }
+            }
+            return vars
+        }
+
         log("Pipis...")
+        val startSummary = getSummary()
         logIndent += 1
         var arbitraryCardsRecovered = 0
         var allowedToContinue = true
@@ -479,12 +510,28 @@ open class Deck {
         if (gotASpinny) {
             discardPileToDrawPile()
         }
+
+        log("End summary:")
+        logIndent += 1
         log("Recovered $arbitraryCardsRecovered arbitrary card(s)")
-        for (enemy in enemies) {
-            log(enemy.toString())
+        val endSummary = getSummary()
+        for (startKv in startSummary) {
+            val endV = endSummary[startKv.key]
+            if (startKv.value != endV) {
+                if (startKv.value is Int && endV is Int) {
+                    val dif = endV - (startKv.value as Int)
+                    if (dif >= 0) {
+                        log("${startKv.key}: ${startKv.value} -> ${endV} (+${dif})")
+                    } else {
+                        log("${startKv.key}: ${startKv.value} -> ${endV} (${dif})")
+                    }
+                }
+                else {
+                    log("${startKv.key}: ${startKv.value} -> ${endV}")
+                }
+            }
         }
-        log("Player HP: ${player.hp}")
-        log("Player Statuses: ${player.statuses}")
+        logIndent -= 1
         logIndent -= 1
         addUndoPoint()
     }
