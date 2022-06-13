@@ -8,6 +8,8 @@ import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.memberProperties
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 
 @RequiresApi(Build.VERSION_CODES.N)
 data class Enemy(var creationString: String) {
@@ -97,14 +99,93 @@ data class Enemy(var creationString: String) {
     var dead = taken >= maxHp
 
     companion object {
-        fun createMany(block: String) = sequence {
+        fun createMany(block: String, scenarioLevel: Int) = sequence {
+            // The format "name: numbers" lets you pull from monster stats to quickly establish
+            // Ex: vermling scout 7: 1 2 3 e5 6
+            val monsterStatsString = this::class.java.classLoader.getResource("res/raw/monster_stats.json").readText()
+            val monsterStatsJson: Map<String, JsonElement> = Json.parseToJsonElement(monsterStatsString).jsonObject
+            var jsonExpandedBlock = ""
+
+            val fromJsonRegex = Regex("^([a-zA-Z ]+)(\\d)?[:;]([0-9 ]+)?([eE][0-9 ]+)?$")
+            val intRegex = Regex("\\d+")
+            val shieldRegex = Regex("Shield (\\d+)")
+            val retaliateRegex = Regex("Retaliate (\\d+)")
+
+            for (line in block.split("\n")) {
+                // Does this line contain a DB shorthand?
+                val fromJsonMatch = fromJsonRegex.find(line)
+                if (fromJsonMatch != null) {
+                    // Set up the regex that will be used to find the monster by name
+                    val monsterSearchName = fromJsonMatch.groups[1]!!.value
+                    val monsterNameRegex = Regex(monsterSearchName.replace(" ", ".*?"), option=RegexOption.IGNORE_CASE)
+                    // Assume the standard level unless otherwise specified
+                    val monsterLevel = if (fromJsonMatch.groups[2] == null) scenarioLevel else fromJsonMatch.groups[2]!!.value.toInt()
+                    // Get the numbers for normals/elites
+                    val monsterNormalNumbers =
+                        if (fromJsonMatch.groups[3] == null)
+                        emptySequence()
+                        else intRegex.findAll(fromJsonMatch.groups[3]!!.value).map{it.value.toInt()}
+                    val monsterEliteNumbers =
+                        if (fromJsonMatch.groups[4] == null)
+                            emptySequence()
+                        else intRegex.findAll(fromJsonMatch.groups[4]!!.value).map{it.value.toInt()}
+                    // Try to find monster matches!
+                    val matchedMonsters = mutableListOf<String>()
+                    for (monsterKV in monsterStatsJson["monsters"]!!.jsonObject) {
+                        if (monsterNameRegex.find(monsterKV.key) != null) {
+                            // Found one! Keep track and get some attributes
+                            matchedMonsters.add(monsterKV.key)
+                            // The name is the first 3 characters of each word
+                            val monsterName = monsterKV.key.split(" ").map { it.substring(0, Integer.min(3, it.length)) }.joinToString("")
+                            val monster = monsterKV.value.jsonObject["level"]!!.jsonArray[monsterLevel]
+                            val normalMonster = monster.jsonObject["normal"]!!.jsonObject
+                            val eliteMonster = monster.jsonObject["elite"]!!.jsonObject
+
+                            // Add normals
+                            for (number in monsterNormalNumbers) {
+                                val maxHP = normalMonster["health"]!!.jsonPrimitive
+                                val attributes = normalMonster["attributes"]!!.jsonArray.joinToString("\n")
+                                val shieldRegexMatch = shieldRegex.find(attributes)
+                                val shield = if (shieldRegexMatch == null) 0 else shieldRegexMatch.groups[1]!!.value.toInt()
+                                val retaliateRegexMatch = retaliateRegex.find(attributes)
+                                val retaliate = if (retaliateRegexMatch == null) 0 else retaliateRegexMatch.groups[1]!!.value.toInt()
+                                jsonExpandedBlock += "\nNrm${monsterName}$number $maxHP 0, shield $shield, retaliate $retaliate"
+                            }
+
+                            // Add elites
+                            for (number in monsterEliteNumbers) {
+                                val maxHP = eliteMonster["health"]!!.jsonPrimitive
+                                val attributes = eliteMonster["attributes"]!!.jsonArray.joinToString("\n")
+                                val shieldRegexMatch = shieldRegex.find(attributes)
+                                val shield = if (shieldRegexMatch == null) 0 else shieldRegexMatch.groups[1]!!.value.toInt()
+                                val retaliateRegexMatch = retaliateRegex.find(attributes)
+                                val retaliate = if (retaliateRegexMatch == null) 0 else retaliateRegexMatch.groups[1]!!.value.toInt()
+                                jsonExpandedBlock += "\nElt${monsterName}$number $maxHP 0, shield $shield, retaliate $retaliate"
+                            }
+                        }
+                    }
+                    // Throw errors if you don't find exactly one
+                    if (matchedMonsters.size == 0) {
+                        throw Exception("Found no matches for $monsterSearchName")
+                    }
+                    if (matchedMonsters.size >= 2) {
+                        throw Exception("Found multiple matches for $monsterSearchName: $matchedMonsters")
+                    }
+                }
+                // If not, just put it back as is
+                else {
+                    jsonExpandedBlock += "\n$line"
+                }
+            }
+            jsonExpandedBlock = jsonExpandedBlock.trim()
+
             // This previous name stuff lets you, for example, write
             // "Dog 1\n2\n3"
             // instead of
             // "Dog 1\nDog 2\nDog 3"
             val nameRegex = Regex("^[a-zA-Z]+")
-            var previousName = nameRegex.find(block)!!.value
-            for (line in block.split("\n")) {
+            var previousName = nameRegex.find(jsonExpandedBlock)!!.value
+            for (line in jsonExpandedBlock.split("\n")) {
                 val currentName = nameRegex.find(line)
                 if (currentName == null) {
                     yield(Enemy(previousName + line))

@@ -27,6 +27,7 @@ open class Player() {
     var powerPotionThreshold = 6
     var hpDangerThreshold = 10
     var pierce = 0
+    var scenarioLevel = 7
     val maxHp = 26
 
     open fun useItem(item: Item) {

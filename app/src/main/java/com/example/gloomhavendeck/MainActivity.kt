@@ -118,7 +118,7 @@ class MainActivity : AppCompatActivity() {
                     {}
                 }
                 // Enemies
-                enemies = Enemy.createMany(enemyBlock).toMutableList()
+                enemies = Enemy.createMany(enemyBlock, player.scenarioLevel).toMutableList()
             }
         }
 
@@ -271,7 +271,8 @@ class MainActivity : AppCompatActivity() {
         enemies = Enemy.createMany("""Dog1 12
 2 8
 3 15,shield 1
-4 4""").toMutableList()
+4 4
+vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
         // Because the deck has player undos it needs to be made after
         deck = MainActivityDeck()
         deck.addBaseDeck()
@@ -360,6 +361,7 @@ class MainActivity : AppCompatActivity() {
                 "Power Potion Threshold (Currently ${player.powerPotionThreshold})",
                 "HP Danger Threshold (Currently ${player.hpDangerThreshold})",
                 "Pierce (Currently ${player.pierce})",
+                "Scenario Level (Currently ${player.scenarioLevel})",
                 "Go")
             ) { _, which ->
                 when (which) {
@@ -410,7 +412,7 @@ class MainActivity : AppCompatActivity() {
                             alert.setPositiveButton("Set") { _, _ ->
                                 try {
                                     text = input.text.toString()
-                                    enemies = Enemy.createMany(text).toMutableList()
+                                    enemies = Enemy.createMany(text, player.scenarioLevel).toMutableList()
                                     text = enemies.joinToString(separator = "\n") { it.toString() }
                                     title = "Result:"
                                 } catch (e: Exception) {
@@ -591,8 +593,25 @@ class MainActivity : AppCompatActivity() {
                         }
                         alert.show()
                     }
-                    // Go
+                    // Scenario Level
                     8 -> {
+                        val alert = AlertDialog.Builder(this)
+                        alert.setTitle("New Scenario Level?")
+                        val input = EditText(this)
+                        input.inputType = InputType.TYPE_CLASS_NUMBER
+                        input.setRawInputType(Configuration.KEYBOARD_12KEY)
+                        input.setText(player.scenarioLevel.toString())
+                        alert.setView(input)
+                        alert.setPositiveButton("Set") { _, _ ->
+                            player.scenarioLevel = input.text.toString().toInt()
+                            deck.log("Updated scenario level.")
+                            deck.addUndoPoint()
+                            endAction(btnPipis)
+                        }
+                        alert.show()
+                    }
+                    // Go
+                    9 -> {
                         effectSpeed = 1_000/2L
                         deck.pipis(player, enemies)
                         effectSpeed = baseEffectSpeed
