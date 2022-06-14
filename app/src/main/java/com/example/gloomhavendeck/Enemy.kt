@@ -136,7 +136,7 @@ data class Enemy(var creationString: String) {
                             // Found one! Keep track and get some attributes
                             matchedMonsters.add(monsterKV.key)
                             // The name is the first 3 characters of each word
-                            val monsterName = monsterKV.key.split(" ").map { it.substring(0, Integer.min(3, it.length)) }.joinToString("")
+                            val monsterName = compactedString(monsterKV.key)
                             val monster = monsterKV.value.jsonObject["level"]!!.jsonArray[monsterLevel]
                             val normalMonster = monster.jsonObject["normal"]!!.jsonObject
                             val eliteMonster = monster.jsonObject["elite"]!!.jsonObject
@@ -245,4 +245,24 @@ data class Enemy(var creationString: String) {
         }
         return ret
     }
+}
+
+fun compactedString(string: String, maxLength: Int = 4): String {
+    var ret = ""
+    val doubleRegex = Regex("(.)\\1")
+    val vowelRegex = Regex("[aeiouy]")
+    for (word in string.split(" ")) {
+        var newWord = word
+        var lastLength = -1
+        while(newWord.length > maxLength && newWord.length != lastLength) {
+            lastLength = newWord.length
+            newWord = doubleRegex.replaceFirst(newWord, "\$1")
+            if (lastLength != newWord.length) {
+                newWord = vowelRegex.replaceFirst(newWord.reversed(), "").reversed()
+            }
+        }
+        newWord = newWord.substring(0, Integer.min(maxLength, newWord.length))
+        ret += newWord
+    }
+    return ret
 }
