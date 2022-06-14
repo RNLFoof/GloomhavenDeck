@@ -3,11 +3,13 @@ package com.example.gloomhavendeck
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import java.lang.Exception
 import java.lang.Integer.max
 import java.lang.Integer.min
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.isAccessible
 
 @RequiresApi(Build.VERSION_CODES.N)
 open class Deck {
@@ -44,6 +46,7 @@ open class Deck {
 
     // Meta
     open fun log(text: String) {
+        Log.d("heyyyy", text)
         if (!logMuted) {
             // Override any "future" logs
             while (logsToHide > 0 && logList.size > 0) {
@@ -292,14 +295,25 @@ open class Deck {
     }
 
     fun pipis(player : Player, enemies : Iterable<Enemy>) {
-        fun powerPotThresholdReached() : Boolean {
+        var enemyIndex = 0
+        fun powerPotAggregatedPower() : Int {
             var aggregatedPower = 0
+            var index = 0
             for (enemy in enemies) {
                 if (enemy.getTargetable()) {
-                    aggregatedPower += min(enemy.getHp(), max(0, 2 - enemy.effectiveShield(player)))
+                    if (index++ >= enemyIndex) { // Enemy index is 0 before anything else happens
+                        aggregatedPower += min(
+                            enemy.getHp(),
+                            max(0, 2 - enemy.effectiveShield(player))
+                        )
+                    }
                 }
             }
-            return aggregatedPower >= player.powerPotionThreshold
+            return aggregatedPower
+        }
+
+        fun powerPotThresholdReached() : Boolean {
+            return powerPotAggregatedPower() >= player.powerPotionThreshold
         }
 
         class RecoveryCandidate(var item: Item, var useImmediately: Boolean)
@@ -316,7 +330,7 @@ open class Deck {
                 if (player.unusableItems.contains(Item.MAJOR_CURE_POTION)
                     && (
                             player.statuses.contains(Status.MUDDLE)
-                            || player.statuses.contains(Status.MUDDLE)
+                            || player.statuses.contains(Status.POISON)
                         )
                     ) {
                     yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, true))
@@ -358,28 +372,38 @@ open class Deck {
                 break
             }
         }
-        fun recover() {
+
+        fun recover(viaPendant: Boolean =false) {
             // Pendant logic is kept separate because otherwise it could try to revive itself
             // and other such nonsense
+            // Separate from makeRoom because the items you'd use if forced to in order to make room
+            // generally aren't the same as the items you'd want to replenish ASAP if already used
+
+            // viaPendant is for when it wasn't recovered with a card, but rather is going "I need
+            // to stop having a pendant", in which case exactly two items must be used
             val itemsRecovered = mutableListOf<RecoveryCandidate>()
             for (recoveryCandidate in getRecoveryCandidates()) {
                 itemsRecovered.add(recoveryCandidate)
                 player.usableItems.add(recoveryCandidate.item)
                 player.unusableItems.remove(recoveryCandidate.item)
                 if (itemsRecovered.size >= 2) {
-                    player.usableItems.add(Item.PENDANT_OF_DARK_PACTS)
-                    player.unusableItems.remove(Item.PENDANT_OF_DARK_PACTS)
-                    player.useItem(Item.PENDANT_OF_DARK_PACTS)
-                    curse()
+                    if (!player.usableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
+                        player.usableItems.add(Item.PENDANT_OF_DARK_PACTS)
+                        player.unusableItems.remove(Item.PENDANT_OF_DARK_PACTS)
+                    }
                     break
                 }
             }
-            for (recoveryCandidate in itemsRecovered) {
-                if (recoveryCandidate.useImmediately) {
-                    player.useItem(recoveryCandidate.item)
-                    log("Recovered and immediately used ${recoveryCandidate.item}")
-                } else {
-                    log("Recovered ${recoveryCandidate.item}")
+            if (!viaPendant || itemsRecovered.size == 2) {
+                player.useItem(Item.PENDANT_OF_DARK_PACTS)
+                for (recoveryCandidate in itemsRecovered) {
+                    if (recoveryCandidate.useImmediately) {
+                        player.useItem(recoveryCandidate.item)
+                        log("Recovered and immediately used ${recoveryCandidate.item}")
+                    } else {
+                        log("Recovered ${recoveryCandidate.item}")
+                    }
+                    curse() // For the pendant
                 }
             }
             if (itemsRecovered.size == 0) {
@@ -393,12 +417,88 @@ open class Deck {
             }
         }
 
+        fun getRoomMakingItems() = sequence{
+            while (true) {
+                if (player.usableItems.contains(Item.MAJOR_CURE_POTION)
+                    && (
+                            player.statuses.contains(Status.MUDDLE)
+                            || player.statuses.contains(Status.POISON)
+                        )
+                ) {
+                    yield(Item.MAJOR_CURE_POTION)
+                    continue
+                }
+                if (player.usableItems.contains(Item.SUPER_HEALING_POTION)
+                    && player.hp <= player.maxHp-7) {
+                    yield(Item.SUPER_HEALING_POTION)
+                    continue
+                }
+                if (player.usableItems.contains(Item.MAJOR_CURE_POTION)
+                    && player.statuses.any{it.negative}
+                ) {
+                    yield(Item.MAJOR_CURE_POTION)
+                    continue
+                }
+                // Johnson should go here
+                if (player.usableItems.contains(Item.MAJOR_POWER_POTION)
+                    && powerPotThresholdReached()
+                ) {
+                    yield(Item.MAJOR_POWER_POTION)
+                    continue
+                }
+                if (player.usableItems.contains(Item.SUPER_HEALING_POTION)
+                    && player.hp < player.maxHp
+                ) {
+                    yield(Item.SUPER_HEALING_POTION)
+                    continue
+                }
+                if (player.usableItems.contains(Item.MINOR_STAMINA_POTION)
+                    && player.discardedCards >= 2
+                ) {
+                    yield(Item.MINOR_STAMINA_POTION)
+                    continue
+                }
+                if (player.usableItems.contains(Item.MAJOR_POWER_POTION)
+                    && powerPotAggregatedPower() > 0
+                ) {
+                    yield(Item.MAJOR_POWER_POTION)
+                    continue
+                }
+                break
+            }
+        }
+
+        fun makeRoomAndUsePendant() {
+            // Attempting to, in pendant is recovered at the start of an attack, make there be two
+            // used items to use the pendant on
+            // Separate from recover because the items you'd use if forced to in order to make room
+            // generally aren't the same as the items you'd want to replenish ASAP if already used
+            if (!player.usableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
+                return
+            }
+            val itemsConsumed = mutableListOf<Item>()
+            for (roomMakingItem in getRoomMakingItems()) {
+                // Put at the start so that if it's already fine it just bails
+                if (player.unusableItems.filter { it != Item.PENDANT_OF_DARK_PACTS }.size >= 2) {
+                    break
+                }
+                player.useItem(roomMakingItem)
+                log("Used $roomMakingItem in order to free up some room.")
+                itemsConsumed.add(roomMakingItem)
+            }
+            if (player.unusableItems.filter { it != Item.PENDANT_OF_DARK_PACTS }.size >= 2) {
+                recover(viaPendant=true)
+            }
+        }
+
         fun getSummary(): LinkedHashMap<String, Any> {
             val vars = LinkedHashMap<String, Any>()
             // Player
             for (property in Player::class.memberProperties) {
-                if (property.returnType in listOf(Boolean::class.createType(), Integer::class.createType())) {
-                    vars["Player ${property.name}"] = property.getter.call(player) as Any
+                if (property.returnType in listOf(Boolean::class.createType(), Integer::class.createType())
+                    ) {
+                    try {
+                    vars["Player ${property.name}"] = property.getter.call(player) as Any} catch (e: Exception) {}
                 }
             }
             // Player Statuses
@@ -420,6 +520,10 @@ open class Deck {
             return vars
         }
 
+        fun shouldUseBallista(): Boolean {
+            return enemies.filter { it.getTargetable() }.all { it.inBallistaRange }
+        }
+
         log("Pipis...")
         val startSummary = getSummary()
         logIndent += 1
@@ -428,21 +532,33 @@ open class Deck {
         var loops = 0
         var gotASpinny = false
         while (allowedToContinue) {
-            log("Loop ${++loops}...")
-            logIndent += 1
+            log("")
+            enemyIndex = 0
             allowedToContinue = false
-            val usingBallistaInstead = enemies.filter { it.getTargetable() }.all { it.inBallistaRange }
+            val usingBallistaInstead = shouldUseBallista() && !player.discardedBallista
+            // EAT CARD
+            if (usingBallistaInstead) {
+                player.discardedCards += 1 // Done in this order to avoid unwanted extra changes
+                player.discardedBallista = true
+            } else {
+                player.discardedCards += 1
+                player.discardedPipis = true
+            }
             // Power?
             var basePower = if (usingBallistaInstead) 4 else 1
             if (powerPotThresholdReached() && player.usableItems.contains(Item.MAJOR_POWER_POTION)) {
                 basePower += 2
                 player.useItem(Item.MAJOR_POWER_POTION)
             }
+            // Room?
+            makeRoomAndUsePendant()
+            // Display
+            log("")
+            log("Loop ${++loops}, for ${basePower}+-${if (usingBallistaInstead) ", using ballista" else ""}...")
             // Attacks
             var gotExtraTarget = false
             fun attackEnemy(enemy: Enemy) {
-                log("")
-                log("Targeting ($enemy) with $basePower${if (usingBallistaInstead) " (using ballista)" else ""}...")
+                // log("Targeting ($enemy) with $basePower${if (usingBallistaInstead) " (using ballista)" else ""}...")
                 var advantage = 0
                 if (player.statuses.contains(Status.STRENGTHEN)) {
                     advantage += 1
@@ -461,7 +577,7 @@ open class Deck {
                 logMuted = false
 
                 enemy.getAttacked(combinedCard, player)
-                log("Used a $combinedCard, resulting in ($enemy)")
+                log("Hit ${enemy.name} with $combinedCard${if (enemy.dead) ", dies!" else ""}")
                 if (combinedCard.refresh) {
                     recover()
                 }
@@ -471,6 +587,7 @@ open class Deck {
                 if (combinedCard.extraTarget) {
                     gotASpinny = true
                 }
+                enemyIndex += 1
             }
 
             // Basic attacks
@@ -481,7 +598,6 @@ open class Deck {
             }
             // Extra
             if (gotExtraTarget) {
-                log("")
                 log("Extra target!")
                 var foundExtraTarget = false
                 for (enemy in enemies) {
@@ -498,25 +614,52 @@ open class Deck {
                 }
             }
             // One more time?
-            if (player.usableItems.contains(Item.MINOR_STAMINA_POTION)
-                && player.usableItems.contains(Item.RING_OF_BRUTALITY)
-                && (player.hp - enemies.sumOf { if (!it.getTargetable() || !it.inRetaliateRange) 0 else it.retaliate } >= player.hpDangerThreshold)
-                && (enemies.sumOf { if (!it.getTargetable()) 0 else "1".toInt() } >= 3)
-                ) {
-                arbitraryCardsRecovered += 1
-                player.useItem(Item.MINOR_STAMINA_POTION)
-                player.useItem(Item.RING_OF_BRUTALITY)
-                allowedToContinue = true
+            val wantToGoAgain = player.hp - enemies.sumOf { if (!it.getTargetable() || !it.inRetaliateRange) 0 else it.retaliate } >= player.hpDangerThreshold
+                                && (enemies.sumOf { if (!it.getTargetable()) 0 else "1".toInt() } >= 3)
+            val canGoAgain = player.usableItems.contains(Item.RING_OF_BRUTALITY)
+                    && (player.usableItems.contains(Item.MINOR_STAMINA_POTION) || player.usableItems.contains(Item.MAJOR_STAMINA_POTION))
+            // Do I want to?
+            if (wantToGoAgain && canGoAgain) {
+                // Can I?
+                if (player.usableItems.contains(Item.MINOR_STAMINA_POTION)) {
+                        arbitraryCardsRecovered += 1
+                        player.discardedCards -= 2
+                        if (shouldUseBallista() && player.discardedBallista) {
+                            player.discardedBallista = false
+                        }
+                        if (!shouldUseBallista() && player.discardedPipis) {
+                            player.discardedPipis = false
+                        }
+                        player.useItem(Item.MINOR_STAMINA_POTION)
+                        player.useItem(Item.RING_OF_BRUTALITY)
+                        allowedToContinue = true
+                }
+                else if (player.usableItems.contains(Item.MAJOR_STAMINA_POTION)) {
+                        arbitraryCardsRecovered += 2
+                        player.discardedCards -= 3
+                        if (shouldUseBallista() && player.discardedBallista) {
+                            player.discardedBallista = false
+                        }
+                        if (!shouldUseBallista() && player.discardedPipis) {
+                            player.discardedPipis = false
+                        }
+                        player.useItem(Item.MAJOR_STAMINA_POTION)
+                        player.useItem(Item.RING_OF_BRUTALITY)
+                        allowedToContinue = true
+                }
+                else {
+                    log("How the fuck did you get here")
+                }
             }
-            else if (player.usableItems.contains(Item.MAJOR_STAMINA_POTION)
-                && player.usableItems.contains(Item.RING_OF_BRUTALITY)
-                ) {
-                arbitraryCardsRecovered += 2
-                player.useItem(Item.MAJOR_STAMINA_POTION)
-                player.useItem(Item.RING_OF_BRUTALITY)
-                allowedToContinue = true
+            else if (wantToGoAgain && !canGoAgain) {
+                log("Want to go again, but can't.")
             }
-            logIndent -= 1
+            else if (!wantToGoAgain && canGoAgain) {
+                log("Can go again, but don't wanna.")
+            }
+            else {
+                log("GET ME OUT OF THIS THING")
+            }
             activeCardsToDiscardPile()
         }
         if (gotASpinny) {

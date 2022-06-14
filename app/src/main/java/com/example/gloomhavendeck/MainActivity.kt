@@ -362,6 +362,7 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
                 "HP Danger Threshold (Currently ${player.hpDangerThreshold})",
                 "Pierce (Currently ${player.pierce})",
                 "Scenario Level (Currently ${player.scenarioLevel})",
+                "Discard Status (Currently ${player.discardedCards})",
                 "Go")
             ) { _, which ->
                 when (which) {
@@ -625,8 +626,57 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
                         }
                         alert.show()
                     }
-                    // Go
+                    // Discard
                     9 -> {
+                        // Alert
+                        val alert = AlertDialog.Builder(this)
+                        alert.setTitle("Discard status?")
+                        // SV
+                        val scrollView = ScrollView(this)
+                        alert.setView(scrollView)
+                        // LL
+                        val linearLayout = LinearLayout(this)
+                        linearLayout.orientation = LinearLayout.VERTICAL
+                        scrollView.addView(linearLayout)
+                        // Make them, since they reference each other
+                        val npDiscarded = NumberPicker(this)
+                        val cbPipis = CheckBox(this)
+                        val cbBallista = CheckBox(this)
+                        // Discard spinner
+                        npDiscarded.minValue = 0
+                        npDiscarded.maxValue = 9
+                        npDiscarded.value = player.discardedCards
+                        npDiscarded.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
+                            player.discardedCards = new
+                            cbBallista.isChecked = player.discardedBallista
+                            cbPipis.isChecked = player.discardedPipis
+                        }
+                        linearLayout.addView(npDiscarded)
+                        // Targeted checkbox
+                        cbPipis.text = "Discarded Pipis"
+                        cbPipis.isChecked = player.discardedPipis
+                        cbPipis.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                            player.discardedPipis = on
+                            npDiscarded.value = player.discardedCards
+                        }
+                        linearLayout.addView(cbPipis)
+                        // Ballista checkbox
+                        cbBallista.text = "Discarded Ballista"
+                        cbBallista.isChecked = player.discardedBallista
+                        cbBallista.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                            player.discardedBallista = on
+                            npDiscarded.value = player.discardedCards
+                        }
+                        linearLayout.addView(cbBallista)
+                        alert.setOnDismissListener{
+                            deck.log("Updated discard status.")
+                            deck.addUndoPoint()
+                            endAction(btnPipis)
+                        }
+                        alert.show()
+                    }
+                    // Go
+                    10 -> {
                         effectSpeed = 1_000/2L
                         deck.pipis(player, enemies)
                         effectSpeed = baseEffectSpeed

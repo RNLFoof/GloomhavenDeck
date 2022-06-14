@@ -28,6 +28,39 @@ open class Player() {
     var hpDangerThreshold = 10
     var pierce = 0
     var scenarioLevel = 7
+
+    private var _discardedPipis = false
+    var discardedPipis: Boolean
+        get() = _discardedPipis
+        set(value) {
+            _discardedPipis = value
+            val suggestedDiscardedCards = Integer.max(discardedCards, (if (discardedPipis) 1 else 0)+(if (discardedBallista) 1 else 0))
+            if (discardedCards != suggestedDiscardedCards) {
+                discardedCards = suggestedDiscardedCards
+            }
+        }
+
+    private var _discardedBallista = false
+    var discardedBallista: Boolean
+        get() = _discardedBallista
+        set(value) {
+            _discardedBallista = value
+            val suggestedDiscardedCards = Integer.max(discardedCards, (if (discardedPipis) 1 else 0)+(if (discardedBallista) 1 else 0))
+            if (discardedCards != suggestedDiscardedCards) {
+                discardedCards = suggestedDiscardedCards
+            }
+        }
+
+    private var _discardedCards = 0
+    var discardedCards: Int
+        get() = _discardedCards
+        set(value) {
+            _discardedCards = Integer.max(0, value)
+            if (value <= 0) {
+                discardedPipis = false
+                discardedBallista = false
+            }
+        }
     val maxHp = 26
 
     open fun useItem(item: Item) {
@@ -38,4 +71,6 @@ open class Player() {
         unusableItems.add(item)
         item.getUsed(this)
     }
+
+
 }
