@@ -398,7 +398,13 @@ open class Deck {
             // Attacks
             var gotExtraTarget = false
             fun attackEnemy(enemy: Enemy) {
-                tryToDitchPendant()
+                // Probably a reasonable limit
+                if (!(this.activeCards.filter { it.refresh }.size < 3
+                    && this.drawPile.size >= 5)
+                ) {
+                    tryToDitchPendant()
+                }
+                // ok anyway
                 var advantage = 0
                 if (player.statuses.contains(Status.STRENGTHEN)) {
                     advantage += 1
