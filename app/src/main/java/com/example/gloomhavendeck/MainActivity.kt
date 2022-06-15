@@ -714,8 +714,8 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
         } catch (e: Exception) {
             val dialogBuilder = AlertDialog.Builder(this)
             dialogBuilder.setMessage(e.message)
-            dialogBuilder.setPositiveButton("Cool Bro") {_,_ ->}
-            dialogBuilder.setNegativeButton("Throw") {_,_ -> throw e}
+            dialogBuilder.setPositiveButton("Ignore") {_,_ ->}
+            dialogBuilder.setNegativeButton("Crash the app lmao") {_,_ -> throw e}
             val alert = dialogBuilder.create()
             alert.setTitle("OW?")
             alert.show()
