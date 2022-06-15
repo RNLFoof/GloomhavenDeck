@@ -198,26 +198,28 @@ open class Inventory {
         for (recoveryCandidate in itemsRecovered) {
             if (recoveryCandidate.useImmediately) {
                 player.useItem(recoveryCandidate.item, deck)
-                // log("Recovered and immediately used ${recoveryCandidate.item}")
+                deck.log("Recovered and immediately used ${recoveryCandidate.item}")
             } else {
-                // log("Recovered ${recoveryCandidate.item}")
+                deck.log("Recovered ${recoveryCandidate.item}")
             }
         }
         if (itemsRecovered.size == 0) {
-            // log("Nothing to recover :c")
+            deck.log("Nothing to recover :c")
         }
         return itemsRecovered
     }
 
-    fun makeRoom(player: Player, deck: Deck, howMuchRoom: Int =2): MutableList<Item> {
-        // Attempting to, in pendant is recovered at the start of an attack, make there be two
+    fun makeRoom(player: Player, deck: Deck, howMuchRoom: Int =2,
+                 begrudgingPowerPot: Boolean = false, reallyBegrudgingPowerPot: Boolean = false
+    ): MutableList<Item> {
+        // Attempt to, if pendant is recovered at the start of an attack, make there be two
         // used items to use the pendant on
         // Separate from recover because the items you'd use if forced to in order to make room
         // generally aren't the same as the items you'd want to replenish ASAP if already used
         val itemsConsumed = mutableListOf<Item>()
-        for (roomMakingItem in getRoomMakingItems(player)) {
+        for (roomMakingItem in getRoomMakingItems(player, begrudgingPowerPot, reallyBegrudgingPowerPot)) {
             // Put at the start so that if it's already fine it just bails
-            if (unusableItems.size >= howMuchRoom) {
+            if (itemsConsumed.size >= howMuchRoom) {
                 break
             }
             player.useItem(roomMakingItem, deck)

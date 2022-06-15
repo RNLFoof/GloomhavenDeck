@@ -353,7 +353,8 @@ open class Deck {
             if (player.inventory.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
                 return
             }
-            player.inventory.makeRoom(player, this,2)
+            player.inventory.makeRoom(player, this,2, powerPotThresholdReached(),
+                powerPotAggregatedPower() > 0)
             if (player.inventory.unusableItems.size >= 2) {
                 player.useItem(Item.PENDANT_OF_DARK_PACTS, this)
             }
@@ -362,7 +363,6 @@ open class Deck {
         log("Pipis...")
         val startSummary = getSummary()
         logIndent += 1
-        var arbitraryCardsRecovered = 0
         var allowedToContinue = true
         var loops = 0
         var gotASpinny = false
@@ -387,13 +387,18 @@ open class Deck {
             }
             // Room?
             tryToDitchPendant()
+            // Another potion?
+            if (powerPotThresholdReached() && player.inventory.usableItems.contains(Item.MAJOR_POWER_POTION)) {
+                basePower += 2
+                player.useItem(Item.MAJOR_POWER_POTION, this)
+            }
             // Display
             log("")
             log("Loop ${++loops}, for ${basePower}+-${if (usingBallistaInstead) ", using ballista" else ""}...")
             // Attacks
             var gotExtraTarget = false
             fun attackEnemy(enemy: Enemy) {
-                // log("Targeting ($enemy) with $basePower${if (usingBallistaInstead) " (using ballista)" else ""}...")
+                tryToDitchPendant()
                 var advantage = 0
                 if (player.statuses.contains(Status.STRENGTHEN)) {
                     advantage += 1
@@ -457,8 +462,6 @@ open class Deck {
             if (wantToGoAgain && canGoAgain) {
                 // Can I?
                 if (player.inventory.usableItems.contains(Item.MINOR_STAMINA_POTION)) {
-                        arbitraryCardsRecovered += 1
-                        player.discardedCards -= 2
                         if (shouldUseBallista() && player.discardedBallista) {
                             player.discardedBallista = false
                         }
@@ -470,8 +473,6 @@ open class Deck {
                         allowedToContinue = true
                 }
                 else if (player.inventory.usableItems.contains(Item.MAJOR_STAMINA_POTION)) {
-                        arbitraryCardsRecovered += 2
-                        player.discardedCards -= 3
                         if (shouldUseBallista() && player.discardedBallista) {
                             player.discardedBallista = false
                         }
@@ -504,7 +505,6 @@ open class Deck {
         log("End summary:")
         logIndent += 1
         log("Gained $loops xp")
-        log("Recovered $arbitraryCardsRecovered arbitrary card(s)")
         val endSummary = getSummary()
         for (startKv in startSummary) {
             val endV = endSummary[startKv.key]
