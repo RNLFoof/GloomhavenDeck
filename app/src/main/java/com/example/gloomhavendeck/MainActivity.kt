@@ -280,13 +280,13 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
             //Enemy("Dog 2 g")
         // Adding cards
         btnBless.setOnClickListener {
-            buttonBehavior(btnSpinny) {
+            buttonBehavior(btnBless) {
                 deck.bless(true)
             }
         }
 
         btnCurse.setOnClickListener {
-            buttonBehavior(btnSpinny) {
+            buttonBehavior(btnCurse) {
                 deck.curse(true)
             }
         }
@@ -332,19 +332,19 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
 
         // Attacks
         btnAttack.setOnClickListener {
-            buttonBehavior(btnSpinny) {
+            buttonBehavior(btnAttack) {
                 deck.attack(userDirectlyRequested = true)
             }
         }
 
         btnAdvantage.setOnClickListener {
-            buttonBehavior(btnSpinny) {
+            buttonBehavior(btnAdvantage) {
                 deck.advantage(userDirectlyRequested = true)
             }
         }
 
         btnDisadvantage.setOnClickListener {
-            buttonBehavior(btnSpinny) {
+            buttonBehavior(btnDisadvantage) {
                 "".toInt()
                 deck.disadvantage(userDirectlyRequested = true)
             }
@@ -691,7 +691,7 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
 
         // Card movement
         btnDiscard.setOnClickListener {
-            buttonBehavior(btnSpinny) {
+            buttonBehavior(btnDiscard) {
                 deck.activeCardsToDiscardPile(true)
                 btnDiscard.isEnabled = false
             }
