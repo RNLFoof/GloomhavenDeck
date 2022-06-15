@@ -280,15 +280,15 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
             //Enemy("Dog 2 g")
         // Adding cards
         btnBless.setOnClickListener {
-            startAction(btnBless)
-            deck.bless(true)
-            endAction(btnBless)
+            buttonBehavior(btnSpinny) {
+                deck.bless(true)
+            }
         }
 
         btnCurse.setOnClickListener {
-            startAction(btnCurse)
-            deck.curse(true)
-            endAction(btnCurse)
+            buttonBehavior(btnSpinny) {
+                deck.curse(true)
+            }
         }
 
         // Viewing cards
@@ -332,21 +332,22 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
 
         // Attacks
         btnAttack.setOnClickListener {
-            startAction(btnAttack)
-            deck.attack(userDirectlyRequested=true)
-            endAction(btnAttack)
+            buttonBehavior(btnSpinny) {
+                deck.attack(userDirectlyRequested = true)
+            }
         }
 
         btnAdvantage.setOnClickListener {
-            startAction(btnAdvantage)
-            deck.advantage(userDirectlyRequested=true)
-            endAction(btnAdvantage)
+            buttonBehavior(btnSpinny) {
+                deck.advantage(userDirectlyRequested = true)
+            }
         }
 
         btnDisadvantage.setOnClickListener {
-            startAction(btnDisadvantage)
-            deck.disadvantage(userDirectlyRequested=true)
-            endAction(btnDisadvantage)
+            buttonBehavior(btnSpinny) {
+                "".toInt()
+                deck.disadvantage(userDirectlyRequested = true)
+            }
         }
 
         btnPipis.setOnClickListener {
@@ -690,22 +691,37 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
 
         // Card movement
         btnDiscard.setOnClickListener {
-            startAction(btnDiscard)
-            deck.activeCardsToDiscardPile(true)
-            btnDiscard.isEnabled = false
-            endAction(btnDiscard)
+            buttonBehavior(btnSpinny) {
+                deck.activeCardsToDiscardPile(true)
+                btnDiscard.isEnabled = false
+            }
         }
 
         btnSpinny.setOnClickListener {
-            startAction(btnSpinny)
-            deck.activeCardsToDiscardPile(true)
-            deck.discardPileToDrawPile(true)
-            btnDiscard.isEnabled = false
-            btnSpinny.isEnabled = false
-            endAction(btnSpinny)
+            buttonBehavior(btnSpinny) {
+                deck.activeCardsToDiscardPile(true)
+                deck.discardPileToDrawPile(true)
+                btnDiscard.isEnabled = false
+                btnSpinny.isEnabled = false
+            }
         }
     }
 
+    fun buttonBehavior(button: Button, function: () -> Unit = {}) {
+        startAction(button)
+
+        try {
+            function()
+        } catch (e: Exception) {
+            val dialogBuilder = AlertDialog.Builder(this)
+            dialogBuilder.setMessage(e.message)
+            val alert = dialogBuilder.create()
+            alert.setTitle("OW?")
+            alert.show()
+        }
+
+        endAction(button)
+    }
     fun startAction(button: Button) {
         deck.log("")
         deck.log("[${button.text.toString().uppercase()}]")
