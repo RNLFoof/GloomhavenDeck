@@ -415,6 +415,9 @@ open class Deck {
                 if (enemy.inMeleeRange and !usingBallistaInstead) {
                     advantage -= 1
                 }
+                if (enemy.attackersGainDisadvantage) {
+                    advantage -= 1
+                }
 
                 logMuted = true
                 val combinedCard = if (advantage > 0) advantage(basePower)

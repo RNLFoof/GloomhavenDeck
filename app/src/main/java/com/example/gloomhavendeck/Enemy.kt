@@ -19,6 +19,7 @@ data class Enemy(var creationString: String) {
     var name: String = ""
     var shield = 0
     var retaliate = 0
+    var attackersGainDisadvantage = false
     var inRetaliateRange = false
     var inMeleeRange = false
     var inBallistaRange = false
@@ -150,6 +151,7 @@ data class Enemy(var creationString: String) {
                                 val retaliateRegexMatch = retaliateRegex.find(attributes)
                                 val retaliate = if (retaliateRegexMatch == null) 0 else retaliateRegexMatch.groups[1]!!.value.toInt()
                                 jsonExpandedBlock += "\nNrm${monsterName}$number $maxHP 0, shield $shield, retaliate $retaliate"
+                                val attackersGainDisadvantage = attributes.contains("Attackers gain Disadvantage")
                             }
 
                             // Add elites
@@ -161,6 +163,7 @@ data class Enemy(var creationString: String) {
                                 val retaliateRegexMatch = retaliateRegex.find(attributes)
                                 val retaliate = if (retaliateRegexMatch == null) 0 else retaliateRegexMatch.groups[1]!!.value.toInt()
                                 jsonExpandedBlock += "\nElt${monsterName}$number $maxHP 0, shield $shield, retaliate $retaliate"
+                                val attackersGainDisadvantage = attributes.contains("Attackers gain Disadvantage")
                             }
                         }
                     }
