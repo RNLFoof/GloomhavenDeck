@@ -107,7 +107,7 @@ data class Enemy(var creationString: String) {
             val monsterStatsJson: Map<String, JsonElement> = Json.parseToJsonElement(monsterStatsString).jsonObject
             var jsonExpandedBlock = ""
 
-            val fromJsonRegex = Regex("^([a-zA-Z ]+)(\\d)?[:;]([0-9 ]+)?([eE][0-9 ]+)?$")
+            val fromJsonRegex = Regex("^([a-zA-Z ]+)(\\d)?[:;]([0-9 ]+)?([nN][0-9 ]+)?$")
             val intRegex = Regex("\\d+")
             val shieldRegex = Regex("Shield (\\d+)")
             val retaliateRegex = Regex("Retaliate (\\d+)")
@@ -122,11 +122,11 @@ data class Enemy(var creationString: String) {
                     // Assume the standard level unless otherwise specified
                     val monsterLevel = if (fromJsonMatch.groups[2] == null) scenarioLevel else fromJsonMatch.groups[2]!!.value.toInt()
                     // Get the numbers for normals/elites
-                    val monsterNormalNumbers =
+                    val monsterEliteNumbers =
                         if (fromJsonMatch.groups[3] == null)
                         emptySequence()
                         else intRegex.findAll(fromJsonMatch.groups[3]!!.value).map{it.value.toInt()}
-                    val monsterEliteNumbers =
+                    val monsterNormalNumbers =
                         if (fromJsonMatch.groups[4] == null)
                             emptySequence()
                         else intRegex.findAll(fromJsonMatch.groups[4]!!.value).map{it.value.toInt()}
@@ -142,18 +142,6 @@ data class Enemy(var creationString: String) {
                             val normalMonster = monster.jsonObject["normal"]!!.jsonObject
                             val eliteMonster = monster.jsonObject["elite"]!!.jsonObject
 
-                            // Add normals
-                            for (number in monsterNormalNumbers) {
-                                val maxHP = normalMonster["health"]!!.jsonPrimitive
-                                val attributes = normalMonster["attributes"]!!.jsonArray.joinToString("\n")
-                                val shieldRegexMatch = shieldRegex.find(attributes)
-                                val shield = if (shieldRegexMatch == null) 0 else shieldRegexMatch.groups[1]!!.value.toInt()
-                                val retaliateRegexMatch = retaliateRegex.find(attributes)
-                                val retaliate = if (retaliateRegexMatch == null) 0 else retaliateRegexMatch.groups[1]!!.value.toInt()
-                                jsonExpandedBlock += "\nNrm${monsterName}$number $maxHP 0, shield $shield, retaliate $retaliate"
-                                val attackersGainDisadvantage = attributes.contains("Attackers gain Disadvantage")
-                            }
-
                             // Add elites
                             for (number in monsterEliteNumbers) {
                                 val maxHP = eliteMonster["health"]!!.jsonPrimitive
@@ -162,8 +150,20 @@ data class Enemy(var creationString: String) {
                                 val shield = if (shieldRegexMatch == null) 0 else shieldRegexMatch.groups[1]!!.value.toInt()
                                 val retaliateRegexMatch = retaliateRegex.find(attributes)
                                 val retaliate = if (retaliateRegexMatch == null) 0 else retaliateRegexMatch.groups[1]!!.value.toInt()
-                                jsonExpandedBlock += "\nElt${monsterName}$number $maxHP 0, shield $shield, retaliate $retaliate"
                                 val attackersGainDisadvantage = attributes.contains("Attackers gain Disadvantage")
+                                jsonExpandedBlock += "\n${monsterName}${number}e $maxHP 0, shield $shield, retaliate $retaliate${if (attackersGainDisadvantage) ", attackersGainDisadvantage" else ""}"
+                            }
+
+                            // Add normals
+                            for (number in monsterNormalNumbers) {
+                                val maxHP = normalMonster["health"]!!.jsonPrimitive
+                                val attributes = normalMonster["attributes"]!!.jsonArray.joinToString("\n")
+                                val shieldRegexMatch = shieldRegex.find(attributes)
+                                val shield = if (shieldRegexMatch == null) 0 else shieldRegexMatch.groups[1]!!.value.toInt()
+                                val retaliateRegexMatch = retaliateRegex.find(attributes)
+                                val retaliate = if (retaliateRegexMatch == null) 0 else retaliateRegexMatch.groups[1]!!.value.toInt()
+                                val attackersGainDisadvantage = attributes.contains("Attackers gain Disadvantage")
+                                jsonExpandedBlock += "\n${monsterName}${number}n $maxHP 0, shield $shield, retaliate $retaliate${if (attackersGainDisadvantage) ", attackersGainDisadvantage" else ""}"
                             }
                         }
                     }

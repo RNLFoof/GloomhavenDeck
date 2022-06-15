@@ -274,7 +274,7 @@ class MainActivity : AppCompatActivity() {
 2 8
 3 15,shield 1
 4 4
-vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
+vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
         // Because the deck has player undos it needs to be made after
         deck = MainActivityDeck()
         deck.addBaseDeck()
