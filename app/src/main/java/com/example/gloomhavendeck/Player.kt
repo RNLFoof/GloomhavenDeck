@@ -49,8 +49,8 @@ open class Player() {
         }
     val maxHp = 26
 
-    open fun useItem(item: Item) {
-        inventory.useItem(this, item)
+    open fun useItem(item: Item, deck: Deck) {
+        inventory.useItem(this, deck, item)
     }
 
 

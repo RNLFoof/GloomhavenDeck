@@ -236,10 +236,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     inner class MainActivityPlayer() : Player() {
-        override fun useItem(item: Item) {
-            super.useItem(item)
+        override fun useItem(item: Item, deck: Deck) {
             effectQueue.add(Effect(card = item.graphic, sound = item.sound, selectTopRow = true))
             deck.log("Used a $item")
+            super.useItem(item, deck)
         }
     }
 
