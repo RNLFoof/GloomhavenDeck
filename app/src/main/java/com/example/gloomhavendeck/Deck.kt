@@ -319,15 +319,15 @@ open class Deck {
         class RecoveryCandidate(var item: Item, var useImmediately: Boolean)
         fun getRecoveryCandidates() = sequence {
             while (true) {
-                if (player.unusableItems.contains(Item.MAJOR_POWER_POTION)) {
+                if (player.inventory.unusableItems.contains(Item.MAJOR_POWER_POTION)) {
                     yield(RecoveryCandidate(Item.MAJOR_POWER_POTION, false))
                     continue
                 }
-                if (player.unusableItems.contains(Item.RING_OF_BRUTALITY)) {
+                if (player.inventory.unusableItems.contains(Item.RING_OF_BRUTALITY)) {
                     yield(RecoveryCandidate(Item.RING_OF_BRUTALITY, false))
                     continue
                 }
-                if (player.unusableItems.contains(Item.MAJOR_CURE_POTION)
+                if (player.inventory.unusableItems.contains(Item.MAJOR_CURE_POTION)
                     && (
                             player.statuses.contains(Status.MUDDLE)
                             || player.statuses.contains(Status.POISON)
@@ -336,36 +336,36 @@ open class Deck {
                     yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, true))
                     continue
                 }
-                if (player.unusableItems.contains(Item.SUPER_HEALING_POTION)
+                if (player.inventory.unusableItems.contains(Item.SUPER_HEALING_POTION)
                     && player.hp <= player.hpDangerThreshold) {
                     yield(RecoveryCandidate(Item.SUPER_HEALING_POTION, true))
                     continue
                 }
-                if (player.unusableItems.contains(Item.MAJOR_POWER_POTION)) {
+                if (player.inventory.unusableItems.contains(Item.MAJOR_POWER_POTION)) {
                     yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, false))
                     continue
                 }
-                if (player.unusableItems.contains(Item.MAJOR_CURE_POTION)) {
+                if (player.inventory.unusableItems.contains(Item.MAJOR_CURE_POTION)) {
                     yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, false))
                     continue
                 }
-                if (player.unusableItems.contains(Item.SUPER_HEALING_POTION)) {
+                if (player.inventory.unusableItems.contains(Item.SUPER_HEALING_POTION)) {
                     yield(RecoveryCandidate(Item.SUPER_HEALING_POTION, player.hp <= 19))
                     continue
                 }
-                if (player.unusableItems.contains(Item.RING_OF_SKULLS)) {
+                if (player.inventory.unusableItems.contains(Item.RING_OF_SKULLS)) {
                     yield(RecoveryCandidate(Item.RING_OF_SKULLS, false))
                     continue
                 }
-                if (player.unusableItems.contains(Item.MINOR_STAMINA_POTION)) {
+                if (player.inventory.unusableItems.contains(Item.MINOR_STAMINA_POTION)) {
                     yield(RecoveryCandidate(Item.MINOR_STAMINA_POTION, false))
                     continue
                 }
-                if (player.unusableItems.contains(Item.TOWER_SHIELD)) {
+                if (player.inventory.unusableItems.contains(Item.TOWER_SHIELD)) {
                     yield(RecoveryCandidate(Item.TOWER_SHIELD, false))
                     continue
                 }
-                if (player.unusableItems.contains(Item.SPIKED_SHIELD)) {
+                if (player.inventory.unusableItems.contains(Item.SPIKED_SHIELD)) {
                     yield(RecoveryCandidate(Item.SPIKED_SHIELD, false))
                     continue
                 }
@@ -384,12 +384,10 @@ open class Deck {
             val itemsRecovered = mutableListOf<RecoveryCandidate>()
             for (recoveryCandidate in getRecoveryCandidates()) {
                 itemsRecovered.add(recoveryCandidate)
-                player.usableItems.add(recoveryCandidate.item)
-                player.unusableItems.remove(recoveryCandidate.item)
+                player.inventory.regainItem(recoveryCandidate.item)
                 if (itemsRecovered.size >= 2) {
-                    if (!player.usableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
-                        player.usableItems.add(Item.PENDANT_OF_DARK_PACTS)
-                        player.unusableItems.remove(Item.PENDANT_OF_DARK_PACTS)
+                    if (player.inventory.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
+                        player.inventory.regainItem(Item.PENDANT_OF_DARK_PACTS)
                     }
                     break
                 }
@@ -407,9 +405,8 @@ open class Deck {
                 }
             }
             if (itemsRecovered.size == 0) {
-                if (player.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
-                    player.usableItems.add(Item.PENDANT_OF_DARK_PACTS)
-                    player.unusableItems.remove(Item.PENDANT_OF_DARK_PACTS)
+                if (player.inventory.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
+                    player.inventory.regainItem(Item.PENDANT_OF_DARK_PACTS)
                 }
                 else {
                     log("Nothing to recover :c")
@@ -419,7 +416,7 @@ open class Deck {
 
         fun getRoomMakingItems() = sequence{
             while (true) {
-                if (player.usableItems.contains(Item.MAJOR_CURE_POTION)
+                if (player.inventory.usableItems.contains(Item.MAJOR_CURE_POTION)
                     && (
                             player.statuses.contains(Status.MUDDLE)
                             || player.statuses.contains(Status.POISON)
@@ -428,37 +425,37 @@ open class Deck {
                     yield(Item.MAJOR_CURE_POTION)
                     continue
                 }
-                if (player.usableItems.contains(Item.SUPER_HEALING_POTION)
+                if (player.inventory.usableItems.contains(Item.SUPER_HEALING_POTION)
                     && player.hp <= player.maxHp-7) {
                     yield(Item.SUPER_HEALING_POTION)
                     continue
                 }
-                if (player.usableItems.contains(Item.MAJOR_CURE_POTION)
+                if (player.inventory.usableItems.contains(Item.MAJOR_CURE_POTION)
                     && player.statuses.any{it.negative}
                 ) {
                     yield(Item.MAJOR_CURE_POTION)
                     continue
                 }
                 // Johnson should go here
-                if (player.usableItems.contains(Item.MAJOR_POWER_POTION)
+                if (player.inventory.usableItems.contains(Item.MAJOR_POWER_POTION)
                     && powerPotThresholdReached()
                 ) {
                     yield(Item.MAJOR_POWER_POTION)
                     continue
                 }
-                if (player.usableItems.contains(Item.SUPER_HEALING_POTION)
+                if (player.inventory.usableItems.contains(Item.SUPER_HEALING_POTION)
                     && player.hp < player.maxHp
                 ) {
                     yield(Item.SUPER_HEALING_POTION)
                     continue
                 }
-                if (player.usableItems.contains(Item.MINOR_STAMINA_POTION)
+                if (player.inventory.usableItems.contains(Item.MINOR_STAMINA_POTION)
                     && player.discardedCards >= 2
                 ) {
                     yield(Item.MINOR_STAMINA_POTION)
                     continue
                 }
-                if (player.usableItems.contains(Item.MAJOR_POWER_POTION)
+                if (player.inventory.usableItems.contains(Item.MAJOR_POWER_POTION)
                     && powerPotAggregatedPower() > 0
                 ) {
                     yield(Item.MAJOR_POWER_POTION)
@@ -473,20 +470,20 @@ open class Deck {
             // used items to use the pendant on
             // Separate from recover because the items you'd use if forced to in order to make room
             // generally aren't the same as the items you'd want to replenish ASAP if already used
-            if (!player.usableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
+            if (!player.inventory.usableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
                 return
             }
             val itemsConsumed = mutableListOf<Item>()
             for (roomMakingItem in getRoomMakingItems()) {
                 // Put at the start so that if it's already fine it just bails
-                if (player.unusableItems.filter { it != Item.PENDANT_OF_DARK_PACTS }.size >= 2) {
+                if (player.inventory.unusableItems.filter { it != Item.PENDANT_OF_DARK_PACTS }.size >= 2) {
                     break
                 }
                 player.useItem(roomMakingItem)
                 log("Used $roomMakingItem in order to free up some room.")
                 itemsConsumed.add(roomMakingItem)
             }
-            if (player.unusableItems.filter { it != Item.PENDANT_OF_DARK_PACTS }.size >= 2) {
+            if (player.inventory.unusableItems.filter { it != Item.PENDANT_OF_DARK_PACTS }.size >= 2) {
                 recover(viaPendant=true)
             }
         }
@@ -507,7 +504,7 @@ open class Deck {
             }
             // Player Items
             for (item in Item.values()) {
-                vars["Inventory has $item"] = player.usableItems.contains(item)
+                vars["Inventory has $item"] = player.inventory.usableItems.contains(item)
             }
             // Enemy
             for (enemy in enemies) {
@@ -546,7 +543,7 @@ open class Deck {
             }
             // Power?
             var basePower = if (usingBallistaInstead) 4 else 1
-            if (powerPotThresholdReached() && player.usableItems.contains(Item.MAJOR_POWER_POTION)) {
+            if (powerPotThresholdReached() && player.inventory.usableItems.contains(Item.MAJOR_POWER_POTION)) {
                 basePower += 2
                 player.useItem(Item.MAJOR_POWER_POTION)
             }
@@ -616,12 +613,12 @@ open class Deck {
             // One more time?
             val wantToGoAgain = player.hp - enemies.sumOf { if (!it.getTargetable() || !it.inRetaliateRange) 0 else it.retaliate } >= player.hpDangerThreshold
                                 && (enemies.sumOf { if (!it.getTargetable()) 0 else "1".toInt() } >= 3)
-            val canGoAgain = player.usableItems.contains(Item.RING_OF_BRUTALITY)
-                    && (player.usableItems.contains(Item.MINOR_STAMINA_POTION) || player.usableItems.contains(Item.MAJOR_STAMINA_POTION))
+            val canGoAgain = player.inventory.usableItems.contains(Item.RING_OF_BRUTALITY)
+                    && (player.inventory.usableItems.contains(Item.MINOR_STAMINA_POTION) || player.inventory.usableItems.contains(Item.MAJOR_STAMINA_POTION))
             // Do I want to?
             if (wantToGoAgain && canGoAgain) {
                 // Can I?
-                if (player.usableItems.contains(Item.MINOR_STAMINA_POTION)) {
+                if (player.inventory.usableItems.contains(Item.MINOR_STAMINA_POTION)) {
                         arbitraryCardsRecovered += 1
                         player.discardedCards -= 2
                         if (shouldUseBallista() && player.discardedBallista) {
@@ -634,7 +631,7 @@ open class Deck {
                         player.useItem(Item.RING_OF_BRUTALITY)
                         allowedToContinue = true
                 }
-                else if (player.usableItems.contains(Item.MAJOR_STAMINA_POTION)) {
+                else if (player.inventory.usableItems.contains(Item.MAJOR_STAMINA_POTION)) {
                         arbitraryCardsRecovered += 2
                         player.discardedCards -= 3
                         if (shouldUseBallista() && player.discardedBallista) {

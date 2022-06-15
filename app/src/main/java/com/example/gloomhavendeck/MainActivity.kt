@@ -353,7 +353,7 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
             val dialogBuilder = AlertDialog.Builder(this)
 
             dialogBuilder.setItems(arrayOf(
-                "Inventory (Currently ${player.usableItems.size}/${player.usableItems.size+player.unusableItems.size})",
+                "Inventory (Currently ${player.inventory.usableItems.size}/${player.inventory.usableItems.size+player.inventory.unusableItems.size})",
                 "Enemies",
                 "Enemy Menu",
                 "HP (Currently ${player.hp})",
@@ -374,20 +374,18 @@ vermling scout 7: 1 2 3 e5 6""", player.scenarioLevel).toMutableList()
                         val linearLayout = LinearLayout(this)
                         scrollView.addView(linearLayout)
                         linearLayout.orientation = LinearLayout.VERTICAL
-                        for (item in (player.usableItems + player.unusableItems).sortedBy { it.name }) {
+                        for (item in (player.inventory.usableItems + player.inventory.unusableItems).sortedBy { it.name }) {
                             if (item.permanent) {
                                 continue
                             }
                             val checkBox = CheckBox(this)
                             checkBox.setText(item.name)
-                            checkBox.isChecked = item in player.usableItems
+                            checkBox.isChecked = item in player.inventory.usableItems
                             checkBox.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
                                 if (on) {
-                                    player.usableItems.add(item)
-                                    player.unusableItems.remove(item)
+                                    player.inventory.regainItem(item)
                                 } else {
-                                    player.usableItems.remove(item)
-                                    player.unusableItems.add(item)
+                                    player.inventory.loseItem(item)
                                 }
                                 deck.log("Updated items.")
                                 deck.addUndoPoint()
