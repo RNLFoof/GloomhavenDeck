@@ -6,7 +6,6 @@ import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.text.InputType
-import android.util.Log
 import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
@@ -16,10 +15,8 @@ import androidx.core.view.size
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import java.lang.Exception
 import java.util.*
 import kotlin.reflect.KMutableProperty
-import kotlin.reflect.full.createType
 import kotlin.reflect.full.memberProperties
 
 
@@ -36,6 +33,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var deck : Deck
     lateinit var player : MainActivityPlayer
     var enemies : MutableList<Enemy> = mutableListOf()
+    var enemyOrder: MutableList<String> = mutableListOf()
     var effectQueue = LinkedList<Effect>()
     lateinit var selectedCardRow : LinearLayout
     var currentlyDoingDisadvantage = false
@@ -95,6 +93,19 @@ class MainActivity : AppCompatActivity() {
                 )}
             }
         }
+    }
+
+    fun sortEnemies() {
+        val nameRegex = Regex("[a-z]+", RegexOption.IGNORE_CASE)
+        enemies = enemies.sortedBy { it.name }.toMutableList()
+        enemies = enemies.sortedBy {
+            val name = nameRegex.find(it.name)!!.value
+            if (name in enemyOrder) {
+                enemyOrder.indexOf(name)
+            } else {
+                -1
+            }
+        }.toMutableList()
     }
 
     inner class MainActivityDeck() : Deck() {
@@ -354,9 +365,11 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
         btnPipis.setOnClickListener {
             val dialogBuilder = AlertDialog.Builder(this)
 
+            var i = 0
             dialogBuilder.setItems(arrayOf(
                 "Inventory (Currently ${player.inventory.usableItems.size}/${player.inventory.usableItems.size+player.inventory.unusableItems.size})",
                 "Enemies",
+                "Enemy Order",
                 "Enemy Menu",
                 "HP (Currently ${player.hp})",
                 "Statuses (Currently ${player.statuses})",
@@ -369,7 +382,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
             ) { _, which ->
                 when (which) {
                     // Inventory
-                    0 -> {
+                    i++ -> {
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("New Usable Items?")
                         val scrollView = ScrollView(this)
@@ -400,7 +413,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         alert.show()
                     }
                     // Enemies
-                    1 -> {
+                    i++ -> {
                         // This will eventually stack overflow if the user is sufficiently stupid but whatever lol
                         var text = enemies.joinToString(separator = "\n") { it.toString() }
                         var title = "New enemies?"
@@ -420,6 +433,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                                     title = e.message.toString()
                                 }
                                 showAlert()
+                                sortEnemies()
                                 deck.log("Updated enemies.")
                                 deck.addUndoPoint()
                                 endAction(btnPipis)
@@ -428,8 +442,49 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         }
                         showAlert()
                     }
+                    // Enemy order
+                    i++ -> {
+                        val nameRegex = Regex("[a-z]+", RegexOption.IGNORE_CASE)
+                        val enemyNames = HashSet<String>()
+                        for (enemy in enemies) {
+                            enemyNames.add(nameRegex.find(enemy.name)!!.value)
+                        }
+                        enemyOrder = mutableListOf()
+                        // This will eventually stack overflow if the user is sufficiently stupid but whatever lol
+                        fun showAlert() {
+                            val builder = AlertDialog.Builder(this)
+                            builder.setTitle("ORDER??????????")
+                            val alert = builder.create()
+                            val scrollView = ScrollView(this)
+                            val llRows = LinearLayout(this)
+                            scrollView.addView(llRows)
+                            llRows.orientation = LinearLayout.VERTICAL
+                            for (enemyName in enemyNames.sorted()) {
+                                // Name
+                                val btnName = Button(this)
+                                btnName.text = enemyName
+                                btnName.setOnClickListener {
+                                    enemyNames.remove(enemyName)
+                                    enemyOrder.add(enemyName)
+                                    if (enemyNames.size > 0) {
+                                        showAlert()
+                                    } else {
+                                        deck.log("Updated enemy order.")
+                                        sortEnemies()
+                                        deck.addUndoPoint()
+                                        endAction(btnPipis)
+                                    }
+                                    alert.cancel()
+                                }
+                                llRows.addView(btnName)
+                            }
+                            alert.setView(scrollView)
+                            alert.show()
+                        }
+                        showAlert()
+                    }
                     // Enemy menu
-                    2 -> {
+                    i++ -> {
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("Enemy Menu")
                         val scrollView = ScrollView(this)
@@ -437,7 +492,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         scrollView.addView(llRows)
                         llRows.orientation = LinearLayout.VERTICAL
                         val textSize = 8f
-                        for (enemy in enemies.sortedBy { it.name }) {
+                        for (enemy in enemies) {
                             val llRow = LinearLayout(this)
                             llRow.orientation = LinearLayout.HORIZONTAL
                             llRows.addView(llRow)
@@ -511,7 +566,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         alert.show()
                     }
                     // HP
-                    3 -> {
+                    i++ -> {
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("New HP?")
                         val input = EditText(this)
@@ -528,7 +583,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         alert.show()
                     }
                     // Statuses
-                    4 -> {
+                    i++ -> {
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("New Statuses?")
                         val scrollView = ScrollView(this)
@@ -559,7 +614,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         alert.show()
                     }
                     // Power Potion Threshold
-                    5 -> {
+                    i++ -> {
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("New Power Potion Threshold?")
                         val input = EditText(this)
@@ -576,7 +631,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         alert.show()
                     }
                     // HP Danger Threshold
-                    6 -> {
+                    i++ -> {
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("New HP Danger Threshold?")
                         val input = EditText(this)
@@ -593,7 +648,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         alert.show()
                     }
                     // Pierce
-                    7 -> {
+                    i++ -> {
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("New Pierce?")
                         val input = EditText(this)
@@ -610,7 +665,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         alert.show()
                     }
                     // Scenario Level
-                    8 -> {
+                    i++ -> {
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("New Scenario Level?")
                         val input = EditText(this)
@@ -627,7 +682,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         alert.show()
                     }
                     // Discard
-                    9 -> {
+                    i++ -> {
                         // Alert
                         val alert = AlertDialog.Builder(this)
                         alert.setTitle("Discard status?")
@@ -676,7 +731,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         alert.show()
                     }
                     // Go
-                    10 -> {
+                    i++ -> {
                         effectSpeed = 1_000/2L
                         deck.pipis(player, enemies)
                         effectSpeed = baseEffectSpeed
