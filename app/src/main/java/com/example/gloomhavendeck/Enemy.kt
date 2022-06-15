@@ -257,7 +257,7 @@ fun compactedString(string: String, maxLength: Int = 4): String {
         while(newWord.length > maxLength && newWord.length != lastLength) {
             lastLength = newWord.length
             newWord = doubleRegex.replaceFirst(newWord, "\$1")
-            if (lastLength != newWord.length) {
+            if (lastLength == newWord.length) {
                 newWord = vowelRegex.replaceFirst(newWord.reversed(), "").reversed()
             }
         }
