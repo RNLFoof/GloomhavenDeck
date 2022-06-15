@@ -20,7 +20,7 @@ enum class Item(val graphic: Int, val sound: Int=R.raw.stone2, val permanent: Bo
     MINOR_STAMINA_POTION(R.drawable.card_minorstamina, sound=R.raw.drinking, getUsed=fun (player, _) {
         player.discardedCards -= 2
     }),
-    PENDANT_OF_DARK_PACTS(R.drawable.card_pendant, getUsed=fun (player, deck) {
+    PENDANT_OF_DARK_PACTS(R.drawable.card_pendant, sound=R.raw.loud_bird, getUsed=fun (player, deck) {
         if (player.inventory.unusableItems.size <= 1) {
             throw kotlin.Exception("There aren't two items to recover!")
         }
