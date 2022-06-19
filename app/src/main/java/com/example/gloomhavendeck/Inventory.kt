@@ -11,7 +11,6 @@ open class Inventory {
         Item.MAJOR_CURE_POTION,
         Item.MAJOR_POWER_POTION,
         Item.MAJOR_STAMINA_POTION,
-        Item.MINOR_STAMINA_POTION,
         Item.PENDANT_OF_DARK_PACTS,
         Item.RING_OF_BRUTALITY,
         Item.RING_OF_SKULLS,
@@ -19,6 +18,7 @@ open class Inventory {
         Item.SPIKED_SHIELD,
         Item.SUPER_HEALING_POTION,
         Item.TOWER_SHIELD,
+        Item.UTILITY_BELT,
     )
     var activeItems = mutableListOf<Item>()
     var unusableItems = mutableListOf<Item>()

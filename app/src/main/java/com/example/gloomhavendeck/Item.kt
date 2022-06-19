@@ -38,4 +38,5 @@ enum class Item(val graphic: Int, val sound: Int=R.raw.stone2, val permanent: Bo
         player.hp = min(player.hp+7, player.maxHp)
     }),
     TOWER_SHIELD(R.drawable.card_tower),
+    UTILITY_BELT(R.drawable.card_belt, sound=R.raw.metal_falling),
 }

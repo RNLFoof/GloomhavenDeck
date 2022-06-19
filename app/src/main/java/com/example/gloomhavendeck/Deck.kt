@@ -103,15 +103,17 @@ open class Deck {
 
             Card(-2),
             Card(-1),
-            Card(0),
             Card(1),
             Card(1),
             Card(1),
             Card(1),
             Card(1),
+            Card(2),
             Card(2),
             Card(2),
 
+            Card(1, flippy = true),
+            Card(1, flippy = true),
             Card(1, flippy = true),
             Card(1, flippy = true),
 
