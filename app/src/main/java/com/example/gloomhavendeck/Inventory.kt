@@ -50,81 +50,65 @@ open class Inventory {
 
     // Analyze
     class RecoveryCandidate(var item: Item, var useImmediately: Boolean)
-    fun getRecoveryCandidates(player: Player, inventory: Inventory) = sequence {
-        while (true) {
-            if (unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)
-                && inventory.unusableItems.size >= 3 // 3, not 2, because of itself
-            ) {
-                yield(RecoveryCandidate(Item.PENDANT_OF_DARK_PACTS, true))
-                continue
-            }
-            if (unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
-                yield(RecoveryCandidate(Item.PENDANT_OF_DARK_PACTS, false))
-                continue
-            }
-            if (unusableItems.contains(Item.MAJOR_STAMINA_POTION)) {
-                yield(RecoveryCandidate(Item.MAJOR_STAMINA_POTION, false))
-                continue
-            }
-            if (unusableItems.contains(Item.RING_OF_BRUTALITY)) {
-                yield(RecoveryCandidate(Item.RING_OF_BRUTALITY, false))
-                continue
-            }
-            if (unusableItems.contains(Item.MAJOR_POWER_POTION)) {
-                yield(RecoveryCandidate(Item.MAJOR_POWER_POTION, false))
-                continue
-            }
-            if (unusableItems.contains(Item.MAJOR_POWER_POTION)) {
-                yield(RecoveryCandidate(Item.MAJOR_POWER_POTION, false))
-                continue
-            }
-            if (unusableItems.contains(Item.RING_OF_BRUTALITY)) {
-                yield(RecoveryCandidate(Item.RING_OF_BRUTALITY, false))
-                continue
-            }
-            if (unusableItems.contains(Item.MAJOR_CURE_POTION)
-                && (
-                        player.statuses.contains(Status.MUDDLE)
-                                || player.statuses.contains(Status.POISON)
-                        )
-            ) {
-                yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, true))
-                continue
-            }
-            if (unusableItems.contains(Item.SUPER_HEALING_POTION)
-                && player.hp <= player.hpDangerThreshold) {
-                yield(RecoveryCandidate(Item.SUPER_HEALING_POTION, true))
-                continue
-            }
-            if (unusableItems.contains(Item.MAJOR_POWER_POTION)) {
-                yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, false))
-                continue
-            }
-            if (unusableItems.contains(Item.MAJOR_CURE_POTION)) {
-                yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, false))
-                continue
-            }
-            if (unusableItems.contains(Item.SUPER_HEALING_POTION)) {
-                yield(RecoveryCandidate(Item.SUPER_HEALING_POTION, player.hp <= 19))
-                continue
-            }
-            if (unusableItems.contains(Item.RING_OF_SKULLS)) {
-                yield(RecoveryCandidate(Item.RING_OF_SKULLS, false))
-                continue
-            }
-            if (unusableItems.contains(Item.MINOR_STAMINA_POTION)) {
-                yield(RecoveryCandidate(Item.MINOR_STAMINA_POTION, false))
-                continue
-            }
-            if (unusableItems.contains(Item.TOWER_SHIELD)) {
-                yield(RecoveryCandidate(Item.TOWER_SHIELD, false))
-                continue
-            }
-            if (unusableItems.contains(Item.SPIKED_SHIELD)) {
-                yield(RecoveryCandidate(Item.SPIKED_SHIELD, false))
-                continue
-            }
-            break
+    fun getRecoveryCandidates(player: Player, inventory: Inventory, cantRecover: List<Item> = listOf()) = sequence {
+        if (unusableItems.contains(Item.UTILITY_BELT)) {
+            yield(RecoveryCandidate(Item.UTILITY_BELT, false))
+        }
+        if (unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)
+            && inventory.unusableItems.size >= 3 // 3, not 2, because of itself
+        ) {
+            yield(RecoveryCandidate(Item.PENDANT_OF_DARK_PACTS, true))
+        }
+        if (unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
+            yield(RecoveryCandidate(Item.PENDANT_OF_DARK_PACTS, false))
+        }
+        if (unusableItems.contains(Item.MAJOR_STAMINA_POTION)) {
+            yield(RecoveryCandidate(Item.MAJOR_STAMINA_POTION, false))
+        }
+        if (unusableItems.contains(Item.RING_OF_BRUTALITY)) {
+            yield(RecoveryCandidate(Item.RING_OF_BRUTALITY, false))
+        }
+        if (unusableItems.contains(Item.MAJOR_POWER_POTION)) {
+            yield(RecoveryCandidate(Item.MAJOR_POWER_POTION, false))
+        }
+        if (unusableItems.contains(Item.MAJOR_POWER_POTION)) {
+            yield(RecoveryCandidate(Item.MAJOR_POWER_POTION, false))
+        }
+        if (unusableItems.contains(Item.RING_OF_BRUTALITY)) {
+            yield(RecoveryCandidate(Item.RING_OF_BRUTALITY, false))
+        }
+        if (unusableItems.contains(Item.MAJOR_CURE_POTION)
+            && (
+                    player.statuses.contains(Status.MUDDLE)
+                            || player.statuses.contains(Status.POISON)
+                    )
+        ) {
+            yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, true))
+        }
+        if (unusableItems.contains(Item.SUPER_HEALING_POTION)
+            && player.hp <= player.hpDangerThreshold) {
+            yield(RecoveryCandidate(Item.SUPER_HEALING_POTION, true))
+        }
+        if (unusableItems.contains(Item.MAJOR_POWER_POTION)) {
+            yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, false))
+        }
+        if (unusableItems.contains(Item.MAJOR_CURE_POTION)) {
+            yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, false))
+        }
+        if (unusableItems.contains(Item.SUPER_HEALING_POTION)) {
+            yield(RecoveryCandidate(Item.SUPER_HEALING_POTION, player.hp <= 19))
+        }
+        if (unusableItems.contains(Item.RING_OF_SKULLS)) {
+            yield(RecoveryCandidate(Item.RING_OF_SKULLS, false))
+        }
+        if (unusableItems.contains(Item.MINOR_STAMINA_POTION)) {
+            yield(RecoveryCandidate(Item.MINOR_STAMINA_POTION, false))
+        }
+        if (unusableItems.contains(Item.TOWER_SHIELD)) {
+            yield(RecoveryCandidate(Item.TOWER_SHIELD, false))
+        }
+        if (unusableItems.contains(Item.SPIKED_SHIELD)) {
+            yield(RecoveryCandidate(Item.SPIKED_SHIELD, false))
         }
     }
 
@@ -179,7 +163,7 @@ open class Inventory {
         }
     }
 
-    fun recover(player: Player, deck: Deck, howMany: Int = 1): MutableList<RecoveryCandidate> {
+    fun recover(player: Player, deck: Deck, howMany: Int = 1, cantRecover: List<Item> = listOf()): MutableList<RecoveryCandidate> {
         // Pendant logic is kept separate because otherwise it could try to revive itself
         // and other such nonsense
         // Separate from makeRoom because the items you'd use if forced to in order to make room
@@ -189,6 +173,9 @@ open class Inventory {
         // to stop having a pendant", in which case exactly two items must be used
         val itemsRecovered = mutableListOf<RecoveryCandidate>()
         for (recoveryCandidate in getRecoveryCandidates(player, this)) {
+            if (cantRecover.contains(recoveryCandidate.item)) {
+                continue
+            }
             itemsRecovered.add(recoveryCandidate)
             regainItem(recoveryCandidate.item)
             if (itemsRecovered.size >= howMany) {

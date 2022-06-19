@@ -465,11 +465,24 @@ open class Deck {
                 }
             }
             // One more time?
-            val wantToGoAgain = player.hp - enemies.sumOf { if (!it.getTargetable() || !it.inRetaliateRange) 0 else it.retaliate } >= player.hpDangerThreshold
-                                && (enemies.sumOf { if (!it.getTargetable()) 0 else "1".toInt() } >= 3)
-            val canGoAgain = player.inventory.usableItems.contains(Item.RING_OF_BRUTALITY)
-                    && (player.inventory.usableItems.contains(Item.MINOR_STAMINA_POTION) || player.inventory.usableItems.contains(Item.MAJOR_STAMINA_POTION))
-            // Do I want to?
+            var wantToGoAgain = false
+            var canGoAgain = false
+            fun setWantAndCan() {
+                wantToGoAgain = player.hp - enemies.sumOf { if (!it.getTargetable() || !it.inRetaliateRange) 0 else it.retaliate } >= player.hpDangerThreshold
+                        && (enemies.sumOf { if (!it.getTargetable()) 0 else "1".toInt() } >= 3)
+                canGoAgain = player.inventory.usableItems.contains(Item.RING_OF_BRUTALITY)
+                        && (player.inventory.usableItems.contains(Item.MINOR_STAMINA_POTION) || player.inventory.usableItems.contains(Item.MAJOR_STAMINA_POTION))
+            }
+            setWantAndCan()
+            // Maybe use belt
+            if (wantToGoAgain && !canGoAgain) {
+                if (player.inventory.usableItems.contains(Item.UTILITY_BELT)) {
+                    // Belt will recover pendant, pendant will automatically recover major and ring
+                    player.useItem(Item.UTILITY_BELT, this)
+                    setWantAndCan()
+                }
+            }
+            // Ok go
             if (wantToGoAgain && canGoAgain) {
                 // Can I?
                 if (player.inventory.usableItems.contains(Item.MINOR_STAMINA_POTION)) {

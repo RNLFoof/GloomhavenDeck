@@ -21,10 +21,12 @@ enum class Item(val graphic: Int, val sound: Int=R.raw.stone2, val permanent: Bo
         player.discardedCards -= 2
     }),
     PENDANT_OF_DARK_PACTS(R.drawable.card_pendant, sound=R.raw.loud_bird, getUsed=fun (player, deck) {
-        if (player.inventory.unusableItems.size <= 1) {
+        if (player.inventory.unusableItems.size <= 1
+            || (player.inventory.unusableItems.size <= 2 && player.inventory.unusableItems.contains(UTILITY_BELT))
+        ) {
             throw kotlin.Exception("There aren't two items to recover!")
         }
-        player.inventory.recover(player, deck, howMany = 2)
+        player.inventory.recover(player, deck, howMany = 2, cantRecover = listOf(UTILITY_BELT))
         deck.curse()
     }),
     RING_OF_BRUTALITY(R.drawable.card_brutality, sound=R.raw.one_more_time),
@@ -38,5 +40,10 @@ enum class Item(val graphic: Int, val sound: Int=R.raw.stone2, val permanent: Bo
         player.hp = min(player.hp+7, player.maxHp)
     }),
     TOWER_SHIELD(R.drawable.card_tower),
-    UTILITY_BELT(R.drawable.card_belt, sound=R.raw.metal_falling),
+    UTILITY_BELT(R.drawable.card_belt, sound=R.raw.metal_falling, getUsed=fun(player, deck) {
+        if (player.inventory.unusableItems.size <= 0) {
+            throw kotlin.Exception("There isn't an item to recover!")
+        }
+        player.inventory.recover(player, deck, howMany = 1)
+    }),
 }
