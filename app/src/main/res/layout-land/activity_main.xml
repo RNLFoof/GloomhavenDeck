@@ -35,22 +35,44 @@
                     android:orientation="vertical">
 
                     <LinearLayout
-                        android:id="@+id/llTopCardRow"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_gravity="left"
-                        android:layout_weight="1"
-                        android:orientation="horizontal" />
+                        android:layout_weight="1.75"
+                        android:orientation="vertical">
 
-                    <LinearLayout
-                        android:id="@+id/llBottomCardRow"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_gravity="left"
-                        android:layout_weight="1"
-                        android:orientation="horizontal">
+                        <LinearLayout
+                            android:id="@+id/llTopCardRow"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="left"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/llBottomCardRow"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_gravity="left"
+                            android:layout_weight="1"
+                            android:orientation="horizontal">
+
+                        </LinearLayout>
 
                     </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/llItemRow"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="left"
+                        android:layout_weight="6"
+                        android:orientation="horizontal"
+                        android:visibility="visible">
+
+                    </LinearLayout>
+
                 </LinearLayout>
             </LinearLayout>
 

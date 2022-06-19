@@ -2,15 +2,21 @@ package com.example.gloomhavendeck
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Drawable
 import android.media.MediaPlayer
+import android.opengl.Visibility
 import android.os.Build
 import android.os.Bundle
 import android.text.InputType
+import android.view.View
 import android.view.ViewGroup
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.core.view.size
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -25,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var tvLog : TextView
     lateinit var llTopCardRow : LinearLayout
     lateinit var llBottomCardRow : LinearLayout
+    lateinit var llItemRow : LinearLayout
     lateinit var btnSpinny : Button
     lateinit var btnDiscard : Button
     lateinit var btnUndo : Button
@@ -42,8 +49,11 @@ class MainActivity : AppCompatActivity() {
 
     inner class Effect(var sound: Int? = null, var card: Int? = null, var wipe: Boolean = false,
                        var selectTopRow: Boolean = false, var selectBottomRow: Boolean = false,
-                       var showBottomRow: Boolean = false, var hideBottomRow: Boolean = false) {
+                       var showBottomRow: Boolean = false, var hideBottomRow: Boolean = false,
+                       var showItemRow: Boolean = false, var hideItemRow: Boolean = false,
+                       var newItemRowDisplay: List<Boolean>? = null) {
         var speed = effectSpeed
+        @SuppressLint("UseCompatLoadingForDrawables")
         fun run() {
             if (sound != null) {
                 val player: MediaPlayer = MediaPlayer.create(this@MainActivity, sound!!)
@@ -78,19 +88,46 @@ class MainActivity : AppCompatActivity() {
 
             if (showBottomRow) {
                 runOnUiThread {
-                llTopCardRow.layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    1.0.toFloat()
-                )}
+                    llBottomCardRow.visibility = View.VISIBLE
+                }
             }
             if (hideBottomRow) {
                 runOnUiThread {
-                llTopCardRow.layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    0.0.toFloat()
-                )}
+                    llBottomCardRow.visibility = View.GONE
+                }
+            }
+            
+            if (showItemRow) {
+                runOnUiThread {
+                    llItemRow.visibility = View.VISIBLE
+                }
+            }
+            if (hideItemRow) {
+                runOnUiThread {
+                    llItemRow.visibility = View.GONE
+                }
+            }
+            if (newItemRowDisplay != null) {
+                runOnUiThread {
+                    llItemRow.removeAllViews()
+                }
+                for ((i, item) in (player.inventory.usableItems + player.inventory.unusableItems).sortedBy { it.name }.withIndex()) {
+                    val imageView = ImageView(this@MainActivity)
+                    if (newItemRowDisplay!![i]) {
+                        imageView.setImageResource(item.graphic)
+                    } else if (item.spendOnly) {
+                        imageView.setImageResource(item.graphic)
+                        imageView.rotation = 90f;
+                    } else {
+                        imageView.setImageResource(item.graphic)
+                        imageView.foreground = getDrawable(R.drawable.card_transuseditem)
+                    }
+                    imageView.rotation += (Random().nextFloat()*1-0.5).toFloat() // This masks bad scanning lol
+                    imageView.adjustViewBounds = true
+                    runOnUiThread {
+                        llItemRow.addView(imageView)
+                    }
+                }
             }
         }
     }
@@ -108,7 +145,7 @@ class MainActivity : AppCompatActivity() {
         }.toMutableList()
     }
 
-    inner class MainActivityDeck() : Deck() {
+    inner class MainActivityDeck : Deck() {
 
         inner class UndoPoint : Deck.UndoPoint() {
             var playerJson = Json.encodeToString(player as Player)
@@ -124,6 +161,16 @@ class MainActivity : AppCompatActivity() {
                 for (property in Player::class.memberProperties) {
                     try {
                         (property as KMutableProperty<*>).setter.call(player, (property.get(decodedPlayer))
+                    )}
+                    catch (e: Exception)
+                    {}
+                }
+                // Inventory
+                val decodedInventory = player.inventory
+                player.inventory = MainActivityInventory() // New one is made because default values aren't serialized
+                for (property in Inventory::class.memberProperties) {
+                    try {
+                        (property as KMutableProperty<*>).setter.call(player.inventory, (property.get(decodedInventory))
                     )}
                     catch (e: Exception)
                     {}
@@ -246,7 +293,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    inner class MainActivityInventory() : Inventory() {
+        override fun regainItem(item: Item) {
+            super.regainItem(item)
+            displayChangedInventory()
+        }
+        override fun loseItem(item: Item) {
+            super.loseItem(item)
+            displayChangedInventory()
+        }
+        fun displayChangedInventory() {
+            if (llItemRow.isVisible) {
+                val newItemRowDisplay = mutableListOf<Boolean>()
+                for (item in (player.inventory.usableItems + player.inventory.unusableItems).sortedBy { it.name }) {
+                    newItemRowDisplay.add(item in player.inventory.usableItems)
+                }
+                effectQueue.add(Effect(newItemRowDisplay = newItemRowDisplay))
+            }
+        }
+    }
+
     inner class MainActivityPlayer() : Player() {
+        init {
+            inventory = MainActivityInventory()
+        }
         override fun useItem(item: Item, deck: Deck) {
             effectQueue.add(Effect(card = item.graphic, sound = item.sound, selectTopRow = true))
             deck.log("Using a $item...")
@@ -255,6 +325,7 @@ class MainActivity : AppCompatActivity() {
             deck.logIndent -= 1
         }
     }
+
 
     @RequiresApi(Build.VERSION_CODES.Q)
     @SuppressLint("SetTextI18n")
@@ -277,6 +348,7 @@ class MainActivity : AppCompatActivity() {
         btnUndo = findViewById<Button>(R.id.btnUndo)
         llBottomCardRow = findViewById<LinearLayout>(R.id.llBottomCardRow)
         llTopCardRow = findViewById<LinearLayout>(R.id.llTopCardRow)
+        llItemRow = findViewById<LinearLayout>(R.id.llItemRow)
         selectedCardRow = llTopCardRow
         tvLog = findViewById<TextView>(R.id.tvLog)
 
@@ -346,18 +418,21 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
         // Attacks
         btnAttack.setOnClickListener {
             buttonBehavior(btnAttack) {
+                effectQueue.add(Effect(hideItemRow=true))
                 deck.attack(userDirectlyRequested = true)
             }
         }
 
         btnAdvantage.setOnClickListener {
             buttonBehavior(btnAdvantage) {
+                effectQueue.add(Effect(hideItemRow=true))
                 deck.advantage(userDirectlyRequested = true)
             }
         }
 
         btnDisadvantage.setOnClickListener {
             buttonBehavior(btnDisadvantage) {
+                effectQueue.add(Effect(hideItemRow=true))
                 deck.disadvantage(userDirectlyRequested = true)
             }
         }
@@ -732,6 +807,8 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                     }
                     // Go
                     i++ -> {
+                        effectQueue.add(Effect(showItemRow=true))
+                        (player.inventory as MainActivityInventory).displayChangedInventory()
                         effectSpeed = 1_000/2L
                         deck.pipis(player, enemies)
                         effectSpeed = baseEffectSpeed

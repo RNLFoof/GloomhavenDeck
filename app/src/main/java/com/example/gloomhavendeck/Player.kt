@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 open class Player() {
     var hp = 26
-    var inventory = Inventory()
+    open var inventory = Inventory()
     var statuses = mutableListOf<Status>()
     var powerPotionThreshold = 6
     var hpDangerThreshold = 10

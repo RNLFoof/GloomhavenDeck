@@ -24,7 +24,7 @@ open class Inventory {
     var unusableItems = mutableListOf<Item>()
 
     // Manage directly
-    fun loseItem(item: Item) {
+    open fun loseItem(item: Item) {
         if (!usableItems.contains(item)) {
             throw Exception("Don't have a $item in usable!")
         }
@@ -32,7 +32,7 @@ open class Inventory {
         unusableItems.add(item)
     }
 
-    fun regainItem(item: Item) {
+    open fun regainItem(item: Item) {
         if (!unusableItems.contains(item)) {
             throw Exception("Don't have a $item in unusable!")
         }
