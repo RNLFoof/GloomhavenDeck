@@ -71,9 +71,6 @@ open class Inventory {
         if (unusableItems.contains(Item.MAJOR_POWER_POTION)) {
             yield(RecoveryCandidate(Item.MAJOR_POWER_POTION, false))
         }
-        if (unusableItems.contains(Item.MAJOR_POWER_POTION)) {
-            yield(RecoveryCandidate(Item.MAJOR_POWER_POTION, false))
-        }
         if (unusableItems.contains(Item.RING_OF_BRUTALITY)) {
             yield(RecoveryCandidate(Item.RING_OF_BRUTALITY, false))
         }
@@ -88,9 +85,6 @@ open class Inventory {
         if (unusableItems.contains(Item.SUPER_HEALING_POTION)
             && player.hp <= player.hpDangerThreshold) {
             yield(RecoveryCandidate(Item.SUPER_HEALING_POTION, true))
-        }
-        if (unusableItems.contains(Item.MAJOR_POWER_POTION)) {
-            yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, false))
         }
         if (unusableItems.contains(Item.MAJOR_CURE_POTION)) {
             yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, false))
