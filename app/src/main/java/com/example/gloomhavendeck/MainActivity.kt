@@ -2,14 +2,12 @@ package com.example.gloomhavendeck
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
+import android.graphics.Color
 import android.media.MediaPlayer
-import android.opengl.Visibility
 import android.os.Build
 import android.os.Bundle
 import android.text.InputType
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
@@ -560,7 +558,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                     }
                     // Enemy menu
                     i++ -> {
-                        val alert = AlertDialog.Builder(this)
+                        val alert = AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar)
                         alert.setTitle("Enemy Menu")
                         val scrollView = ScrollView(this)
                         val llRows = LinearLayout(this)
@@ -570,22 +568,67 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         for (enemy in enemies) {
                             val llRow = LinearLayout(this)
                             llRow.orientation = LinearLayout.HORIZONTAL
+                            llRow.gravity = Gravity.CENTER_VERTICAL
                             llRows.addView(llRow)
+                            // Update change display, and also create the stuff that needs to be there in advance
+                            val btnPlus1 = Button(this)
+                            val btnPlus5 = Button(this)
+                            val npTaken = NumberPicker(this)
+                            val tvChangeDisplay = TextView(this)
+                            val startingTaken = enemy.taken
+                            var takenChange = 0
+                            fun changeTakenTo(taken: Int) {
+                                if (takenChange != taken-startingTaken) {
+                                    takenChange = taken-startingTaken
+                                    enemy.taken = taken
+                                    npTaken.value = taken
+                                    tvChangeDisplay.text = takenChange.toString()
+                                    if (takenChange > 0) {
+                                        tvChangeDisplay.setTextColor(Color.GREEN)
+                                    }
+                                    else if (takenChange < 0) {
+                                        tvChangeDisplay.setTextColor(Color.RED)
+                                    } else {
+                                        tvChangeDisplay.setTextColor(Color.BLACK)
+                                    }
+                                }
+                            }
                             // Name
                             val tvName = TextView(this)
                             tvName.textSize = textSize
                             tvName.text = enemy.name
                             llRow.addView(tvName)
                             // Taken
-                            val npTaken = NumberPicker(this)
                             npTaken.minValue = 0
                             npTaken.maxValue = enemy.maxHp
                             npTaken.value = enemy.taken
-                            npTaken.layoutParams = ViewGroup.LayoutParams(300,100)
+                            npTaken.gravity = Gravity.LEFT
+                            npTaken.layoutParams = ViewGroup.LayoutParams(300,200)
                             npTaken.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
-                                enemy.taken = new
+                                changeTakenTo(new)
                             }
                             llRow.addView(npTaken)
+                            // This bit has two rows
+                            val llRowRow = LinearLayout(this)
+                            llRowRow.orientation = LinearLayout.VERTICAL
+                            llRowRow.gravity = Gravity.CENTER_VERTICAL
+                            llRow.addView(llRowRow)
+                            // +1
+                            btnPlus1.text = "+1"
+                            btnPlus1.layoutParams = ViewGroup.LayoutParams(200,100)
+                            btnPlus1.setOnClickListener() {
+                                changeTakenTo(enemy.taken+1)
+                            }
+                            llRowRow.addView(btnPlus1)
+                            // +5
+                            btnPlus5.text = "+5"
+                            btnPlus5.layoutParams = ViewGroup.LayoutParams(200,100)
+                            btnPlus5.setOnClickListener() {
+                                changeTakenTo(enemy.taken+5)
+                            }
+                            llRowRow.addView(btnPlus5)
+                            // Display change
+                            llRowRow.addView(tvChangeDisplay)
                             // Targeted checkbox
                             val cbTargeted = CheckBox(this)
                             cbTargeted.textSize = textSize
