@@ -675,6 +675,15 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                                 enemy.inRetaliateRange = !enemy.inRetaliateRange
                             }
                             llRow.addView(cbRetaliateRange)
+                            // Poisoned checkbox
+                            val cbPoisoned = CheckBox(this)
+                            cbPoisoned.textSize = textSize
+                            cbPoisoned.text = "Poisn"
+                            cbPoisoned.isChecked = enemy.poisoned
+                            cbPoisoned.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                enemy.poisoned = !enemy.poisoned
+                            }
+                            llRow.addView(cbPoisoned)
                         }
                         alert.setView(scrollView)
                         alert.setOnDismissListener{
@@ -908,6 +917,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                 enemy.targeted = false
                 enemy.muddled = false
                 enemy.stunned = false
+                enemy.poisoned = false
             }
         }
         //
