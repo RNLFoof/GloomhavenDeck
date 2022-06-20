@@ -339,6 +339,7 @@ class MainActivity : AppCompatActivity() {
         val btnDisadvantage = findViewById<Button>(R.id.btnDisadvantage)
         val btnPipis = findViewById<Button>(R.id.btnPipis)
         val btnViewCards = findViewById<Button>(R.id.btnViewCards)
+        val btnSimplify = findViewById<Button>(R.id.btnSimplify)
 
         btnDiscard = findViewById<Button>(R.id.btnDiscard)
         btnRedo = findViewById<Button>(R.id.btnRedo)
@@ -855,6 +856,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         effectSpeed = 1_000/2L
                         deck.pipis(player, enemies)
                         effectSpeed = baseEffectSpeed
+                        simplifyTheGamestate()
                         endAction(btnPipis)
                     }
                 }
@@ -881,6 +883,35 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                 btnSpinny.isEnabled = false
             }
         }
+
+        // Hi
+        btnSimplify.setOnClickListener {
+            buttonBehavior(btnSimplify) {
+                simplifyTheGamestate()
+                deck.addUndoPoint()
+            }
+        }
+    }
+
+    fun simplifyTheGamestate() {
+        // Player
+        player.pierce = 0
+        // Enemies
+        for (i in enemies.size-1 downTo 0) {
+            if (enemies[i].dead) {
+                enemies.removeAt(i)
+            } else {
+                val enemy = enemies[i]
+                enemy.extraTarget = false
+                enemy.inMeleeRange = false
+                enemy.inBallistaRange = false
+                enemy.targeted = false
+                enemy.muddled = false
+                enemy.stunned = false
+            }
+        }
+        //
+        deck.log("Simplified the gamestate.")
     }
 
     fun buttonBehavior(button: Button, function: () -> Unit = {}) {
