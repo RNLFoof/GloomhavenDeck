@@ -351,17 +351,6 @@ open class Deck {
             return enemies.filter { it.getTargetable() }.all { it.inBallistaRange }
         }
 
-        fun tryToDitchPendant() {
-            if (player.inventory.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
-                return
-            }
-            player.inventory.makeRoom(player, this,2, powerPotThresholdReached(),
-                powerPotAggregatedPower() > 0)
-            if (player.inventory.unusableItems.size >= 2) {
-                player.useItem(Item.PENDANT_OF_DARK_PACTS, this)
-            }
-        }
-
         log("Pipis...")
         val startSummary = getSummary()
         logIndent += 1
@@ -372,6 +361,22 @@ open class Deck {
             log("")
             enemyIndex = 0
             allowedToContinue = false
+            // Init power up here instead so that pendant can use it
+            var basePower = 1
+            fun tryToDitchPendant() {
+                if (player.inventory.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
+                    return
+                }
+                val roomMade = player.inventory.makeRoom(player, this,2, powerPotThresholdReached(),
+                    powerPotAggregatedPower() > 0)
+                if (roomMade.contains(Item.MAJOR_POWER_POTION)) {
+                    basePower += 2
+                }
+                if (player.inventory.unusableItems.size >= 2) {
+                    player.useItem(Item.PENDANT_OF_DARK_PACTS, this)
+                }
+            }
+
             val usingBallistaInstead = shouldUseBallista() && !player.discardedBallista
             // EAT CARD
             if (usingBallistaInstead) {
@@ -382,7 +387,7 @@ open class Deck {
                 player.discardedPipis = true
             }
             // Power?
-            var basePower = if (usingBallistaInstead) 4 else 1
+            if (usingBallistaInstead) {basePower += 3}
             if (powerPotThresholdReached() && player.inventory.usableItems.contains(Item.MAJOR_POWER_POTION)) {
                 basePower += 2
                 player.useItem(Item.MAJOR_POWER_POTION, this)
