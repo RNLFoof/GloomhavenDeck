@@ -296,7 +296,7 @@ open class Deck {
         return combinedCard
     }
 
-    fun pipis(player : Player, enemies : Iterable<Enemy>) {
+    fun pipis(player : Player, enemies : Iterable<Enemy>, mainactivity: MainActivity? = null) {
         var enemyIndex = 0
         fun powerPotAggregatedPower() : Int {
             var aggregatedPower = 0
@@ -440,6 +440,9 @@ open class Deck {
                 log("Hit ${enemy.name} with $combinedCard${if (enemy.dead) ", dies!" else ""}")
                 if (combinedCard.refresh) {
                     player.inventory.recover(player, this)
+                    if (mainactivity!=null) {
+                        mainactivity.effectSpeed = mainactivity.effectSpeed*9/10
+                    }
                 }
                 if (combinedCard.extraTarget) {
                     gotExtraTarget = true
