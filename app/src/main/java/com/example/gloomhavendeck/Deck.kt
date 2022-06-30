@@ -392,6 +392,10 @@ open class Deck {
                 basePower += 2
                 player.useItem(Item.MAJOR_POWER_POTION, this)
             }
+            // Eye?
+            if (player.inventory.usableItems.contains(Item.LUCKY_EYE)) {
+                player.useItem(Item.LUCKY_EYE, this)
+            }
             // Room?
             tryToDitchPendant()
             // Another potion?

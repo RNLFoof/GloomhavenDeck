@@ -9,15 +9,14 @@ open class Inventory {
     var usableItems = mutableListOf(
         Item.CLOAK_OF_POCKETS,
         Item.MAJOR_CURE_POTION,
-        Item.MAJOR_POWER_POTION,
+        Item.LUCKY_EYE,
         Item.MAJOR_STAMINA_POTION,
         Item.PENDANT_OF_DARK_PACTS,
         Item.RING_OF_BRUTALITY,
         Item.RING_OF_SKULLS,
         Item.ROCKET_BOOTS,
-        Item.SPIKED_SHIELD,
         Item.SUPER_HEALING_POTION,
-        Item.TOWER_SHIELD,
+        Item.WALL_SHIELD,
         Item.UTILITY_BELT,
     )
     var activeItems = mutableListOf<Item>()
@@ -62,6 +61,10 @@ open class Inventory {
         if (unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
             yield(RecoveryCandidate(Item.PENDANT_OF_DARK_PACTS, false))
         }
+        if (unusableItems.contains(Item.LUCKY_EYE)
+        ) {
+            yield(RecoveryCandidate(Item.LUCKY_EYE, !player.statuses.contains(Status.STRENGTHEN)))
+        }
         if (unusableItems.contains(Item.MAJOR_STAMINA_POTION)) {
             yield(RecoveryCandidate(Item.MAJOR_STAMINA_POTION, false))
         }
@@ -104,10 +107,19 @@ open class Inventory {
         if (unusableItems.contains(Item.SPIKED_SHIELD)) {
             yield(RecoveryCandidate(Item.SPIKED_SHIELD, false))
         }
+        if (unusableItems.contains(Item.WALL_SHIELD)) {
+            yield(RecoveryCandidate(Item.SPIKED_SHIELD, false))
+        }
     }
 
     fun getRoomMakingItems(player: Player, begrudgingPowerPot: Boolean = false, reallyBegrudgingPowerPot: Boolean = false) = sequence{
         while (true) {
+            if (usableItems.contains(Item.LUCKY_EYE)
+                && !player.statuses.contains(Status.STRENGTHEN)
+            ) {
+                yield(Item.LUCKY_EYE)
+                continue
+            }
             if (usableItems.contains(Item.MAJOR_CURE_POTION)
                 && (
                         player.statuses.contains(Status.MUDDLE)

@@ -1,15 +1,16 @@
 package com.example.gloomhavendeck
 
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.app.Dialog
 import android.content.res.Configuration
 import android.graphics.Color
 import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.text.InputType
-import android.view.Gravity
-import android.view.View
-import android.view.ViewGroup
+import android.util.Log
+import android.view.*
 import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
@@ -110,18 +111,7 @@ class MainActivity : AppCompatActivity() {
                     llItemRow.removeAllViews()
                 }
                 for ((i, item) in (player.inventory.usableItems + player.inventory.unusableItems).sortedBy { it.name }.withIndex()) {
-                    val imageView = ImageView(this@MainActivity)
-                    if (newItemRowDisplay!![i]) {
-                        imageView.setImageResource(item.graphic)
-                    } else if (item.spendOnly) {
-                        imageView.setImageResource(item.graphic)
-                        imageView.rotation = 90f;
-                    } else {
-                        imageView.setImageResource(item.graphic)
-                        imageView.foreground = getDrawable(R.drawable.card_transuseditem)
-                    }
-                    imageView.rotation += (Random().nextFloat()*1-0.5).toFloat() // This masks bad scanning lol
-                    imageView.adjustViewBounds = true
+                    val imageView = item.getImageView(this@MainActivity, newItemRowDisplay!![i])
                     runOnUiThread {
                         llItemRow.addView(imageView)
                     }
@@ -340,6 +330,7 @@ class MainActivity : AppCompatActivity() {
         val btnPipis = findViewById<Button>(R.id.btnPipis)
         val btnViewCards = findViewById<Button>(R.id.btnViewCards)
         val btnSimplify = findViewById<Button>(R.id.btnSimplify)
+        val btnManage = findViewById<Button>(R.id.btnManage)
 
         btnDiscard = findViewById<Button>(R.id.btnDiscard)
         btnRedo = findViewById<Button>(R.id.btnRedo)
@@ -898,6 +889,97 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
             buttonBehavior(btnSimplify) {
                 simplifyTheGamestate()
                 deck.addUndoPoint()
+            }
+        }
+
+        btnManage.setOnClickListener {
+            buttonBehavior(btnManage) {
+                class CustomDialogClass(var context: Activity, theme: Int) : Dialog(context, theme) {
+                    fun displayItems() {
+                        val llItemContainer = findViewById<LinearLayout>(R.id.llItemContainer)!!
+                        llItemContainer.removeAllViews()
+                        var row = LinearLayout(context)
+                        for ((n, item) in (player.inventory.usableItems + player.inventory.unusableItems).sorted().withIndex()) {
+                            if (n % 3 == 0) {
+                                llItemContainer.addView(row)
+                                row = LinearLayout(context)
+                                val params = LinearLayout.LayoutParams(
+                                    LinearLayout.LayoutParams.MATCH_PARENT,
+                                    LinearLayout.LayoutParams.MATCH_PARENT,
+                                    1.0f
+                                )
+                                row.layoutParams = params
+                            }
+                            val imageView = item.getImageView(context, player.inventory.usableItems.contains(item))
+
+                            if (!item.permanent) {
+                                // Click
+                                imageView.setOnClickListener() {
+                                    try {
+                                        if (player.inventory.usableItems.contains(item)) {
+                                            player.useItem(item, deck)
+                                        } else {
+                                            player.inventory.regainItem(item)
+                                        }
+                                        displayItems()
+                                    } catch (e: Exception) {
+
+                                    }
+                                }
+                                // Long Click
+                                if (player.inventory.usableItems.contains(item)) {
+                                    imageView.setOnLongClickListener() {
+                                        player.inventory.loseItem(item)
+                                        displayItems()
+                                        true
+                                    }
+                                }
+                            }
+
+                            row.addView(imageView)
+                        }
+                        llItemContainer.addView(row)
+                    }
+
+                    override fun onCreate(savedInstanceState: Bundle?) {
+                        super.onCreate(savedInstanceState)
+                        requestWindowFeature(Window.FEATURE_NO_TITLE)
+                        setContentView(R.layout.manage)
+
+                        val llStatsContainer = findViewById<LinearLayout>(R.id.llStatsContainer)!!
+                        displayItems()
+
+                        // HP spinner
+                        val npHP = NumberPicker(context)
+                        npHP.minValue = 0
+                        npHP.maxValue = 26
+                        npHP.value = player.hp
+                        npHP.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
+                            player.hp = new
+                        }
+                        npHP.setBackgroundColor(Color.RED)
+                        llStatsContainer.addView(npHP)
+                        
+                        // Dings spinner
+                        val npDings = NumberPicker(context)
+                        npDings.minValue = 0
+                        npDings.maxValue = 100
+                        npDings.value = player.dings
+                        npDings.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
+                            player.dings = new
+                        }
+                        npDings.setBackgroundColor(Color.BLUE)
+                        llStatsContainer.addView(npDings)
+
+                        Log.d("HEy","Hey")
+                    }
+                }
+
+                val dialog = CustomDialogClass(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
+                dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+                dialog.getWindow()?.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT)
+                dialog.show()
+
             }
         }
     }

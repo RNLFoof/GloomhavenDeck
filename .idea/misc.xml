@@ -5,7 +5,9 @@
       <map>
         <entry key="..\:/Code/AndroidProjects/GloomhavenDeck/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.4665" />
         <entry key="..\:/Code/AndroidProjects/GloomhavenDeck/app/src/main/res/layout-land/activity_main.xml" value="0.25" />
+        <entry key="..\:/Code/AndroidProjects/GloomhavenDeck/app/src/main/res/layout-land/manage.xml" value="0.2654320987654321" />
         <entry key="..\:/Code/AndroidProjects/GloomhavenDeck/app/src/main/res/layout/activity_main.xml" value="0.5541666666666667" />
+        <entry key="..\:/Code/AndroidProjects/GloomhavenDeck/app/src/main/res/layout/manage.xml" value="0.3125" />
       </map>
     </option>
   </component>
