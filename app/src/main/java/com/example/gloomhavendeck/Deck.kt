@@ -321,7 +321,7 @@ open class Deck(@Transient var controller: Controller? = null) {
                 player.useItem(Item.MAJOR_POWER_POTION, this)
             }
             // Eye?
-            if (player.inventory.usableItems.contains(Item.LUCKY_EYE)) {
+            if (player.inventory.usableItems.contains(Item.LUCKY_EYE) && !player.statuses.contains(Status.STRENGTHEN)) {
                 player.useItem(Item.LUCKY_EYE, this)
             }
             // Room?
