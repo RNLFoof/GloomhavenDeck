@@ -191,13 +191,13 @@ open class Inventory {
         for (recoveryCandidate in itemsRecovered) {
             if (recoveryCandidate.useImmediately) {
                 player.useItem(recoveryCandidate.item, deck)
-                deck.log("Recovered and immediately used ${recoveryCandidate.item}")
+                deck.controller?.log("Recovered and immediately used ${recoveryCandidate.item}")
             } else {
-                deck.log("Recovered ${recoveryCandidate.item}")
+                deck.controller?.log("Recovered ${recoveryCandidate.item}")
             }
         }
         if (itemsRecovered.size == 0) {
-            deck.log("Nothing to recover :c")
+            deck.controller?.log("Nothing to recover :c")
         }
         return itemsRecovered
     }

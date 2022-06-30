@@ -12,6 +12,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 @RequiresApi(Build.VERSION_CODES.N)
+@Serializable
 data class Enemy(var creationString: String) {
     // Defaults
     var taken: Int = 0

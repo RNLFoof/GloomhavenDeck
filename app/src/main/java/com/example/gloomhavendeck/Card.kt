@@ -1,5 +1,8 @@
 package com.example.gloomhavendeck
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Card(
     var value: Int = 0, var multiplier: Boolean = false,
     var flippy: Boolean = false, var spinny: Boolean = false,

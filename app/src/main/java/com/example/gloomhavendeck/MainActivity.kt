@@ -36,9 +36,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var btnUndo : Button
     lateinit var btnRedo : Button
 
-    lateinit var deck : Deck
-    lateinit var player : MainActivityPlayer
-    var enemies : MutableList<Enemy> = mutableListOf()
+    var controller = MainActivityController()
     var enemyOrder: MutableList<String> = mutableListOf()
     var effectQueue = LinkedList<Effect>()
     lateinit var selectedCardRow : LinearLayout
@@ -55,8 +53,8 @@ class MainActivity : AppCompatActivity() {
         @SuppressLint("UseCompatLoadingForDrawables")
         fun run() {
             if (sound != null) {
-                val player: MediaPlayer = MediaPlayer.create(this@MainActivity, sound!!)
-                player.start()
+                val mediaPlayer: MediaPlayer = MediaPlayer.create(this@MainActivity, sound!!)
+                mediaPlayer.start()
             }
             if (card != null) {
                 val imageView = ImageView(this@MainActivity)
@@ -110,7 +108,7 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     llItemRow.removeAllViews()
                 }
-                for ((i, item) in (player.inventory.usableItems + player.inventory.unusableItems).sortedBy { it.name }.withIndex()) {
+                for ((i, item) in (controller.player.inventory.usableItems + controller.player.inventory.unusableItems).sortedBy { it.name }.withIndex()) {
                     val imageView = item.getImageView(this@MainActivity, newItemRowDisplay!![i])
                     runOnUiThread {
                         llItemRow.addView(imageView)
@@ -122,8 +120,8 @@ class MainActivity : AppCompatActivity() {
 
     fun sortEnemies() {
         val nameRegex = Regex("[a-z]+", RegexOption.IGNORE_CASE)
-        enemies = enemies.sortedBy { it.name }.toMutableList()
-        enemies = enemies.sortedBy {
+        controller.enemies = controller.enemies.sortedBy { it.name }.toMutableList()
+        controller.enemies = controller.enemies.sortedBy {
             val name = nameRegex.find(it.name)!!.value
             if (name in enemyOrder) {
                 enemyOrder.indexOf(name)
@@ -133,61 +131,29 @@ class MainActivity : AppCompatActivity() {
         }.toMutableList()
     }
 
-    inner class MainActivityDeck : Deck() {
-
-        inner class UndoPoint : Deck.UndoPoint() {
-            var playerJson = Json.encodeToString(player as Player)
-            var enemyBlock = enemies.joinToString(separator = "\n") { it.toString() }
-
-            override fun use() {
-                super.use()
-                // Done like this because inner classes can't be serialized and you can't cast a
-                // super into a child class
-                // Could be done faster if I manually mapped every field but fuck that lol
-                val decodedPlayer = Json.decodeFromString<Player>(playerJson)
-                player = MainActivityPlayer() // New one is made because default values aren't serialized
-                for (property in Player::class.memberProperties) {
-                    try {
-                        (property as KMutableProperty<*>).setter.call(player, (property.get(decodedPlayer))
-                    )}
-                    catch (e: Exception)
-                    {}
-                }
-                // Inventory
-                val decodedInventory = player.inventory
-                player.inventory = MainActivityInventory() // New one is made because default values aren't serialized
-                for (property in Inventory::class.memberProperties) {
-                    try {
-                        (property as KMutableProperty<*>).setter.call(player.inventory, (property.get(decodedInventory))
-                    )}
-                    catch (e: Exception)
-                    {}
-                }
-                // Enemies
-                enemies = Enemy.createMany(enemyBlock, player.scenarioLevel).toMutableList()
-            }
+    inner class MainActivityController : Controller() {
+        override fun getUndoPoint(): UndoPoint {
+            return MainActivityUndoPoint(this)
         }
+    }
 
-        override fun getUndoPoint(): Deck.UndoPoint {
-            return UndoPoint()
-        }
-
-        val effectLoop = Thread {
-            while (true) {
-                if (effectQueue.size > 0) {
-                    val effect = effectQueue.remove()
-                    effect.run()
-                    if (effect.sound != null) {
-                        Thread.sleep(effect.speed)
-                    }
-                }
-                else {
-                    Thread.sleep(1_000/3)
+    val effectLoop = Thread {
+        while (true) {
+            if (effectQueue.size > 0) {
+                val effect = effectQueue.remove()
+                effect.run()
+                if (effect.sound != null) {
+                    Thread.sleep(effect.speed)
                 }
             }
+            else {
+                Thread.sleep(1_000/3)
+            }
         }
-        init {effectLoop.start()}
+    }
+    init {effectLoop.start()}
 
+    inner class MainActivityDeck(controller: Controller) : Deck(controller) {
         override fun drawSingleCard(): Card {
             val card = super.drawSingleCard()
             val effectToAdd : Effect
@@ -281,6 +247,49 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    inner class MainActivityUndoPoint(controller: Controller) : UndoPoint(controller) {
+        var playerJson = Json.encodeToString(controller.player as Player)
+        var enemyBlock = controller.enemies.joinToString(separator = "\n") { it.toString() }
+
+        override fun use(controller: Controller) {
+            super.use(controller)
+            // Done like this because inner classes can't be serialized and you can't cast a
+            // super into a child class
+            // Could be done faster if I manually mapped every field but fuck that lol
+            val decodedPlayer = Json.decodeFromString<Player>(playerJson)
+            controller.player = MainActivityPlayer() // New one is made because default values aren't serialized
+            for (property in Player::class.memberProperties) {
+                try {
+                    (property as KMutableProperty<*>).setter.call(controller.player, (property.get(decodedPlayer))
+                    )}
+                catch (e: Exception)
+                {}
+            }
+            // Inventory
+            val decodedInventory = controller.player.inventory
+            controller.player.inventory = MainActivityInventory() // New one is made because default values aren't serialized
+            for (property in Inventory::class.memberProperties) {
+                try {
+                    (property as KMutableProperty<*>).setter.call(controller.player.inventory, (property.get(decodedInventory))
+                    )}
+                catch (e: Exception)
+                {}
+            }
+            // Deck
+            val decodedDeck = controller.deck
+            controller.deck = MainActivityDeck(controller) // New one is made because default values aren't serialized
+            for (property in Deck::class.memberProperties) {
+                try {
+                    (property as KMutableProperty<*>).setter.call(controller.deck, (property.get(decodedDeck))
+                    )}
+                catch (e: Exception)
+                {}
+            }
+            // Enemies
+            controller.enemies = Enemy.createMany(enemyBlock, controller.player.scenarioLevel).toMutableList()
+        }
+    }
+
     inner class MainActivityInventory() : Inventory() {
         override fun regainItem(item: Item) {
             super.regainItem(item)
@@ -293,8 +302,8 @@ class MainActivity : AppCompatActivity() {
         fun displayChangedInventory() {
             if (llItemRow.isVisible) {
                 val newItemRowDisplay = mutableListOf<Boolean>()
-                for (item in (player.inventory.usableItems + player.inventory.unusableItems).sortedBy { it.name }) {
-                    newItemRowDisplay.add(item in player.inventory.usableItems)
+                for (item in (controller.player.inventory.usableItems + controller.player.inventory.unusableItems).sortedBy { it.name }) {
+                    newItemRowDisplay.add(item in controller.player.inventory.usableItems)
                 }
                 effectQueue.add(Effect(newItemRowDisplay = newItemRowDisplay))
             }
@@ -307,10 +316,10 @@ class MainActivity : AppCompatActivity() {
         }
         override fun useItem(item: Item, deck: Deck) {
             effectQueue.add(Effect(card = item.graphic, sound = item.sound, selectTopRow = true))
-            deck.log("Using a $item...")
-            deck.logIndent += 1
-            super.useItem(item, deck)
-            deck.logIndent -= 1
+            controller.log("Using a $item...")
+            controller.logIndent += 1
+            super.useItem(item, controller.deck)
+            controller.logIndent -= 1
         }
     }
 
@@ -342,27 +351,27 @@ class MainActivity : AppCompatActivity() {
         selectedCardRow = llTopCardRow
         tvLog = findViewById<TextView>(R.id.tvLog)
 
-        player = MainActivityPlayer()
-        enemies = Enemy.createMany("""Dog1 12
+        controller.player = MainActivityPlayer()
+        controller.enemies = Enemy.createMany("""Dog1 12
 2 8
 3 15,shield 1
 4 4
-vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
-        // Because the deck has player undos it needs to be made after
-        deck = MainActivityDeck()
-        deck.addBaseDeck()
+vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList()
+        // Because the controller.deck has controller.player undos it needs to be made after
+        controller.deck = MainActivityDeck(controller)
+        controller.deck.addBaseDeck()
 
             //Enemy("Dog 2 g")
         // Adding cards
         btnBless.setOnClickListener {
             buttonBehavior(btnBless) {
-                deck.bless(true)
+                controller.deck.bless(true)
             }
         }
 
         btnCurse.setOnClickListener {
             buttonBehavior(btnCurse) {
-                deck.curse(true)
+                controller.deck.curse(true)
             }
         }
 
@@ -374,7 +383,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                 .setPositiveButton("Yeah lol") { _, _ ->
                     run {
                         val dialogBuilder = AlertDialog.Builder(this)
-                        dialogBuilder.setMessage("Draw pile:\n${deck.drawPile}\n\nActive cards:\n${deck.activeCards}\n\nDiscard pile:\n${deck.discardPile}")
+                        dialogBuilder.setMessage("Draw pile:\n${controller.deck.drawPile}\n\nActive cards:\n${controller.deck.activeCards}\n\nDiscard pile:\n${controller.deck.discardPile}")
                         val alert = dialogBuilder.create()
                         alert.setTitle("Cheat!")
                         alert.show()
@@ -388,7 +397,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
 
         btnViewCards.setOnClickListener {
             val dialogBuilder = AlertDialog.Builder(this)
-            dialogBuilder.setMessage("Active cards:\n${deck.activeCards}\n\nDiscard pile:\n${deck.discardPile}")
+            dialogBuilder.setMessage("Active cards:\n${controller.deck.activeCards}\n\nDiscard pile:\n${controller.deck.discardPile}")
             val alert = dialogBuilder.create()
             alert.setTitle("Cards")
             alert.show()
@@ -396,12 +405,12 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
 
         // Undos
         btnUndo.setOnClickListener {
-            deck.Undo()
+            controller.Undo()
             endAction(btnUndo)
         }
 
         btnRedo.setOnClickListener {
-            deck.Redo()
+            controller.Redo()
             endAction(btnRedo)
         }
 
@@ -409,21 +418,21 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
         btnAttack.setOnClickListener {
             buttonBehavior(btnAttack) {
                 effectQueue.add(Effect(hideItemRow=true))
-                deck.attack(userDirectlyRequested = true)
+                controller.deck.attack(userDirectlyRequested = true)
             }
         }
 
         btnAdvantage.setOnClickListener {
             buttonBehavior(btnAdvantage) {
                 effectQueue.add(Effect(hideItemRow=true))
-                deck.advantage(userDirectlyRequested = true)
+                controller.deck.advantage(userDirectlyRequested = true)
             }
         }
 
         btnDisadvantage.setOnClickListener {
             buttonBehavior(btnDisadvantage) {
                 effectQueue.add(Effect(hideItemRow=true))
-                deck.disadvantage(userDirectlyRequested = true)
+                controller.deck.disadvantage(userDirectlyRequested = true)
             }
         }
 
@@ -432,17 +441,17 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
 
             var i = 0
             dialogBuilder.setItems(arrayOf(
-                "Inventory (Currently ${player.inventory.usableItems.size}/${player.inventory.usableItems.size+player.inventory.unusableItems.size})",
+                "Inventory (Currently ${controller.player.inventory.usableItems.size}/${controller.player.inventory.usableItems.size+controller.player.inventory.unusableItems.size})",
                 "Enemies",
                 "Enemy Order",
                 "Enemy Menu",
-                "HP (Currently ${player.hp})",
-                "Statuses (Currently ${player.statuses})",
-                "Power Potion Threshold (Currently ${player.powerPotionThreshold})",
-                "HP Danger Threshold (Currently ${player.hpDangerThreshold})",
-                "Pierce (Currently ${player.pierce})",
-                "Scenario Level (Currently ${player.scenarioLevel})",
-                "Discard Status (Currently ${player.discardedCards})",
+                "HP (Currently ${controller.player.hp})",
+                "Statuses (Currently ${controller.player.statuses})",
+                "Power Potion Threshold (Currently ${controller.player.powerPotionThreshold})",
+                "HP Danger Threshold (Currently ${controller.player.hpDangerThreshold})",
+                "Pierce (Currently ${controller.player.pierce})",
+                "Scenario Level (Currently ${controller.player.scenarioLevel})",
+                "Discard Status (Currently ${controller.player.discardedCards})",
                 "Go")
             ) { _, which ->
                 when (which) {
@@ -454,21 +463,21 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         val linearLayout = LinearLayout(this)
                         scrollView.addView(linearLayout)
                         linearLayout.orientation = LinearLayout.VERTICAL
-                        for (item in (player.inventory.usableItems + player.inventory.unusableItems).sortedBy { it.name }) {
+                        for (item in (controller.player.inventory.usableItems + controller.player.inventory.unusableItems).sortedBy { it.name }) {
                             if (item.permanent) {
                                 continue
                             }
                             val checkBox = CheckBox(this)
                             checkBox.setText(item.name)
-                            checkBox.isChecked = item in player.inventory.usableItems
+                            checkBox.isChecked = item in controller.player.inventory.usableItems
                             checkBox.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
                                 if (on) {
-                                    player.inventory.regainItem(item)
+                                    controller.player.inventory.regainItem(item)
                                 } else {
-                                    player.inventory.loseItem(item)
+                                    controller.player.inventory.loseItem(item)
                                 }
-                                deck.log("Updated items.")
-                                deck.addUndoPoint()
+                                controller.log("Updated items.")
+                                controller.addUndoPoint()
                                 endAction(btnPipis)
                             }
                             linearLayout.addView(checkBox)
@@ -480,8 +489,8 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                     // Enemies
                     i++ -> {
                         // This will eventually stack overflow if the user is sufficiently stupid but whatever lol
-                        var text = enemies.joinToString(separator = "\n") { it.toString() }
-                        var title = "New enemies?"
+                        var text = controller.enemies.joinToString(separator = "\n") { it.toString() }
+                        var title = "New controller.enemies?"
                         fun showAlert() {
                             val alert = AlertDialog.Builder(this)
                             alert.setTitle(title)
@@ -491,16 +500,16 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                             alert.setPositiveButton("Set") { _, _ ->
                                 try {
                                     text = input.text.toString()
-                                    enemies = Enemy.createMany(text, player.scenarioLevel).toMutableList()
-                                    text = enemies.joinToString(separator = "\n") { it.toString() }
+                                    controller.enemies = Enemy.createMany(text, controller.player.scenarioLevel).toMutableList()
+                                    text = controller.enemies.joinToString(separator = "\n") { it.toString() }
                                     title = "Result:"
                                 } catch (e: Exception) {
                                     title = e.message.toString()
                                 }
                                 showAlert()
                                 sortEnemies()
-                                deck.log("Updated enemies.")
-                                deck.addUndoPoint()
+                                controller.log("Updated controller.enemies.")
+                                controller.addUndoPoint()
                                 endAction(btnPipis)
                             }
                             alert.show()
@@ -511,7 +520,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                     i++ -> {
                         val nameRegex = Regex("[a-z]+", RegexOption.IGNORE_CASE)
                         val enemyNames = HashSet<String>()
-                        for (enemy in enemies) {
+                        for (enemy in controller.enemies) {
                             enemyNames.add(nameRegex.find(enemy.name)!!.value)
                         }
                         enemyOrder = mutableListOf()
@@ -534,9 +543,9 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                                     if (enemyNames.size > 0) {
                                         showAlert()
                                     } else {
-                                        deck.log("Updated enemy order.")
+                                        controller.log("Updated enemy order.")
                                         sortEnemies()
-                                        deck.addUndoPoint()
+                                        controller.addUndoPoint()
                                         endAction(btnPipis)
                                     }
                                     alert.cancel()
@@ -557,7 +566,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         scrollView.addView(llRows)
                         llRows.orientation = LinearLayout.VERTICAL
                         val textSize = 8f
-                        for (enemy in enemies) {
+                        for (enemy in controller.enemies) {
                             val llRow = LinearLayout(this)
                             llRow.orientation = LinearLayout.HORIZONTAL
                             llRow.gravity = Gravity.CENTER_VERTICAL
@@ -678,8 +687,8 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         }
                         alert.setView(scrollView)
                         alert.setOnDismissListener{
-                            deck.log("Updated enemies via menu.")
-                            deck.addUndoPoint()
+                            controller.log("Updated controller.enemies via menu.")
+                            controller.addUndoPoint()
                             endAction(btnPipis)
                         }
                         alert.show()
@@ -691,12 +700,12 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         val input = EditText(this)
                         input.inputType = InputType.TYPE_CLASS_NUMBER
                         input.setRawInputType(Configuration.KEYBOARD_12KEY)
-                        input.setText(player.hp.toString())
+                        input.setText(controller.player.hp.toString())
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
-                            player.hp = input.text.toString().toInt()
-                            deck.log("Updated HP.")
-                            deck.addUndoPoint()
+                            controller.player.hp = input.text.toString().toInt()
+                            controller.log("Updated HP.")
+                            controller.addUndoPoint()
                             endAction(btnPipis)
                         }
                         alert.show()
@@ -712,17 +721,17 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         for (status in Status.values()) {
                             val checkBox = CheckBox(this)
                             checkBox.setText(status.name)
-                            checkBox.isChecked = status in player.statuses
+                            checkBox.isChecked = status in controller.player.statuses
                             checkBox.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
                                 if (on) {
-                                    player.statuses.add(status)
-                                    deck.log("Updated statuses.")
-                                    deck.addUndoPoint()
+                                    controller.player.statuses.add(status)
+                                    controller.log("Updated statuses.")
+                                    controller.addUndoPoint()
                                     endAction(btnPipis)
                                 } else {
-                                    player.statuses.remove(status)
-                                    deck.log("Updated statuses.")
-                                    deck.addUndoPoint()
+                                    controller.player.statuses.remove(status)
+                                    controller.log("Updated statuses.")
+                                    controller.addUndoPoint()
                                     endAction(btnPipis)
                                 }
                             }
@@ -739,12 +748,12 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         val input = EditText(this)
                         input.inputType = InputType.TYPE_CLASS_NUMBER
                         input.setRawInputType(Configuration.KEYBOARD_12KEY)
-                        input.setText(player.powerPotionThreshold.toString())
+                        input.setText(controller.player.powerPotionThreshold.toString())
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
-                            player.powerPotionThreshold = input.text.toString().toInt()
-                            deck.log("Updated power pot threshold.")
-                            deck.addUndoPoint()
+                            controller.player.powerPotionThreshold = input.text.toString().toInt()
+                            controller.log("Updated power pot threshold.")
+                            controller.addUndoPoint()
                             endAction(btnPipis)
                         }
                         alert.show()
@@ -756,12 +765,12 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         val input = EditText(this)
                         input.inputType = InputType.TYPE_CLASS_NUMBER
                         input.setRawInputType(Configuration.KEYBOARD_12KEY)
-                        input.setText(player.hpDangerThreshold.toString())
+                        input.setText(controller.player.hpDangerThreshold.toString())
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
-                            player.hpDangerThreshold = input.text.toString().toInt()
-                            deck.log("Updated HP danger threshold.")
-                            deck.addUndoPoint()
+                            controller.player.hpDangerThreshold = input.text.toString().toInt()
+                            controller.log("Updated HP danger threshold.")
+                            controller.addUndoPoint()
                             endAction(btnPipis)
                         }
                         alert.show()
@@ -773,12 +782,12 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         val input = EditText(this)
                         input.inputType = InputType.TYPE_CLASS_NUMBER
                         input.setRawInputType(Configuration.KEYBOARD_12KEY)
-                        input.setText(player.pierce.toString())
+                        input.setText(controller.player.pierce.toString())
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
-                            player.pierce = input.text.toString().toInt()
-                            deck.log("Updated pierce.")
-                            deck.addUndoPoint()
+                            controller.player.pierce = input.text.toString().toInt()
+                            controller.log("Updated pierce.")
+                            controller.addUndoPoint()
                             endAction(btnPipis)
                         }
                         alert.show()
@@ -790,12 +799,12 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         val input = EditText(this)
                         input.inputType = InputType.TYPE_CLASS_NUMBER
                         input.setRawInputType(Configuration.KEYBOARD_12KEY)
-                        input.setText(player.scenarioLevel.toString())
+                        input.setText(controller.player.scenarioLevel.toString())
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
-                            player.scenarioLevel = input.text.toString().toInt()
-                            deck.log("Updated scenario level.")
-                            deck.addUndoPoint()
+                            controller.player.scenarioLevel = input.text.toString().toInt()
+                            controller.log("Updated scenario level.")
+                            controller.addUndoPoint()
                             endAction(btnPipis)
                         }
                         alert.show()
@@ -819,32 +828,32 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         // Discard spinner
                         npDiscarded.minValue = 0
                         npDiscarded.maxValue = 9
-                        npDiscarded.value = player.discardedCards
+                        npDiscarded.value = controller.player.discardedCards
                         npDiscarded.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
-                            player.discardedCards = new
-                            cbBallista.isChecked = player.discardedBallista
-                            cbPipis.isChecked = player.discardedPipis
+                            controller.player.discardedCards = new
+                            cbBallista.isChecked = controller.player.discardedBallista
+                            cbPipis.isChecked = controller.player.discardedPipis
                         }
                         linearLayout.addView(npDiscarded)
                         // Targeted checkbox
                         cbPipis.text = "Discarded Pipis"
-                        cbPipis.isChecked = player.discardedPipis
+                        cbPipis.isChecked = controller.player.discardedPipis
                         cbPipis.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                            player.discardedPipis = on
-                            npDiscarded.value = player.discardedCards
+                            controller.player.discardedPipis = on
+                            npDiscarded.value = controller.player.discardedCards
                         }
                         linearLayout.addView(cbPipis)
                         // Ballista checkbox
                         cbBallista.text = "Discarded Ballista"
-                        cbBallista.isChecked = player.discardedBallista
+                        cbBallista.isChecked = controller.player.discardedBallista
                         cbBallista.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                            player.discardedBallista = on
-                            npDiscarded.value = player.discardedCards
+                            controller.player.discardedBallista = on
+                            npDiscarded.value = controller.player.discardedCards
                         }
                         linearLayout.addView(cbBallista)
                         alert.setOnDismissListener{
-                            deck.log("Updated discard status.")
-                            deck.addUndoPoint()
+                            controller.log("Updated discard status.")
+                            controller.addUndoPoint()
                             endAction(btnPipis)
                         }
                         alert.show()
@@ -852,9 +861,9 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                     // Go
                     i++ -> {
                         effectQueue.add(Effect(showItemRow=true))
-                        (player.inventory as MainActivityInventory).displayChangedInventory()
+                        (controller.player.inventory as MainActivityInventory).displayChangedInventory()
                         effectSpeed = 1_000/2L
-                        deck.pipis(player, enemies, this)
+                        controller.deck.pipis(controller.player, controller.enemies, this)
                         effectSpeed = baseEffectSpeed
                         simplifyTheGamestate()
                         endAction(btnPipis)
@@ -870,15 +879,15 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
         // Card movement
         btnDiscard.setOnClickListener {
             buttonBehavior(btnDiscard) {
-                deck.activeCardsToDiscardPile(true)
+                controller.deck.activeCardsToDiscardPile(true)
                 btnDiscard.isEnabled = false
             }
         }
 
         btnSpinny.setOnClickListener {
             buttonBehavior(btnSpinny) {
-                deck.activeCardsToDiscardPile(true)
-                deck.discardPileToDrawPile(true)
+                controller.deck.activeCardsToDiscardPile(true)
+                controller.deck.discardPileToDrawPile(true)
                 btnDiscard.isEnabled = false
                 btnSpinny.isEnabled = false
             }
@@ -888,7 +897,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
         btnSimplify.setOnClickListener {
             buttonBehavior(btnSimplify) {
                 simplifyTheGamestate()
-                deck.addUndoPoint()
+                controller.addUndoPoint()
             }
         }
 
@@ -899,7 +908,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         val llItemContainer = findViewById<LinearLayout>(R.id.llItemContainer)!!
                         llItemContainer.removeAllViews()
                         var row = LinearLayout(context)
-                        for ((n, item) in (player.inventory.usableItems + player.inventory.unusableItems).sorted().withIndex()) {
+                        for ((n, item) in (controller.player.inventory.usableItems + controller.player.inventory.unusableItems).sorted().withIndex()) {
                             if (n % 3 == 0) {
                                 llItemContainer.addView(row)
                                 row = LinearLayout(context)
@@ -910,16 +919,16 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                                 )
                                 row.layoutParams = params
                             }
-                            val imageView = item.getImageView(context, player.inventory.usableItems.contains(item))
+                            val imageView = item.getImageView(context, controller.player.inventory.usableItems.contains(item))
 
                             if (!item.permanent) {
                                 // Click
                                 imageView.setOnClickListener() {
                                     try {
-                                        if (player.inventory.usableItems.contains(item)) {
-                                            player.useItem(item, deck)
+                                        if (controller.player.inventory.usableItems.contains(item)) {
+                                            controller.player.useItem(item, controller.deck)
                                         } else {
-                                            player.inventory.regainItem(item)
+                                            controller.player.inventory.regainItem(item)
                                         }
                                         displayItems()
                                     } catch (e: Exception) {
@@ -927,9 +936,9 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                                     }
                                 }
                                 // Long Click
-                                if (player.inventory.usableItems.contains(item)) {
+                                if (controller.player.inventory.usableItems.contains(item)) {
                                     imageView.setOnLongClickListener() {
-                                        player.inventory.loseItem(item)
+                                        controller.player.inventory.loseItem(item)
                                         displayItems()
                                         true
                                     }
@@ -953,9 +962,9 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         val npHP = NumberPicker(context)
                         npHP.minValue = 0
                         npHP.maxValue = 26
-                        npHP.value = player.hp
+                        npHP.value = controller.player.hp
                         npHP.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
-                            player.hp = new
+                            controller.player.hp = new
                         }
                         npHP.setBackgroundColor(Color.RED)
                         llStatsContainer.addView(npHP)
@@ -964,9 +973,9 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
                         val npDings = NumberPicker(context)
                         npDings.minValue = 0
                         npDings.maxValue = 100
-                        npDings.value = player.dings
+                        npDings.value = controller.player.dings
                         npDings.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
-                            player.dings = new
+                            controller.player.dings = new
                         }
                         npDings.setBackgroundColor(Color.BLUE)
                         llStatsContainer.addView(npDings)
@@ -986,13 +995,13 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
 
     fun simplifyTheGamestate() {
         // Player
-        player.pierce = 0
+        controller.player.pierce = 0
         // Enemies
-        for (i in enemies.size-1 downTo 0) {
-            if (enemies[i].dead) {
-                enemies.removeAt(i)
+        for (i in controller.enemies.size-1 downTo 0) {
+            if (controller.enemies[i].dead) {
+                controller.enemies.removeAt(i)
             } else {
-                val enemy = enemies[i]
+                val enemy = controller.enemies[i]
                 enemy.extraTarget = false
                 enemy.inMeleeRange = false
                 enemy.inBallistaRange = false
@@ -1003,7 +1012,7 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
             }
         }
         //
-        deck.log("Simplified the gamestate.")
+        controller.log("Simplified the gamestate.")
     }
 
     fun buttonBehavior(button: Button, function: () -> Unit = {}) {
@@ -1024,24 +1033,24 @@ vermling scout 7: 1 2 3 n5 6""", player.scenarioLevel).toMutableList()
         endAction(button)
     }
     fun startAction(button: Button) {
-        deck.log("")
-        deck.log("[${button.text.toString().uppercase()}]")
+        controller.log("")
+        controller.log("[${button.text.toString().uppercase()}]")
         effectQueue.add(Effect(wipe = true))
     }
 
     fun endAction(button: Button) {
         // Spinny button?
-        if (deck.activeCards.any{it.spinny} || deck.discardPile.any{it.spinny}) {
+        if (controller.deck.activeCards.any{it.spinny} || controller.deck.discardPile.any{it.spinny}) {
             btnSpinny.isEnabled = true
         }
         // Discard button?
-        if (deck.activeCards.size > 0) {
+        if (controller.deck.activeCards.size > 0) {
             btnDiscard.isEnabled = true
         }
         // Undo+Redo buttons?
-        btnUndo.isEnabled = deck.undosBack != deck.undoPoints.size - 1
-        btnRedo.isEnabled = deck.undosBack != 0
+        btnUndo.isEnabled = controller.undosBack != controller.undoPoints.size - 1
+        btnRedo.isEnabled = controller.undosBack != 0
         // Logs
-        tvLog.text = deck.getShownLogs().joinToString(separator="\n")
+        tvLog.text = controller.getShownLogs().joinToString(separator="\n")
     }
 }
