@@ -9,7 +9,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Serializable
-@RequiresApi(Build.VERSION_CODES.N)
+@RequiresApi(Build.VERSION_CODES.O)
 open class UndoPoint(@Transient var controller: Controller? = null) {
     val player = Json.encodeToString(controller!!.player)
     val deck = Json.encodeToString(controller!!.deck)

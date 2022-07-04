@@ -20,12 +20,14 @@ import androidx.core.view.size
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.File
+import java.nio.file.Paths
 import java.util.*
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.memberProperties
 
 
-@RequiresApi(Build.VERSION_CODES.N)
+@RequiresApi(Build.VERSION_CODES.O)
 class MainActivity : AppCompatActivity() {
     lateinit var tvLog : TextView
     lateinit var llTopCardRow : LinearLayout
@@ -36,7 +38,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var btnUndo : Button
     lateinit var btnRedo : Button
 
-    var controller = MainActivityController()
+    lateinit var controller : MainActivityController
     var enemyOrder: MutableList<String> = mutableListOf()
     var effectQueue = LinkedList<Effect>()
     lateinit var selectedCardRow : LinearLayout
@@ -131,7 +133,7 @@ class MainActivity : AppCompatActivity() {
         }.toMutableList()
     }
 
-    inner class MainActivityController : Controller() {
+    inner class MainActivityController(filesDir: String) : Controller(filesDir) {
         override fun getUndoPoint(): UndoPoint {
             return MainActivityUndoPoint(this)
         }
@@ -256,6 +258,8 @@ class MainActivity : AppCompatActivity() {
             // Done like this because inner classes can't be serialized and you can't cast a
             // super into a child class
             // Could be done faster if I manually mapped every field but fuck that lol
+
+            // Player
             val decodedPlayer = Json.decodeFromString<Player>(playerJson)
             controller.player = MainActivityPlayer() // New one is made because default values aren't serialized
             for (property in Player::class.memberProperties) {
@@ -341,6 +345,66 @@ class MainActivity : AppCompatActivity() {
         val btnSimplify = findViewById<Button>(R.id.btnSimplify)
         val btnManage = findViewById<Button>(R.id.btnManage)
 
+        controller = MainActivityController(applicationContext.filesDir.canonicalPath)
+        runOnUiThread {
+            val builder = AlertDialog.Builder(this@MainActivity)
+            builder.setPositiveButton("Yeah") { dialog, which ->
+                val decodedController = Json.decodeFromString<Controller>(File(Paths.get(applicationContext.filesDir.canonicalPath, "current_state.json").toString()).readText())
+                for (property in Controller::class.memberProperties) {
+                    try {
+                        (property as KMutableProperty<*>).setter.call(controller, (property.get(decodedController))
+                        )}
+                    catch (e: Exception)
+                    {Log.d("heyyyyy", e.message.toString())}
+                }
+                controller.InsertSelfIntoAllChildren()
+                // Player
+                val decodedPlayer = controller.player
+                controller.player = MainActivityPlayer() // New one is made because default values aren't serialized
+                for (property in Player::class.memberProperties) {
+                    try {
+                        (property as KMutableProperty<*>).setter.call(controller.player, (property.get(decodedPlayer))
+                        )}
+                    catch (e: Exception)
+                    {}
+                }
+                // Inventory
+                val decodedInventory = controller.player.inventory
+                controller.player.inventory = MainActivityInventory() // New one is made because default values aren't serialized
+                for (property in Inventory::class.memberProperties) {
+                    try {
+                        (property as KMutableProperty<*>).setter.call(controller.player.inventory, (property.get(decodedInventory))
+                        )}
+                    catch (e: Exception)
+                    {}
+                }
+                // Deck
+                val decodedDeck = controller.deck
+                controller.deck = MainActivityDeck(controller) // New one is made because default values aren't serialized
+                for (property in Deck::class.memberProperties) {
+                    try {
+                        (property as KMutableProperty<*>).setter.call(controller.deck, (property.get(decodedDeck))
+                        )}
+                    catch (e: Exception)
+                    {}
+                }
+            }
+            builder.setNegativeButton("No") { _, _->
+
+                controller.player = MainActivityPlayer()
+                controller.enemies = Enemy.createMany("""Dog1 12
+2 8
+3 15,shield 1
+4 4
+vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList()
+                // Because the controller.deck has controller.player undos it needs to be made after
+                controller.deck = MainActivityDeck(controller)
+                controller.deck.addBaseDeck()
+            }
+            builder.setTitle("Load?")
+            builder.show()
+        }
+
         btnDiscard = findViewById<Button>(R.id.btnDiscard)
         btnRedo = findViewById<Button>(R.id.btnRedo)
         btnSpinny = findViewById<Button>(R.id.btnSpinny)
@@ -350,16 +414,6 @@ class MainActivity : AppCompatActivity() {
         llItemRow = findViewById<LinearLayout>(R.id.llItemRow)
         selectedCardRow = llTopCardRow
         tvLog = findViewById<TextView>(R.id.tvLog)
-
-        controller.player = MainActivityPlayer()
-        controller.enemies = Enemy.createMany("""Dog1 12
-2 8
-3 15,shield 1
-4 4
-vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList()
-        // Because the controller.deck has controller.player undos it needs to be made after
-        controller.deck = MainActivityDeck(controller)
-        controller.deck.addBaseDeck()
 
             //Enemy("Dog 2 g")
         // Adding cards

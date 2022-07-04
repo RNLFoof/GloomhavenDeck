@@ -1,29 +1,35 @@
 package com.example.gloomhavendeck
 
+import android.content.Context
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.File
+import java.nio.file.Paths
 
-@RequiresApi(Build.VERSION_CODES.N)
+@RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-open class Controller {
+open class Controller(private val filesDir: String) {
     var player = Player()
     var deck = Deck(this)
     var enemies: MutableList<Enemy> = mutableListOf()
 
     // Undoing
+    @Transient
     val undoPoints = mutableListOf<UndoPoint>()
     var undosBack = 0
 
     // Logging
     var logList = mutableListOf<String>()
-    var logIndent = 0 // How many spaces to insert before a log, used to indicate that one action is part of another
-    var logMuted = false // So you can make it shut up
+    @Transient var logIndent = 0 // How many spaces to insert before a log, used to indicate that one action is part of another
+    @Transient var logMuted = false // So you can make it shut up
     var logCount = 0 // How many logs have been made in general, used instead of index so old stuff can be removed
     var logsToHide = 0 // Used to go back and forth while undoing without like, making entire separate copies of the logs
+    private val currentStateSavedAt = Paths.get(filesDir, "current_state.json").toString()
 
     fun log(text: String) {
         Log.d("heyyyy", text)
@@ -57,7 +63,8 @@ open class Controller {
         // Add a new one
         undoPoints.add(getUndoPoint())
         // Save
-        Json.encodeToString(this)
+        val currentStateJson = Json.encodeToString(this)
+        File(currentStateSavedAt).writeText(currentStateJson)
     }
 
     // Done like this so the object can be replaced with an expanded one.
@@ -75,5 +82,9 @@ open class Controller {
         undosBack -= 1
         Log.d("undos", "Loading state ${undoPoints.size-undosBack+1}/${undoPoints.size}")
         undoPoints[undoPoints.size-undosBack-1].use(this)
+    }
+
+    fun InsertSelfIntoAllChildren() {
+        deck.controller = this
     }
 }
