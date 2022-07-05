@@ -41,7 +41,7 @@ enum class Item(val graphic: Int, val sound: Int=R.raw.stone2, val permanent: Bo
     }),
     RING_OF_BRUTALITY(R.drawable.card_brutality, sound=R.raw.one_more_time),
     RING_OF_SKULLS(R.drawable.card_skulls, sound=R.raw.poof),
-    ROCKET_BOOTS(R.drawable.card_boots, sound=R.raw.krabs, spendOnly = true),
+    ROCKET_BOOTS(R.drawable.card_boots, sound=R.raw.jack_in_the_box, spendOnly = true),
     SPIKED_SHIELD(R.drawable.card_spiked, spendOnly = true),
     SUPER_HEALING_POTION(R.drawable.card_healing, sound=R.raw.drinking, getUsed=fun (player, _){
         if (player.hp >= player.maxHp) {
