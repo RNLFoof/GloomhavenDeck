@@ -1062,7 +1062,6 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                 enemy.targeted = false
                 enemy.muddled = false
                 enemy.stunned = false
-                enemy.poisoned = false
             }
         }
         //
