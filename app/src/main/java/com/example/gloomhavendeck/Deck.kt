@@ -301,7 +301,7 @@ open class Deck(@Transient var controller: Controller? = null) {
                     basePower += 2
                 }
                 if (player.inventory.unusableItems.size >= 2) {
-                    player.useItem(Item.PENDANT_OF_DARK_PACTS, this)
+                    player.useItem(Item.PENDANT_OF_DARK_PACTS, this, true)
                 }
             }
 
@@ -318,18 +318,18 @@ open class Deck(@Transient var controller: Controller? = null) {
             if (usingBallistaInstead) {basePower += 3}
             if (powerPotThresholdReached() && player.inventory.usableItems.contains(Item.MAJOR_POWER_POTION)) {
                 basePower += 2
-                player.useItem(Item.MAJOR_POWER_POTION, this)
+                player.useItem(Item.MAJOR_POWER_POTION, this, true)
             }
             // Eye?
             if (player.inventory.usableItems.contains(Item.LUCKY_EYE) && !player.statuses.contains(Status.STRENGTHEN)) {
-                player.useItem(Item.LUCKY_EYE, this)
+                player.useItem(Item.LUCKY_EYE, this, true)
             }
             // Room?
             tryToDitchPendant()
             // Another potion?
             if (powerPotThresholdReached() && player.inventory.usableItems.contains(Item.MAJOR_POWER_POTION)) {
                 basePower += 2
-                player.useItem(Item.MAJOR_POWER_POTION, this)
+                player.useItem(Item.MAJOR_POWER_POTION, this, true)
             }
             // Display
             controller!!.log("")
@@ -421,7 +421,7 @@ open class Deck(@Transient var controller: Controller? = null) {
             if (wantToGoAgain && !canGoAgain) {
                 if (player.inventory.usableItems.contains(Item.UTILITY_BELT)) {
                     // Belt will recover pendant, pendant will automatically recover major and ring
-                    player.useItem(Item.UTILITY_BELT, this)
+                    player.useItem(Item.UTILITY_BELT, this, true)
                     setWantAndCan()
                 }
             }
@@ -435,8 +435,8 @@ open class Deck(@Transient var controller: Controller? = null) {
                         if (!shouldUseBallista() && player.discardedPipis) {
                             player.discardedPipis = false
                         }
-                        player.useItem(Item.MINOR_STAMINA_POTION, this)
-                        player.useItem(Item.RING_OF_BRUTALITY, this)
+                        player.useItem(Item.MINOR_STAMINA_POTION, this, true)
+                        player.useItem(Item.RING_OF_BRUTALITY, this, true)
                         allowedToContinue = true
                 }
                 else if (player.inventory.usableItems.contains(Item.MAJOR_STAMINA_POTION)) {
@@ -446,8 +446,8 @@ open class Deck(@Transient var controller: Controller? = null) {
                         if (!shouldUseBallista() && player.discardedPipis) {
                             player.discardedPipis = false
                         }
-                        player.useItem(Item.MAJOR_STAMINA_POTION, this)
-                        player.useItem(Item.RING_OF_BRUTALITY, this)
+                        player.useItem(Item.MAJOR_STAMINA_POTION, this, true)
+                        player.useItem(Item.RING_OF_BRUTALITY, this, true)
                         allowedToContinue = true
                 }
                 else {

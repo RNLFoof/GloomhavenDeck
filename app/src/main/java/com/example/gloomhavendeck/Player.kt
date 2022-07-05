@@ -4,7 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import kotlinx.serialization.Serializable
 
-@RequiresApi(Build.VERSION_CODES.N)
+@RequiresApi(Build.VERSION_CODES.O)
 @Serializable
 open class Player() {
     var hp = 26
@@ -50,8 +50,8 @@ open class Player() {
         }
     val maxHp = 26
 
-    open fun useItem(item: Item, deck: Deck) {
-        inventory.useItem(this, deck, item)
+    open fun useItem(item: Item, deck: Deck, viaPipis: Boolean) {
+        inventory.useItem(this, deck, item, viaPipis)
     }
 
 

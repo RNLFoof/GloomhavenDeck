@@ -3,7 +3,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import kotlinx.serialization.Serializable
 
-@RequiresApi(Build.VERSION_CODES.N)
+@RequiresApi(Build.VERSION_CODES.O)
 @Serializable
 open class Inventory {
     var usableItems = mutableListOf(
@@ -39,11 +39,11 @@ open class Inventory {
         usableItems.add(item)
     }
 
-    open fun useItem(player: Player, deck: Deck, item: Item) {
+    open fun useItem(player: Player, deck: Deck, item: Item, viaPipis: Boolean) {
         if (!usableItems.contains(item)) {
             throw Exception("You don't HAVE a $item, dumbass")
         }
-        item.getUsed(player, deck)
+        item.getUsed(player, deck, viaPipis)
         loseItem(item)
     }
 
@@ -190,7 +190,7 @@ open class Inventory {
         }
         for (recoveryCandidate in itemsRecovered) {
             if (recoveryCandidate.useImmediately) {
-                player.useItem(recoveryCandidate.item, deck)
+                player.useItem(recoveryCandidate.item, deck, true)
                 deck.controller?.log("Recovered and immediately used ${recoveryCandidate.item}")
             } else {
                 deck.controller?.log("Recovered ${recoveryCandidate.item}")
@@ -215,7 +215,7 @@ open class Inventory {
             if (itemsConsumed.size >= howMuchRoom) {
                 break
             }
-            player.useItem(roomMakingItem, deck)
+            player.useItem(roomMakingItem, deck, true)
             //log("Used $roomMakingItem in order to free up some room.")
             itemsConsumed.add(roomMakingItem)
         }

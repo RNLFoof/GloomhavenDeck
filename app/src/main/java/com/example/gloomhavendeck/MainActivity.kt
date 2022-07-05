@@ -318,11 +318,11 @@ class MainActivity : AppCompatActivity() {
         init {
             inventory = MainActivityInventory()
         }
-        override fun useItem(item: Item, deck: Deck) {
+        override fun useItem(item: Item, deck: Deck, viaPipis: Boolean) {
             effectQueue.add(Effect(card = item.graphic, sound = item.sound, selectTopRow = true))
             controller.log("Using a $item...")
             controller.logIndent += 1
-            super.useItem(item, controller.deck)
+            super.useItem(item, controller.deck, viaPipis)
             controller.logIndent -= 1
         }
     }
@@ -980,7 +980,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                                 imageView.setOnClickListener() {
                                     try {
                                         if (controller.player.inventory.usableItems.contains(item)) {
-                                            controller.player.useItem(item, controller.deck)
+                                            controller.player.useItem(item, controller.deck, false)
                                         } else {
                                             controller.player.inventory.regainItem(item)
                                         }
