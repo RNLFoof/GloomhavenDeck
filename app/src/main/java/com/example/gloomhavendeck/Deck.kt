@@ -15,7 +15,7 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.jvm.isAccessible
 
-@RequiresApi(Build.VERSION_CODES.N)
+@RequiresApi(Build.VERSION_CODES.O)
 @Serializable
 open class Deck(@Transient var controller: Controller? = null) {
     // Cards
@@ -409,7 +409,10 @@ open class Deck(@Transient var controller: Controller? = null) {
             var canGoAgain = false
             fun setWantAndCan() {
                 wantToGoAgain = player.hp - enemies.sumOf { if (!it.getTargetable() || !it.inRetaliateRange) 0 else it.retaliate } >= player.hpDangerThreshold
-                        && (enemies.sumOf { if (!it.getTargetable()) 0 else "1".toInt() } >= 3)
+                        && (
+                            (enemies.sumOf { if (!it.getTargetable()) 0 else "1".toInt() } >= 3)
+                            || (player.statuses.contains(Status.STRENGTHEN) &&enemies.sumOf { if (!it.getTargetable()) 0 else "1".toInt() } >= 2)
+                        )
                 canGoAgain = player.inventory.usableItems.contains(Item.RING_OF_BRUTALITY)
                         && (player.inventory.usableItems.contains(Item.MINOR_STAMINA_POTION) || player.inventory.usableItems.contains(Item.MAJOR_STAMINA_POTION))
             }
