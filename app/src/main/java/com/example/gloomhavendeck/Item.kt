@@ -14,14 +14,14 @@ enum class Item(val graphic: Int, val sound: Int=R.raw.stone2, val permanent: Bo
     CLOAK_OF_POCKETS(R.drawable.card_cloak, permanent = true),
     LUCKY_EYE(R.drawable.card_luckyeye, sound=R.raw.ringside, getUsed=fun (player, _, _){
         if (!player.statuses.contains(Status.STRENGTHEN)) {
-            player.statuses.add(Status.STRENGTHEN)
+            player.statusDict[Status.STRENGTHEN] = 2
         }
     }),
     MAJOR_CURE_POTION(R.drawable.card_cure, sound=R.raw.drinking, getUsed=fun (player, _, viaPipis){
         if (!viaPipis && !player.statuses.any{it.negative}) {
             throw kotlin.Exception("No negative statuses!")
         }
-        player.statuses.removeIf{it.negative}
+        player.statusDict.filterKeys { it.negative }.forEach{ player.statusDict[it.key] = 0}
     }),
     MAJOR_POWER_POTION(R.drawable.card_power, sound=R.raw.drinking),
     MAJOR_STAMINA_POTION(R.drawable.card_majorstamina, sound=R.raw.drinking, getUsed=fun (player, _, _) {

@@ -10,7 +10,18 @@ open class Player() {
     var hp = 26
     var dings = 0
     open var inventory = Inventory()
-    var statuses = mutableListOf<Status>()
+
+    var statusDict = HashMap<Status, Int>()
+    init {
+        for (status in Status.values()) {
+            statusDict[status] = 0
+        }
+    }
+    val statuses: Set<Status>
+        get() {
+            return statusDict.filterKeys { statusDict[it]!! > 0 }.keys
+        }
+
     var powerPotionThreshold = 6
     var hpDangerThreshold = 10
     var pierce = 0

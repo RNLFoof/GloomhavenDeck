@@ -15,6 +15,7 @@ import android.widget.*
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.children
 import androidx.core.view.isVisible
 import androidx.core.view.size
 import kotlinx.serialization.decodeFromString
@@ -500,7 +501,6 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                 "Enemy Order",
                 "Enemy Menu",
                 "HP (Currently ${controller.player.hp})",
-                "Statuses (Currently ${controller.player.statuses})",
                 "Power Potion Threshold (Currently ${controller.player.powerPotionThreshold})",
                 "HP Danger Threshold (Currently ${controller.player.hpDangerThreshold})",
                 "Pierce (Currently ${controller.player.pierce})",
@@ -764,37 +764,6 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         }
                         alert.show()
                     }
-                    // Statuses
-                    i++ -> {
-                        val alert = AlertDialog.Builder(this)
-                        alert.setTitle("New Statuses?")
-                        val scrollView = ScrollView(this)
-                        val linearLayout = LinearLayout(this)
-                        scrollView.addView(linearLayout)
-                        linearLayout.orientation = LinearLayout.VERTICAL
-                        for (status in Status.values()) {
-                            val checkBox = CheckBox(this)
-                            checkBox.setText(status.name)
-                            checkBox.isChecked = status in controller.player.statuses
-                            checkBox.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                if (on) {
-                                    controller.player.statuses.add(status)
-                                    controller.log("Updated statuses.")
-                                    controller.addUndoPoint()
-                                    endAction(btnPipis)
-                                } else {
-                                    controller.player.statuses.remove(status)
-                                    controller.log("Updated statuses.")
-                                    controller.addUndoPoint()
-                                    endAction(btnPipis)
-                                }
-                            }
-                            linearLayout.addView(checkBox)
-                        }
-                        alert.setView(scrollView)
-                        alert.setPositiveButton("Done") {_,_ ->}
-                        alert.show()
-                    }
                     // Power Potion Threshold
                     i++ -> {
                         val alert = AlertDialog.Builder(this)
@@ -984,7 +953,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                                         } else {
                                             controller.player.inventory.regainItem(item)
                                         }
-                                        displayItems()
+                                        setUpEverything()
                                     } catch (e: Exception) {
 
                                     }
@@ -1004,13 +973,36 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         llItemContainer.addView(row)
                     }
 
-                    override fun onCreate(savedInstanceState: Bundle?) {
-                        super.onCreate(savedInstanceState)
-                        requestWindowFeature(Window.FEATURE_NO_TITLE)
-                        setContentView(R.layout.manage)
-
+                    fun setUpEverything() {
                         val llStatsContainer = findViewById<LinearLayout>(R.id.llStatsContainer)!!
+                        llStatsContainer.removeAllViews()
                         displayItems()
+
+                        // Statuses
+                        val tlStatusContainer = findViewById<LinearLayout>(R.id.tlStatusContainer)!!
+                        tlStatusContainer.removeAllViews()
+                        var row = TableRow(context)
+                        for (status in Status.values()) {
+                            val button = Button(context)
+                            button.text = "${status.icon.repeat(controller.player.statusDict[status]!!)} ${status.name}"
+                            button.textSize = 7f
+                            //button.layoutParams = ViewGroup.LayoutParams(300,100)
+                            if (controller.player.statuses.contains(status)) {
+                                button.setTextColor(Color.parseColor("#9999ff"))
+                            }
+                            button.setOnClickListener() {
+                                controller.player.statusDict[status] = (controller.player.statusDict[status]!! + 2) % 3
+                                controller.log("Updated statuses.")
+                                controller.addUndoPoint()
+                                setUpEverything()
+                            }
+                            row.addView(button)
+                            Log.d("EEEEEEEEEEEEEEEEEEEEEEE", tlStatusContainer.childCount.toString())
+                            if (row.children.count() == 2) {
+                                tlStatusContainer.addView(row)
+                                row = TableRow(context)
+                            }
+                        }
 
                         // HP spinner
                         val npHP = NumberPicker(context)
@@ -1022,7 +1014,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         }
                         npHP.setBackgroundColor(Color.RED)
                         llStatsContainer.addView(npHP)
-                        
+
                         // Dings spinner
                         val npDings = NumberPicker(context)
                         npDings.minValue = 0
@@ -1033,6 +1025,15 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         }
                         npDings.setBackgroundColor(Color.BLUE)
                         llStatsContainer.addView(npDings)
+                        Log.d("EEEEEEEEEEEEEEEEEEEEEEE", tlStatusContainer.childCount.toString())
+                    }
+
+                    override fun onCreate(savedInstanceState: Bundle?) {
+                        super.onCreate(savedInstanceState)
+                        requestWindowFeature(Window.FEATURE_NO_TITLE)
+                        setContentView(R.layout.manage)
+
+                        setUpEverything()
 
                         Log.d("HEy","Hey")
                     }
