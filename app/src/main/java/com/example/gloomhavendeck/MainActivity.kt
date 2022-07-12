@@ -985,7 +985,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         for (status in Status.values()) {
                             val button = Button(context)
                             button.text = "${status.icon.repeat(controller.player.statusDict[status]!!)} ${status.name}"
-                            button.textSize = 7f
+                            button.textSize = 5f
                             //button.layoutParams = ViewGroup.LayoutParams(300,100)
                             if (controller.player.statuses.contains(status)) {
                                 button.setTextColor(Color.parseColor("#9999ff"))
@@ -1003,6 +1003,19 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                                 row = TableRow(context)
                             }
                         }
+
+                        // Curses spinner
+                        val llDeckContainer = findViewById<LinearLayout>(R.id.llDeckContainer)!!
+                        llDeckContainer.removeAllViews()
+                        val npCurses = NumberPicker(context)
+                        npCurses.minValue = 0
+                        npCurses.maxValue = 10
+                        npCurses.value = controller.deck.remainingCurses
+                        npCurses.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
+                            controller.deck.remainingCurses = new
+                        }
+                        npCurses.setBackgroundColor(Color.parseColor("#470d02"))
+                        llDeckContainer.addView(npCurses)
 
                         // HP spinner
                         val npHP = NumberPicker(context)

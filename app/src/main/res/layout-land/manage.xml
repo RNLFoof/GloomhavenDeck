@@ -25,11 +25,6 @@
             android:layout_weight="1"
             android:orientation="vertical">
 
-            <TableLayout
-                android:id="@+id/tlStatusContainer"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
-
         </LinearLayout>
 
         <LinearLayout
@@ -47,12 +42,12 @@
 
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/llStatusesContainer"
+            <TableLayout
+                android:id="@+id/tlStatusContainer"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:orientation="vertical"></LinearLayout>
+                android:layout_weight="1" />
+
         </LinearLayout>
 
     </LinearLayout>

@@ -22,6 +22,7 @@ open class Deck(@Transient var controller: Controller? = null) {
     var drawPile = mutableListOf<Card>()
     var activeCards = mutableListOf<Card>()
     var discardPile = mutableListOf<Card>()
+    var remainingCurses = 10
 
     // Adding cards
     open fun addBaseDeck() {
@@ -79,7 +80,12 @@ open class Deck(@Transient var controller: Controller? = null) {
     fun curse(userDirectlyRequested: Boolean = false) {
         controller!!.log("Adding a curse...")
         controller!!.logIndent += 1
-        addToDrawPile(Card(0, lose = true, multiplier = true))
+        if (remainingCurses > 0) {
+            addToDrawPile(Card(0, lose = true, multiplier = true))
+            remainingCurses -= 1
+        } else {
+            controller!!.log("JK none left")
+        }
         controller!!.logIndent -= 1
         if (userDirectlyRequested)
             controller!!.addUndoPoint()
