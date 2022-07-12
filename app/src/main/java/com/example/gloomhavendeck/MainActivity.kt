@@ -991,7 +991,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                                 button.setTextColor(Color.parseColor("#9999ff"))
                             }
                             button.setOnClickListener() {
-                                controller.player.statusDict[status] = (controller.player.statusDict[status]!! + 2) % 3
+                                controller.player.statusDict[status] = status.getNextManualPosition(controller.player.statusDict[status]!!)
                                 controller.log("Updated statuses.")
                                 controller.addUndoPoint()
                                 setUpEverything()
@@ -1018,7 +1018,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         // Dings spinner
                         val npDings = NumberPicker(context)
                         npDings.minValue = 0
-                        npDings.maxValue = 100
+                        npDings.maxValue = 1000
                         npDings.value = controller.player.dings
                         npDings.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
                             controller.player.dings = new
