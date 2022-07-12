@@ -39,11 +39,11 @@ open class Inventory {
         usableItems.add(item)
     }
 
-    open fun useItem(player: Player, deck: Deck, item: Item, viaPipis: Boolean) {
+    open fun useItem(player: Player, deck: Deck, item: Item, fullAutoBehavior: Boolean) {
         if (!usableItems.contains(item)) {
             throw Exception("You don't HAVE a $item, dumbass")
         }
-        item.getUsed(player, deck, viaPipis)
+        item.getUsed(player, deck, fullAutoBehavior)
         loseItem(item)
     }
 

@@ -284,6 +284,7 @@ open class Deck(@Transient var controller: Controller? = null) {
         controller!!.logIndent += 1
         var allowedToContinue = true
         var loops = 0
+        var bonusItems = 0
         var gotASpinny = false
         while (allowedToContinue) {
             controller!!.log("")
@@ -425,6 +426,11 @@ open class Deck(@Transient var controller: Controller? = null) {
                     setWantAndCan()
                 }
             }
+            // Maybe get a bonus ball
+            if (player.inventory.unusableItems.size == 0 && player.inventory.usableItems.contains(Item.UTILITY_BELT)) {
+                player.useItem(Item.UTILITY_BELT, this, false)
+                bonusItems += 1
+            }
             // Ok go
             if (wantToGoAgain && canGoAgain) {
                 // Can I?
@@ -471,6 +477,7 @@ open class Deck(@Transient var controller: Controller? = null) {
 
         controller!!.log("End summary:")
         controller!!.logIndent += 1
+        controller!!.log("Bonus items for your allies: $bonusItems")
         player.dings += loops
         val endSummary = getSummary()
         for (startKv in startSummary) {

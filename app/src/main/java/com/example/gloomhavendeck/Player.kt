@@ -61,8 +61,8 @@ open class Player() {
         }
     val maxHp = 26
 
-    open fun useItem(item: Item, deck: Deck, viaPipis: Boolean) {
-        inventory.useItem(this, deck, item, viaPipis)
+    open fun useItem(item: Item, deck: Deck, fullAutoBehavior: Boolean) {
+        inventory.useItem(this, deck, item, fullAutoBehavior)
     }
 
 
