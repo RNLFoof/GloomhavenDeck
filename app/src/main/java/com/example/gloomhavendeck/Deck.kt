@@ -471,7 +471,7 @@ open class Deck(@Transient var controller: Controller? = null) {
 
         controller!!.log("End summary:")
         controller!!.logIndent += 1
-        controller!!.log("Gained $loops xp")
+        player.dings += loops
         val endSummary = getSummary()
         for (startKv in startSummary) {
             val endV = endSummary[startKv.key]
