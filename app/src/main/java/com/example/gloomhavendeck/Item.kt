@@ -8,29 +8,29 @@ import java.lang.Integer.min
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.O)
-enum class Item(val graphic: Int, val sound: Int=R.raw.stone2, val permanent: Boolean=false,
+enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT, val permanent: Boolean=false,
                 val spendOnly: Boolean = false,
                 val getUsed: (Player, Deck, Boolean) -> Unit = fun (_: Player, _: Deck, viaPipis: Boolean) {}) {
     CLOAK_OF_POCKETS(R.drawable.card_cloak, permanent = true),
-    LUCKY_EYE(R.drawable.card_luckyeye, sound=R.raw.ringside, getUsed=fun (player, _, _){
+    LUCKY_EYE(R.drawable.card_luckyeye, sound=SoundBundle(R.raw.ringside), getUsed=fun (player, _, _){
         if (!player.statuses.contains(Status.STRENGTHEN)) {
             player.statusDict[Status.STRENGTHEN] = 2
         }
     }),
-    MAJOR_CURE_POTION(R.drawable.card_cure, sound=R.raw.drinking, getUsed=fun (player, _, viaPipis){
+    MAJOR_CURE_POTION(R.drawable.card_cure, sound=SoundBundle.DRINKING, getUsed=fun (player, _, viaPipis){
         if (!viaPipis && !player.statuses.any{it.negative}) {
             throw kotlin.Exception("No negative statuses!")
         }
         player.statusDict.filterKeys { it.negative }.forEach{ player.statusDict[it.key] = 0}
     }),
-    MAJOR_POWER_POTION(R.drawable.card_power, sound=R.raw.drinking),
-    MAJOR_STAMINA_POTION(R.drawable.card_majorstamina, sound=R.raw.drinking, getUsed=fun (player, _, _) {
+    MAJOR_POWER_POTION(R.drawable.card_power, sound=SoundBundle.DRINKING),
+    MAJOR_STAMINA_POTION(R.drawable.card_majorstamina, sound=SoundBundle.DRINKING, getUsed=fun (player, _, _) {
         player.discardedCards -= 3
     }),
-    MINOR_STAMINA_POTION(R.drawable.card_minorstamina, sound=R.raw.drinking, getUsed=fun (player, _, _) {
+    MINOR_STAMINA_POTION(R.drawable.card_minorstamina, sound=SoundBundle.DRINKING, getUsed=fun (player, _, _) {
         player.discardedCards -= 2
     }),
-    PENDANT_OF_DARK_PACTS(R.drawable.card_pendant, sound=R.raw.loud_bird, getUsed=fun (player, deck, viaPipis) {
+    PENDANT_OF_DARK_PACTS(R.drawable.card_pendant, sound=SoundBundle(R.raw.loud_bird), getUsed=fun (player, deck, viaPipis) {
         if (viaPipis) {
             if (player.inventory.unusableItems.size <= 1
                 || (player.inventory.unusableItems.size <= 2 && player.inventory.unusableItems.contains(
@@ -43,18 +43,18 @@ enum class Item(val graphic: Int, val sound: Int=R.raw.stone2, val permanent: Bo
         }
         deck.curse()
     }),
-    RING_OF_BRUTALITY(R.drawable.card_brutality, sound=R.raw.one_more_time),
-    RING_OF_SKULLS(R.drawable.card_skulls, sound=R.raw.poof),
-    ROCKET_BOOTS(R.drawable.card_boots, sound=R.raw.jack_in_the_box, spendOnly = true),
+    RING_OF_BRUTALITY(R.drawable.card_brutality, sound=SoundBundle(R.raw.one_more_time)),
+    RING_OF_SKULLS(R.drawable.card_skulls, sound=SoundBundle.DEATH),
+    ROCKET_BOOTS(R.drawable.card_boots, sound=SoundBundle(listOf(R.raw.jack_in_the_box, R.raw.rocket_launch, R.raw.demo_charge_windup1)), spendOnly = true),
     SPIKED_SHIELD(R.drawable.card_spiked, spendOnly = true),
-    SUPER_HEALING_POTION(R.drawable.card_healing, sound=R.raw.drinking, getUsed=fun (player, _, viaPipis){
+    SUPER_HEALING_POTION(R.drawable.card_healing, sound=SoundBundle.DRINKING, getUsed=fun (player, _, viaPipis){
         if (!viaPipis && player.hp >= player.maxHp) {
             throw kotlin.Exception("Already at max HP!")
         }
         player.hp = min(player.hp+7, player.maxHp)
     }),
     TOWER_SHIELD(R.drawable.card_tower, spendOnly = true),
-    UTILITY_BELT(R.drawable.card_belt, sound=R.raw.metal_falling, getUsed=fun(player, deck, viaPipis) {
+    UTILITY_BELT(R.drawable.card_belt, sound=SoundBundle(R.raw.metal_falling), getUsed=fun(player, deck, viaPipis) {
         if (viaPipis) {
             if (player.inventory.unusableItems.size <= 0) {
                 throw kotlin.Exception("There isn't an item to recover!")
@@ -62,7 +62,7 @@ enum class Item(val graphic: Int, val sound: Int=R.raw.stone2, val permanent: Bo
             player.inventory.recover(player, deck, howMany = 1)
         }
     }),
-    WALL_SHIELD(R.drawable.card_wallshield, sound=R.raw.close_iron_door, spendOnly = true);
+    WALL_SHIELD(R.drawable.card_wallshield, sound=SoundBundle(R.raw.close_iron_door), spendOnly = true);
 
     @SuppressLint("UseCompatLoadingForDrawables")
     fun getImageView(context: Context, used: Boolean): ImageView {

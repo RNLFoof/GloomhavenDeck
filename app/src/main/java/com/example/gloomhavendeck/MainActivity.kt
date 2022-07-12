@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
     val baseEffectSpeed = 1_000/3L
     var effectSpeed = baseEffectSpeed
 
-    inner class Effect(var sound: Int? = null, var card: Int? = null, var wipe: Boolean = false,
+    inner class Effect(var sound: SoundBundle? = null, var card: Int? = null, var wipe: Boolean = false,
                        var selectTopRow: Boolean = false, var selectBottomRow: Boolean = false,
                        var showBottomRow: Boolean = false, var hideBottomRow: Boolean = false,
                        var showItemRow: Boolean = false, var hideItemRow: Boolean = false,
@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         @SuppressLint("UseCompatLoadingForDrawables")
         fun run() {
             if (sound != null) {
-                val mediaPlayer: MediaPlayer = MediaPlayer.create(this@MainActivity, sound!!)
+                val mediaPlayer: MediaPlayer = MediaPlayer.create(this@MainActivity, sound!!.getSound() as Int)
                 mediaPlayer.start()
             }
             if (card != null) {
@@ -163,43 +163,43 @@ class MainActivity : AppCompatActivity() {
 
             // Named
             effectToAdd = if ("null" in card.toString())
-                Effect(sound=R.raw.buzzer, card=R.drawable.card_null)
+                Effect(sound=SoundBundle(R.raw.buzzer), card=R.drawable.card_null)
             else if ("curse" in card.toString())
-                Effect(sound=R.raw.ttyd_ghost, card=R.drawable.card_curse)
+                Effect(sound=SoundBundle(R.raw.ttyd_ghost), card=R.drawable.card_curse)
             else if ("bless" in card.toString())
-                Effect(sound=R.raw.tada, card=R.drawable.card_bless)
+                Effect(sound=SoundBundle(R.raw.tada), card=R.drawable.card_bless)
 
             // Numbers
             else if ("-2" in card.toString())
-                Effect(sound=R.raw.mario_fall, card=R.drawable.card_minus2)
+                Effect(sound=SoundBundle(R.raw.mario_fall), card=R.drawable.card_minus2)
             else if ("-1" in card.toString())
-                Effect(sound=R.raw.fnf_death, card=R.drawable.card_minus1)
+                Effect(sound=SoundBundle(R.raw.fnf_death), card=R.drawable.card_minus1)
             else if ("+0" in card.toString())
-                Effect(sound=R.raw.stone2, card=R.drawable.card_plus0)
+                Effect(sound=SoundBundle(R.raw.stone2), card=R.drawable.card_plus0)
             else if (card.flippy && "+1" in card.toString())
-                Effect(sound=R.raw.boom, card=R.drawable.card_plus1_flippy)
+                Effect(sound=SoundBundle(R.raw.boom), card=R.drawable.card_plus1_flippy)
             else if ("+1" in card.toString())
-                Effect(sound=R.raw.boom, card=R.drawable.card_plus1)
+                Effect(sound=SoundBundle(R.raw.boom), card=R.drawable.card_plus1)
             else if ("+2" in card.toString())
-                Effect(sound=R.raw.thwomp, card=R.drawable.card_plus2)
+                Effect(sound=SoundBundle(R.raw.thwomp), card=R.drawable.card_plus2)
             else if ("x2" in card.toString())
-                Effect(sound=R.raw.blast_zone, card=R.drawable.card_x2)
+                Effect(sound=SoundBundle(R.raw.blast_zone), card=R.drawable.card_x2)
 
             // Effects
             else if (card.pierce > 0)
-                Effect(sound=R.raw.shield_break, card=R.drawable.card_pierce)
+                Effect(sound=SoundBundle(R.raw.shield_break), card=R.drawable.card_pierce)
             else if (card.muddle)
-                Effect(sound=R.raw.hamsterball_dizzy, card=R.drawable.card_muddle)
+                Effect(sound=SoundBundle(R.raw.hamsterball_dizzy), card=R.drawable.card_muddle)
             else if (card.stun)
-                Effect(sound=R.raw.ttyd_timestop, card=R.drawable.card_stun)
+                Effect(sound=SoundBundle(R.raw.ttyd_timestop), card=R.drawable.card_stun)
             else if (card.extraTarget)
-                Effect(sound=R.raw.hamsterball_catapult, card=R.drawable.card_extra_target)
+                Effect(sound=SoundBundle(R.raw.hamsterball_catapult), card=R.drawable.card_extra_target)
             else// if (card.refresh)
-                Effect(sound=R.raw.chest_open, card=R.drawable.card_refresh)
+                Effect(sound=SoundBundle(R.raw.chest_open), card=R.drawable.card_refresh)
 
             // Replace sound if it's in disadvantage
             if (card.flippy && currentlyDoingDisadvantage) {
-                effectToAdd.sound = R.raw.windows_xp_error
+                effectToAdd.sound = SoundBundle(R.raw.windows_xp_error)
             }
 
             // Add effect
@@ -216,17 +216,17 @@ class MainActivity : AppCompatActivity() {
 
         override fun addToDrawPile(card: Card) {
             super.addToDrawPile(card)
-            effectQueue.add(Effect(sound=R.raw.shuffle))
+            effectQueue.add(Effect(sound=SoundBundle(R.raw.shuffle)))
         }
 
         override fun addMultipleToDrawPile(cards: Iterable<Card>) {
             super.addMultipleToDrawPile(cards)
-            effectQueue.add(Effect(sound=R.raw.shuffle))
+            effectQueue.add(Effect(sound=SoundBundle(R.raw.shuffle)))
         }
 
         override fun activeCardsToDiscardPile(userDirectlyRequested: Boolean) {
             if (activeCards.size != 0) {
-                effectQueue.add(Effect(sound=R.raw.banana_slip))
+                effectQueue.add(Effect(sound=SoundBundle(listOf(R.raw.banana_slip, R.raw.sneeze))))
             }
             super.activeCardsToDiscardPile(userDirectlyRequested)
         }
