@@ -986,7 +986,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                             val button = Button(context)
                             button.text = "${status.icon.repeat(controller.player.statusDict[status]!!)} ${status.name}"
                             button.textSize = 5f
-                            //button.layoutParams = ViewGroup.LayoutParams(300,100)
+                            button.layoutParams = TableRow.LayoutParams(-2,-2, 1f)
                             if (controller.player.statuses.contains(status)) {
                                 button.setTextColor(Color.parseColor("#9999ff"))
                             }
@@ -998,10 +998,13 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                             }
                             row.addView(button)
                             Log.d("EEEEEEEEEEEEEEEEEEEEEEE", tlStatusContainer.childCount.toString())
-                            if (row.children.count() == 2) {
+                            if (row.children.count() == 3) {
                                 tlStatusContainer.addView(row)
                                 row = TableRow(context)
                             }
+                        }
+                        if (row.children.count() != 0) {
+                            tlStatusContainer.addView(row)
                         }
 
                         // Curses spinner

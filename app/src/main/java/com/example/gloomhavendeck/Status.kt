@@ -3,6 +3,7 @@ package com.example.gloomhavendeck
 enum class Status(val icon: String, val negative: Boolean=false, val roundBased: Boolean=true){
     DISARM("\uD83D\uDC4B", negative = true),
     IMMOBILE("\uD83E\uDD7E", negative = true),
+    INVISIBLE("\uD83D\uDC7B"),
     MUDDLE("❓", negative = true),
     POISON("☠", negative = true, roundBased = false),
     REGENERATION("❤", roundBased = false),
