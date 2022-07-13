@@ -47,11 +47,19 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT, va
     RING_OF_SKULLS(R.drawable.card_skulls, sound=SoundBundle.DEATH),
     ROCKET_BOOTS(R.drawable.card_boots, sound=SoundBundle(listOf(R.raw.jack_in_the_box, R.raw.rocket_launch, R.raw.demo_charge_windup1)), spendOnly = true),
     SPIKED_SHIELD(R.drawable.card_spiked, spendOnly = true),
-    SUPER_HEALING_POTION(R.drawable.card_healing, sound=SoundBundle.DRINKING, getUsed=fun (player, _, fullAutoBehavior){
-        if (!fullAutoBehavior && player.hp >= player.maxHp) {
-            throw kotlin.Exception("Already at max HP!")
+    SUPER_HEALING_POTION(R.drawable.card_healing, sound=SoundBundle.DRINKING, getUsed=fun (player, _, fullAutoBehavior) {
+        if (player.statuses.contains(Status.WOUND)) {
+            player.statusDict[Status.WOUND] = 0
         }
-        player.hp = min(player.hp+7, player.maxHp)
+        if (player.statuses.contains(Status.POISON)) {
+            player.statusDict[Status.POISON] = 0
+        }
+        else {
+            if (player.hp >= player.maxHp) {
+                throw kotlin.Exception("Already at max HP!")
+            }
+            player.hp = min(player.hp + 7, player.maxHp)
+        }
     }),
     TOWER_SHIELD(R.drawable.card_tower, spendOnly = true),
     UTILITY_BELT(R.drawable.card_belt, sound=SoundBundle(R.raw.metal_falling), getUsed=fun(player, deck, fullAutoBehavior) {
