@@ -992,8 +992,6 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                             }
                             button.setOnClickListener() {
                                 controller.player.statusDict[status] = status.getNextManualPosition(controller.player.statusDict[status]!!)
-                                controller.log("Updated statuses.")
-                                controller.addUndoPoint()
                                 setUpEverything()
                             }
                             row.addView(button)
@@ -1058,6 +1056,10 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                 val dialog = CustomDialogClass(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen)
                 dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
                 dialog.getWindow()?.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT)
+                dialog.setOnDismissListener{
+                    controller.log("Managed.")
+                    controller.addUndoPoint()
+                }
                 dialog.show()
 
             }
