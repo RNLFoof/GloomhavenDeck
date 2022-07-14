@@ -1,5 +1,9 @@
 package com.example.gloomhavendeck
 
+import android.animation.Animator
+import android.animation.ArgbEvaluator
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
@@ -46,6 +50,9 @@ class MainActivity : AppCompatActivity() {
     var currentlyDoingDisadvantage = false
     val baseEffectSpeed = 1_000/3L
     var effectSpeed = baseEffectSpeed
+
+    lateinit var discardAnim: ObjectAnimator
+    lateinit var spinnyAnim: ObjectAnimator
 
     inner class Effect(var sound: SoundBundle? = null, var card: Int? = null, var wipe: Boolean = false,
                        var selectTopRow: Boolean = false, var selectBottomRow: Boolean = false,
@@ -415,6 +422,26 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
         llItemRow = findViewById<LinearLayout>(R.id.llItemRow)
         selectedCardRow = llTopCardRow
         tvLog = findViewById<TextView>(R.id.tvLog)
+
+        discardAnim = ObjectAnimator.ofInt(
+            btnDiscard,
+            "textColor",
+            Color.RED,
+            Color.parseColor("#434646")
+        )
+        spinnyAnim = ObjectAnimator.ofInt(
+            btnSpinny,
+            "textColor",
+            Color.RED,
+            Color.parseColor("#434646")
+        )
+        for (anim in listOf(discardAnim, spinnyAnim))
+        {
+            anim.duration = 500
+            anim.setEvaluator(ArgbEvaluator())
+            anim.repeatCount = ValueAnimator.INFINITE
+            anim.repeatMode = ValueAnimator.REVERSE
+        }
 
             //Enemy("Dog 2 g")
         // Adding cards
@@ -904,6 +931,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
             buttonBehavior(btnDiscard) {
                 controller.deck.activeCardsToDiscardPile(true)
                 btnDiscard.isEnabled = false
+                discardAnim.end()
             }
         }
 
@@ -913,6 +941,8 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                 controller.deck.discardPileToDrawPile(true)
                 btnDiscard.isEnabled = false
                 btnSpinny.isEnabled = false
+                discardAnim.end()
+                spinnyAnim.end()
             }
         }
 
@@ -1114,10 +1144,12 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
         // Spinny button?
         if (controller.deck.activeCards.any{it.spinny} || controller.deck.discardPile.any{it.spinny}) {
             btnSpinny.isEnabled = true
+            spinnyAnim.start()
         }
         // Discard button?
         if (controller.deck.activeCards.size > 0) {
             btnDiscard.isEnabled = true
+            discardAnim.start()
         }
         // Undo+Redo buttons?
         btnUndo.isEnabled = controller.undosBack != controller.undoPoints.size - 1
