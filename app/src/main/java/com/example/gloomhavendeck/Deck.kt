@@ -133,6 +133,10 @@ open class Deck(@Transient var controller: Controller? = null) {
             if (!latestCard.lose) {
                 activeCards.add(latestCard)
             }
+            // Should do this a different way but too bad
+            if ("curse" in latestCard.toString()) {
+                remainingCurses += 1
+            }
         }
         // log("Overall, drew this row of cards: $drawnRow")
         controller!!.logIndent -= 1
