@@ -1,8 +1,32 @@
 import os
 import re
+from enum import Enum
 
 originaldir = "originals"
 fixeddir = r"..\..\app\src\main\res\raw"
+
+class InsertType(Enum):
+    SINGLE = 0
+    LIST = 1
+    DICT = 2
+
+insertstarts = {
+    InsertType.SINGLE: "\n        val {} = SoundBundle(",
+    InsertType.LIST: "\n        val {} = SoundBundle(listOf(\n",
+    InsertType.DICT: "\n        val {} = SoundBundle(\n            LinkedHashMap(\n                mapOf(\n",
+}
+
+insertmids = {
+    InsertType.SINGLE: "R.raw.{}",
+    InsertType.LIST: "            R.raw.{},\n",
+    InsertType.DICT: "                    R.raw.{} to {},\n",
+}
+
+insertends = {
+    InsertType.SINGLE: ")",
+    InsertType.LIST: "        ))",
+    InsertType.DICT: "        )))",
+}
 
 # Removes things that can't appear in resource names.
 def removeundesirables(s: str) -> str:
@@ -24,6 +48,13 @@ def extractchance(fname: str) -> tuple[str, str]:
 
 s = ""
 for root,dirs,files in os.walk(originaldir, topdown=False):
+    if len(dirs) + len(files) == 1:
+        it = InsertType.SINGLE
+    else:
+        if len(set(extractchance(x)[1] for x in dirs+files)) == 1:  # Are all the chances the same?
+            it = InsertType.LIST
+        else:
+            it = InsertType.DICT
     rootsansoriginals = "\\".join(root.split("\\")[1:])
 
     # Skip the root folder, everything there is unused
@@ -31,7 +62,7 @@ for root,dirs,files in os.walk(originaldir, topdown=False):
         continue
 
     currentfolder = root.split("\\")[-1]
-    s += f"\n        val {removeundesirables(rootsansoriginals)} = SoundBundle(\n            LinkedHashMap(\n                mapOf(\n"
+    s += insertstarts[it].format(removeundesirables(rootsansoriginals))
     for originalfilename in files:
         # Handle resource
         newfilename, chance = extractchance(originalfilename)
@@ -44,12 +75,12 @@ for root,dirs,files in os.walk(originaldir, topdown=False):
 
         # Handle SoundBundles
         head, ext = os.path.splitext(newfilename)
-        s += f"                    R.raw.{head} to {chance},\n"
+        s += insertmids[it].format(head, chance)
 
     for dir in dirs:
         dir, chance = extractchance(dir)
-        s += f"                    {removeundesirables(os.path.join(rootsansoriginals, dir))} to {chance},\n"
+        s += insertmids[it].format(removeundesirables(os.path.join(rootsansoriginals, dir)), chance)
 
-    s += "        )))"
+    s += insertends[it]
 
 print(s)
