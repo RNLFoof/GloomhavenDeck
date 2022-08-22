@@ -4,12 +4,16 @@ import re
 originaldir = "originals"
 fixeddir = r"..\..\app\src\main\res\raw"
 
+# Removes things that can't appear in resource names.
 def removeundesirables(s: str) -> str:
     s = s.replace(" ", "_")
     s = s.replace("\\", "_")
+    s = s.replace("+", "PLUS")
+    s = s.replace("-", "MINUS")
     s = re.sub(r"\((0\.\d+)\)", "", s)
     return s
 
+# Extracts the chance/weight from a file/dir name, expressed as (0.n)
 def extractchance(fname: str) -> tuple[str, str]:
     if (match := re.search(r"\((0\.\d+)\)", fname)):
         chance = match.group(1) + "f"
@@ -18,14 +22,16 @@ def extractchance(fname: str) -> tuple[str, str]:
         chance = "1f"
     return fname, chance
 
+s = ""
 for root,dirs,files in os.walk(originaldir, topdown=False):
     rootsansoriginals = "\\".join(root.split("\\")[1:])
 
+    # Skip the root folder, everything there is unused
     if not rootsansoriginals:
         continue
 
     currentfolder = root.split("\\")[-1]
-    s = f"        val {removeundesirables(rootsansoriginals)} = SoundBundle(\n            LinkedHashMap(\n                mapOf(\n"
+    s += f"\n        val {removeundesirables(rootsansoriginals)} = SoundBundle(\n            LinkedHashMap(\n                mapOf(\n"
     for originalfilename in files:
         # Handle resource
         newfilename, chance = extractchance(originalfilename)
@@ -45,4 +51,5 @@ for root,dirs,files in os.walk(originaldir, topdown=False):
         s += f"                    {removeundesirables(os.path.join(rootsansoriginals, dir))} to {chance},\n"
 
     s += "        )))"
-    print(s)
+
+print(s)
