@@ -15,21 +15,27 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
             LinkedHashMap(
                 mapOf(
                     R.raw.plus1_bat_hit to 1f,
-                    R.raw.plus1_boom to 1f,
-                    R.raw.plus1_et_cagebreak to 1f,
                     R.raw.plus1_hitsound to 1f,
                     R.raw.plus1_pan to 1f,
-                    R.raw.plus1_thwomp to 1f,
                     PLUS1_GUITAR to 0.5f,
         )))
         val PLUS2 = SoundBundle(listOf(
+            R.raw.plus2_boom,
+            R.raw.plus2_et_cagebreak,
+            R.raw.plus2_explosion,
+            R.raw.plus2_hamsterball_ball_break,
+            R.raw.plus2_thwomp,
             R.raw.plus2_ttyd_jesus,
             R.raw.plus2_ttyd_layered_explosion,
+        ))
+        val MINUS1_GOO = SoundBundle(listOf(
+            R.raw.minus1_goo_hamsterball_glue_stuck,
+            R.raw.minus1_goo_lancersplat,
         ))
         val MINUS1 = SoundBundle(listOf(
             R.raw.minus1_et_playerdie,
             R.raw.minus1_fnf_death,
-            R.raw.minus1_hamsterball_glue_stuck,
+            MINUS1_GOO,
         ))
         val MINUS2 = SoundBundle(R.raw.minus2_mario_fall)
         val BLESS = SoundBundle(
@@ -39,10 +45,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
                     R.raw.bless_happy_birthday to 0.1f,
                     R.raw.bless_tada to 1f,
         )))
-        val CURSE = SoundBundle(listOf(
-            R.raw.curse_ttyd_ghost,
-            R.raw.curse_ttyd_pig,
-        ))
+        val CURSE = SoundBundle(R.raw.curse_ttyd_ghost)
         val DEATH_AUDIES_XP = SoundBundle(listOf(
             R.raw.death_audies_xp_windows2kgoodbye,
             R.raw.death_audies_xp_xpgoodbye,
@@ -62,6 +65,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
             R.raw.death_grinder_grinderhuman_02,
         ))
         val DEATH = SoundBundle(listOf(
+            R.raw.death_americano,
             R.raw.death_die,
             R.raw.death_et_jetdie,
             R.raw.death_medic_mvm_class_is_dead03,
@@ -84,17 +88,21 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
             R.raw.discard_banana_slip,
             R.raw.discard_sneeze,
         ))
-        val DRINK_AUDIES = SoundBundle(listOf(
-            R.raw.drink_audies_drain,
-            R.raw.drink_audies_pissmiss,
+        val DRINK_LIQUID_AUDIES = SoundBundle(listOf(
+            R.raw.drink_liquid_audies_drain,
+            R.raw.drink_liquid_audies_pissmiss,
+        ))
+        val DRINK_LIQUID = SoundBundle(listOf(
+            R.raw.drink_liquid_et_istolethis,
+            R.raw.drink_liquid_splosh,
+            DRINK_LIQUID_AUDIES,
         ))
         val DRINK = SoundBundle(
             LinkedHashMap(
                 mapOf(
                     R.raw.drink_bottle_break to 0.1f,
                     R.raw.drink_drinking to 1f,
-                    R.raw.drink_et_istolethis to 1f,
-                    DRINK_AUDIES to 1f,
+                    DRINK_LIQUID to 0.5f,
         )))
         val EXTRATARGET = SoundBundle(listOf(
             R.raw.extratarget_gun,
@@ -124,8 +132,146 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
                     JUMP_DEMOCHARGE to 1f,
                     JUMP_TIMROCKETS to 1f,
         )))
+        val like_this_PLUS1 = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_PLUS2 = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_MINUS1 = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_MINUS2 = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_BLESS = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_CURSE = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_DEATH = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_DEFAULT = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_DISADVANTAGE = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_DISCARD = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_DRINK = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_EXTRATARGET = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_JUMP = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_MUDDLE = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_NULL = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_PENDANTOFDARKPACTS = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_PIERCE = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_REFRESH = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_RINGOFBRUTALITY = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_SHIELD = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_SHUFFLE = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_STRENGTHEN = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_STUN = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_SUMMON = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_UTILITYBELT = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this_X2 = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val like_this = SoundBundle(listOf(
+            like_this_PLUS1,
+            like_this_PLUS2,
+            like_this_MINUS1,
+            like_this_MINUS2,
+            like_this_BLESS,
+            like_this_CURSE,
+            like_this_DEATH,
+            like_this_DEFAULT,
+            like_this_DISADVANTAGE,
+            like_this_DISCARD,
+            like_this_DRINK,
+            like_this_EXTRATARGET,
+            like_this_JUMP,
+            like_this_MUDDLE,
+            like_this_NULL,
+            like_this_PENDANTOFDARKPACTS,
+            like_this_PIERCE,
+            like_this_REFRESH,
+            like_this_RINGOFBRUTALITY,
+            like_this_SHIELD,
+            like_this_SHUFFLE,
+            like_this_STRENGTHEN,
+            like_this_STUN,
+            like_this_SUMMON,
+            like_this_UTILITYBELT,
+            like_this_X2,
+        ))
         val MUDDLE = SoundBundle(R.raw.muddle_hamsterball_dizzy)
-        val NULL = SoundBundle(R.raw.null_buzzer)
+        val NULL = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+                    R.raw.null_buzzer to 1f,
+                    R.raw.null_nope to 0.1f,
+                    R.raw.null_your_team_lost to 0.05f,
+        )))
         val PENDANTOFDARKPACTS = SoundBundle(R.raw.pendantofdarkpacts_loud_bird)
         val PIERCE = SoundBundle(R.raw.pierce_shield_break)
         val REFRESH = SoundBundle(listOf(
@@ -180,9 +326,18 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
             R.raw.stun_ttyd_sleep,
             R.raw.stun_ttyd_timestop,
         ))
-        val SUMMON = SoundBundle(R.raw.summon_roar)
+        val SUMMON = SoundBundle(listOf(
+            R.raw.summon_knight_spawn,
+            R.raw.summon_roar,
+            R.raw.summon_sm64_painting,
+        ))
         val UTILITYBELT = SoundBundle(R.raw.utilitybelt_metal_falling)
-        val X2 = SoundBundle(R.raw.x2_blast_zone)        /* GENERATED BY nonsense/sounds/fix.py END */
+        val X2 = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+                    R.raw.x2_blast_zone to 1f,
+                    R.raw.x2_bong to 0.1f,
+        )))        /* GENERATED BY nonsense/sounds/fix.py END */
     }
 
     constructor(): this(LinkedHashMap())
