@@ -912,7 +912,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                     i++ -> {
                         effectQueue.add(Effect(showItemRow=true))
                         (controller.player.inventory as MainActivityInventory).displayChangedInventory()
-                        effectSpeed = 1_000/2L
+                        effectSpeed = 1_000/4L
                         controller.deck.pipis(controller.player, controller.enemies, this)
                         effectSpeed = baseEffectSpeed
                         simplifyTheGamestate()
