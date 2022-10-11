@@ -46,6 +46,15 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
                     R.raw.bless_tada to 1f,
         )))
         val CURSE = SoundBundle(R.raw.curse_ttyd_ghost)
+        val DARK_HUSKIES = SoundBundle(listOf(
+            R.raw.dark_huskies_1,
+            R.raw.dark_huskies_2,
+            R.raw.dark_huskies_3,
+            R.raw.dark_huskies_4,
+            R.raw.dark_huskies_5,
+            R.raw.dark_huskies_6,
+        ))
+        val DARK = SoundBundle(DARK_HUSKIES)
         val DEATH_AUDIES_XP = SoundBundle(listOf(
             R.raw.death_audies_xp_windows2kgoodbye,
             R.raw.death_audies_xp_xpgoodbye,
@@ -109,6 +118,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
             R.raw.extratarget_hamsterball_catapult,
             R.raw.extratarget_sentry_spot_client,
         ))
+        val HEAL = SoundBundle(R.raw.heal_heal)
         val JOHNSON = SoundBundle(R.raw.johnson_johnson)
         val JUMP_DEMOCHARGE = SoundBundle(listOf(
             R.raw.jump_democharge_demo_charge_windup1,
@@ -146,6 +156,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
             R.raw.refresh_chest_open,
             R.raw.refresh_h553,
         ))
+        val REGENERATE = SoundBundle(R.raw.regenerate_insane_heal)
         val RINGOFBRUTALITY = SoundBundle(
             LinkedHashMap(
                 mapOf(

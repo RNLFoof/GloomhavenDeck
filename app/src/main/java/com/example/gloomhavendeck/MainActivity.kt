@@ -1,6 +1,5 @@
 package com.example.gloomhavendeck
 
-import android.animation.Animator
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
@@ -176,6 +175,27 @@ class MainActivity : AppCompatActivity() {
             else if ("bless" in card.toString())
                 Effect(sound=SoundBundle.BLESS, card=R.drawable.card_bless)
 
+
+            // Effects
+            else if (card.pierce > 0)
+                Effect(sound=SoundBundle.PIERCE, card=R.drawable.card_pierce)
+            else if (card.muddle)
+                Effect(sound=SoundBundle.MUDDLE, card=R.drawable.card_muddle)
+            else if (card.stun)
+                Effect(sound=SoundBundle.STUN, card=R.drawable.card_stun)
+            else if (card.extraTarget)
+                Effect(sound=SoundBundle.EXTRATARGET, card=R.drawable.card_extra_target)
+            else if (card.healAlly > 0)
+                Effect(sound=SoundBundle.HEAL, card=R.drawable.card_plus1healally)
+            else if (card.shieldSelf > 0)
+                Effect(sound=SoundBundle.SHIELD, card=R.drawable.card_plus3shield)
+            else if (card.element == Element.DARK)
+                Effect(sound=SoundBundle.DARK, card=R.drawable.card_plus2dark)
+            else if (card.regenerate)
+                Effect(sound=SoundBundle.REGENERATE, card=R.drawable.card_plus2regenerate)
+            else if (card.curse)
+                Effect(sound=SoundBundle.CURSE, card=R.drawable.card_plus2curse)
+
             // Numbers
             else if ("-2" in card.toString())
                 Effect(sound=SoundBundle.MINUS2, card=R.drawable.card_minus2)
@@ -189,20 +209,8 @@ class MainActivity : AppCompatActivity() {
                 Effect(sound=SoundBundle.PLUS1, card=R.drawable.card_plus1)
             else if ("+2" in card.toString())
                 Effect(sound=SoundBundle.PLUS2, card=R.drawable.card_plus2)
-            else if ("x2" in card.toString())
+            else// if ("x2" in card.toString())
                 Effect(sound=SoundBundle.X2, card=R.drawable.card_x2)
-
-            // Effects
-            else if (card.pierce > 0)
-                Effect(sound=SoundBundle.PIERCE, card=R.drawable.card_pierce)
-            else if (card.muddle)
-                Effect(sound=SoundBundle.MUDDLE, card=R.drawable.card_muddle)
-            else if (card.stun)
-                Effect(sound=SoundBundle.STUN, card=R.drawable.card_stun)
-            else if (card.extraTarget)
-                Effect(sound=SoundBundle.EXTRATARGET, card=R.drawable.card_extra_target)
-            else// if (card.refresh)
-                Effect(sound=SoundBundle.REFRESH, card=R.drawable.card_refresh)
 
             // Replace sound if it's in disadvantage
             if (card.flippy && currentlyDoingDisadvantage) {
