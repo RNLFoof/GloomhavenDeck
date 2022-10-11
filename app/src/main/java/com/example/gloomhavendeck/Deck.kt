@@ -1,19 +1,14 @@
 package com.example.gloomhavendeck
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import java.lang.Exception
 import java.lang.Integer.max
 import java.lang.Integer.min
-import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.isAccessible
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
@@ -25,7 +20,7 @@ open class Deck(@Transient var controller: Controller? = null) {
     var remainingCurses = 10
 
     // Adding cards
-    open fun addBaseDeck() {
+    open fun addBaseDeckThreeSpears() {
         addMultipleToDrawPile(listOf(
             Card(0, multiplier = true, spinny = true),
             Card(2, multiplier = true, spinny = true),
@@ -63,6 +58,31 @@ open class Deck(@Transient var controller: Controller? = null) {
         controller!!.addUndoPoint()
     }
 
+    open fun addBaseDeckEye() {
+        addMultipleToDrawPile(listOf(
+            Card(0, multiplier = true, spinny = true),
+            Card(2, multiplier = true, spinny = true),
+
+            Card(0),
+            Card(0),
+
+            Card(1),
+            Card(1),
+            Card(1),
+            Card(1, healAlly = 2),
+
+            Card(2),
+            Card(2, element = Element.DARK),
+            Card(2, regenerate = true),
+            Card(2, curse = true),
+
+            Card(3, shieldSelf = 1),
+            Card(3, shieldSelf = 1),
+            Card(3, muddle = true),
+        ))
+        controller!!.addUndoPoint()
+    }
+
     open fun addToDrawPile(card: Card) {
         drawPile.add(card)
         drawPile.shuffle()
@@ -81,7 +101,7 @@ open class Deck(@Transient var controller: Controller? = null) {
         controller!!.log("Adding a curse...")
         controller!!.logIndent += 1
         if (remainingCurses > 0) {
-            addToDrawPile(Card(0, lose = true, multiplier = true))
+            addToDrawPile(Card(0, multiplier = true, lose = true))
             remainingCurses -= 1
         } else {
             controller!!.log("JK none left")
@@ -94,7 +114,7 @@ open class Deck(@Transient var controller: Controller? = null) {
     fun bless(userDirectlyRequested: Boolean = false) {
         controller!!.log("Adding a bless...")
         controller!!.logIndent += 1
-        addToDrawPile(Card(2, lose = true, multiplier = true))
+        addToDrawPile(Card(2, multiplier = true, lose = true))
         controller!!.logIndent -= 1
         if (userDirectlyRequested)
             controller!!.addUndoPoint()

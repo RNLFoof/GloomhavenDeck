@@ -407,7 +407,7 @@ class MainActivity : AppCompatActivity() {
 vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList()
                 // Because the controller.deck has controller.player undos it needs to be made after
                 controller.deck = MainActivityDeck(controller)
-                controller.deck.addBaseDeck()
+                controller.deck.addBaseDeckThreeSpears()
             }
             builder.setTitle("Load?")
             builder.show()
