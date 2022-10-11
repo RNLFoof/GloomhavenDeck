@@ -4,14 +4,26 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class Card(
-    var value: Int = 0, var multiplier: Boolean = false,
-    var flippy: Boolean = false, var spinny: Boolean = false,
-    var lose: Boolean = false, var stun: Boolean = false, var muddle: Boolean = false,
-    var refresh: Boolean = false, var pierce: Int = 0, var extraTarget: Boolean = false) {
+    var value: Int = 0,
+    var multiplier: Boolean = false,
+    var flippy: Boolean = false,
+    var spinny: Boolean = false,
+    var lose: Boolean = false,
+    var stun: Boolean = false,
+    var muddle: Boolean = false,
+    var refresh: Boolean = false,
+    var pierce: Int = 0,
+    var extraTarget: Boolean = false,
+    val healAlly: Int = 0,
+    val shieldSelf: Int = 0,
+    val element: Element? = null,
+    val regenerate: Boolean = false,
+    val curse: Boolean = false,
+) {
 
 
     override fun toString(): String {
-        Card() + Card()
+        Card(healAlly = 2) + Card(healAlly = 2)
         // Named stuff
         if (lose) {
             if (value == 2) {

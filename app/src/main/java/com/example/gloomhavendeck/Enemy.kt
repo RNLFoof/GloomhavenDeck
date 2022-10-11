@@ -29,6 +29,8 @@ data class Enemy(var creationString: String) {
     var poisoned = false
     var stunned = false
     var muddled = false
+    val dead: Boolean
+        get() {return taken >= maxHp}
     // Parse
     init {
         val chunks = creationString.split(",")
@@ -53,6 +55,7 @@ data class Enemy(var creationString: String) {
                 for (property in Enemy::class.memberProperties) {
                     if (property.returnType == Boolean::class.createType()
                         && trimmedChunk.lowercase() in property.name.lowercase()
+                        && property is KMutableProperty<*>
                     ) {
                         (property as KMutableProperty<*>).setter.call(this, true)
                         chunkSolved = true
@@ -98,7 +101,6 @@ data class Enemy(var creationString: String) {
         }
         Log.d("hey", this.toString())
     }
-    var dead = taken >= maxHp
 
     companion object {
         fun createMany(block: String, scenarioLevel: Int) = sequence {
@@ -202,12 +204,12 @@ data class Enemy(var creationString: String) {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun getAttacked(card: Card, player: Player) {
         if (!getTargetable(ignoreTargeted = true)) {
             throw Exception("Shouldn't be attacking an untargetable guy.")
         }
         taken += Integer.max(0, card.value - effectiveShield(player)) + if (poisoned) 1 else 0
-        dead = taken >= maxHp
         if (!dead && inRetaliateRange) {
             player.hp -= retaliate
         }
@@ -219,6 +221,7 @@ data class Enemy(var creationString: String) {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun effectiveShield(player: Player): Int {
         return Integer.max(0, shield - player.pierce)
     }
