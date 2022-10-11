@@ -179,6 +179,8 @@ class MainActivity : AppCompatActivity() {
             // Effects
             else if (card.pierce > 0)
                 Effect(sound=SoundBundle.PIERCE, card=R.drawable.card_pierce)
+            else if ("+3" in card.toString() && card.muddle)
+                Effect(sound=SoundBundle.MUDDLE, card=R.drawable.card_plus3muddle)
             else if (card.muddle)
                 Effect(sound=SoundBundle.MUDDLE, card=R.drawable.card_muddle)
             else if (card.stun)
