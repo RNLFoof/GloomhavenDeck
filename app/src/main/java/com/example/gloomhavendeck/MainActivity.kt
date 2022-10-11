@@ -355,8 +355,8 @@ class MainActivity : AppCompatActivity() {
 
         controller = MainActivityController(applicationContext.filesDir.canonicalPath)
         runOnUiThread {
-            val builder = AlertDialog.Builder(this@MainActivity)
-            builder.setPositiveButton("Yeah") { dialog, which ->
+            val loadBuilder = AlertDialog.Builder(this@MainActivity)
+            loadBuilder.setPositiveButton("Yeah") { dialog, which ->
                 val decodedController = Json.decodeFromString<Controller>(File(Paths.get(applicationContext.filesDir.canonicalPath, "current_state.json").toString()).readText())
                 for (property in Controller::class.memberProperties) {
                     try {
@@ -397,7 +397,7 @@ class MainActivity : AppCompatActivity() {
                     {}
                 }
             }
-            builder.setNegativeButton("No") { _, _->
+            loadBuilder.setNegativeButton("No") { _, _->
 
                 controller.player = MainActivityPlayer()
                 controller.enemies = Enemy.createMany("""Dog1 12
@@ -407,10 +407,18 @@ class MainActivity : AppCompatActivity() {
 vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList()
                 // Because the controller.deck has controller.player undos it needs to be made after
                 controller.deck = MainActivityDeck(controller)
-                controller.deck.addBaseDeckThreeSpears()
+                val deckBuilder = AlertDialog.Builder(this@MainActivity)
+                deckBuilder.setPositiveButton("Three Spears") { _, _ ->
+                    controller.deck.addBaseDeckThreeSpears()
+                }
+                deckBuilder.setNegativeButton("Eye") { _, _ ->
+                    controller.deck.addBaseDeckEye()
+                }
+                deckBuilder.setTitle("Class?")
+                deckBuilder.show()
             }
-            builder.setTitle("Load?")
-            builder.show()
+            loadBuilder.setTitle("Load?")
+            loadBuilder.show()
         }
 
         btnDiscard = findViewById<Button>(R.id.btnDiscard)
