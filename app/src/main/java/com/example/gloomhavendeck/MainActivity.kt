@@ -424,9 +424,11 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                 val deckBuilder = AlertDialog.Builder(this@MainActivity)
                 deckBuilder.setPositiveButton("Three Spears") { _, _ ->
                     controller.deck.addBaseDeckThreeSpears()
+                    controller.player.inventory.initializeThreeSpears()
                 }
                 deckBuilder.setNegativeButton("Eye") { _, _ ->
                     controller.deck.addBaseDeckEye()
+                    controller.player.inventory.initializeEye()
                 }
                 deckBuilder.setTitle("Class?")
                 deckBuilder.show()
