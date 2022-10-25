@@ -11,8 +11,8 @@ import java.util.*
 enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT, val permanent: Boolean=false,
                 val spendOnly: Boolean = false,
                 val getUsed: (Player, Deck, Boolean) -> Unit = fun (_: Player, _: Deck, fullAutoBehavior: Boolean) {}) {
-    CLOAK_OF_POCKETS(R.drawable.card_cloak, permanent = true),
     CLOAK_OF_PHASING(R.drawable.card_cloakofphasing, permanent = true),
+    CLOAK_OF_POCKETS(R.drawable.card_cloak, permanent = true),
     LUCKY_EYE(R.drawable.card_luckyeye, sound=SoundBundle.STRENGTHEN, getUsed=fun (player, _, _){
         if (!player.statuses.contains(Status.STRENGTHEN)) {
             player.statusDict[Status.STRENGTHEN] = 2
@@ -45,8 +45,8 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT, va
         deck.curse()
     }),
     RING_OF_BRUTALITY(R.drawable.card_brutality, sound=SoundBundle.RINGOFBRUTALITY),
-    RING_OF_SKULLS(R.drawable.card_skulls, sound=SoundBundle.DEATH),
     RING_OF_DUALITY(R.drawable.card_duality, sound=SoundBundle.RINGOFDUALITY),
+    RING_OF_SKULLS(R.drawable.card_skulls, sound=SoundBundle.DEATH),
     ROCKET_BOOTS(R.drawable.card_boots, sound=SoundBundle.JUMP, spendOnly = true),
     SPIKED_SHIELD(R.drawable.card_spiked, spendOnly = true),
     SUPER_HEALING_POTION(R.drawable.card_healing, sound=SoundBundle.DRINK, getUsed=fun (player, _, fullAutoBehavior) {
@@ -73,7 +73,7 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT, va
         }
     }),
     WALL_SHIELD(R.drawable.card_wallshield, sound=SoundBundle.SHIELD, spendOnly = true),
-    WAR_HAMMER(R.drawable.card_warhammer, sound=SoundBundle.WARHAMMER, spendOnly = true);
+    WAR_HAMMER(R.drawable.card_warhammer, sound=SoundBundle.WARHAMMER);
 
     @SuppressLint("UseCompatLoadingForDrawables")
     fun getImageView(context: Context, used: Boolean): ImageView {
