@@ -46,7 +46,7 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT, va
     }),
     RING_OF_BRUTALITY(R.drawable.card_brutality, sound=SoundBundle.RINGOFBRUTALITY),
     RING_OF_SKULLS(R.drawable.card_skulls, sound=SoundBundle.DEATH),
-    RING_OF_DUALITY(R.drawable.card_duality, sound=SoundBundle.DEFAULT),
+    RING_OF_DUALITY(R.drawable.card_duality, sound=SoundBundle.RINGOFDUALITY),
     ROCKET_BOOTS(R.drawable.card_boots, sound=SoundBundle.JUMP, spendOnly = true),
     SPIKED_SHIELD(R.drawable.card_spiked, spendOnly = true),
     SUPER_HEALING_POTION(R.drawable.card_healing, sound=SoundBundle.DRINK, getUsed=fun (player, _, fullAutoBehavior) {
@@ -73,7 +73,7 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT, va
         }
     }),
     WALL_SHIELD(R.drawable.card_wallshield, sound=SoundBundle.SHIELD, spendOnly = true),
-    WAR_HAMMER(R.drawable.card_warhammer, sound=SoundBundle.PLUS2, spendOnly = true);
+    WAR_HAMMER(R.drawable.card_warhammer, sound=SoundBundle.WARHAMMER, spendOnly = true);
 
     @SuppressLint("UseCompatLoadingForDrawables")
     fun getImageView(context: Context, used: Boolean): ImageView {

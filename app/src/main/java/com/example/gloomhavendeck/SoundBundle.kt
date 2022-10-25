@@ -19,14 +19,16 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
                     R.raw.plus1_pan to 1f,
                     PLUS1_GUITAR to 0.5f,
         )))
+        val PLUS2_ttyd_weirdness = SoundBundle(listOf(
+            R.raw.plus2_ttyd_weirdness_ttyd_jesus,
+            R.raw.plus2_ttyd_weirdness_ttyd_layered_explosion,
+        ))
         val PLUS2 = SoundBundle(listOf(
             R.raw.plus2_boom,
             R.raw.plus2_et_cagebreak,
             R.raw.plus2_explosion,
-            R.raw.plus2_hamsterball_ball_break,
             R.raw.plus2_thwomp,
-            R.raw.plus2_ttyd_jesus,
-            R.raw.plus2_ttyd_layered_explosion,
+            PLUS2_ttyd_weirdness,
         ))
         val MINUS1_GOO = SoundBundle(listOf(
             R.raw.minus1_goo_hamsterball_glue_stuck,
@@ -165,6 +167,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
                     R.raw.ringofbrutality_onemoretimesoft to 0.02f,
                     R.raw.ringofbrutality_one_more_time to 1f,
         )))
+        val RINGOFDUALITY = SoundBundle(R.raw.ringofduality_mariopaint_catdog)
         val SHIELD_IRONDOOR = SoundBundle(listOf(
             R.raw.shield_irondoor_close1,
             R.raw.shield_irondoor_close2,
@@ -213,6 +216,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
             R.raw.summon_sm64_painting,
         ))
         val UTILITYBELT = SoundBundle(R.raw.utilitybelt_metal_falling)
+        val WARHAMMER = SoundBundle(R.raw.warhammer_hamsterball_ball_break)
         val X2 = SoundBundle(
             LinkedHashMap(
                 mapOf(
