@@ -1,6 +1,7 @@
 package com.example.gloomhavendeck
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -122,7 +123,7 @@ open class Deck(@Transient var controller: Controller? = null) {
 
 
     // Moving cards
-    open fun drawSingleCard(): Card {
+    open fun drawSingleCard(forcedCard: Card? = null): Card {
         if (drawPile.size == 0){
             controller!!.log("Out of cards, have to dominion it...")
             controller!!.logIndent += 1
@@ -136,18 +137,35 @@ open class Deck(@Transient var controller: Controller? = null) {
             discardPileToDrawPile()
             controller!!.logIndent -= 1
         }
-        val drewCard = drawPile.removeFirst()
+        val drewCard = if (forcedCard !== null) {
+            forcedCard
+        } else {
+            drawPile.removeFirst()
+        }
         controller!!.log("Drew this card: $drewCard")
         return drewCard
     }
 
-    fun drawRow(): MutableList<Card> {
+    fun drawRow(nerf: Int = 0): MutableList<Card> {
         controller!!.log("Drawing a row of cards...")
         controller!!.logIndent += 1
         val drawnRow = mutableListOf<Card>()
+        // Nerf
+        Log.d("haaaaaaaaaaaaa", "Nerf of $nerf")
+        for (i in 1..nerf) {
+            Log.d("haaaaaaaaaaaaa", "#$i")
+        }
+        // Actual drawing
         var continueDrawing = true
+        Log.d("haaaaaaaaaaaaa", "Nerf of $nerf")
+        var nerfsLeft = nerf
         while (continueDrawing) {
-            val latestCard = drawSingleCard()
+            val latestCard = if (nerfsLeft <= 0) {
+                drawSingleCard()
+            } else {
+                nerfsLeft -= 1
+                drawSingleCard(Card(-1, lose=true, flippy=true))
+            }
             continueDrawing = latestCard.flippy
             drawnRow.add(latestCard)
             if (!latestCard.lose) {
@@ -160,6 +178,7 @@ open class Deck(@Transient var controller: Controller? = null) {
         }
         // log("Overall, drew this row of cards: $drawnRow")
         controller!!.logIndent -= 1
+        Log.d("haaaaaaaaaaaaa", drawnRow.toString())
         return drawnRow
     }
 
@@ -181,9 +200,9 @@ open class Deck(@Transient var controller: Controller? = null) {
             controller!!.addUndoPoint()
     }
 
-    open fun attack(basePower: Int = 0, userDirectlyRequested: Boolean = false) : Card {
+    open fun attack(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
         controller!!.logIndent += 1
-        val drawnRow = drawRow()
+        val drawnRow = drawRow(nerf = nerf)
         val baseCard = Card(basePower)
         drawnRow.add(0, baseCard)
         val combinedCard = drawnRow.sum()
@@ -198,10 +217,10 @@ open class Deck(@Transient var controller: Controller? = null) {
         return combinedCard
     }
 
-    open fun advantage(basePower: Int = 0, userDirectlyRequested: Boolean = false) : Card {
+    open fun advantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
         controller!!.logIndent += 1
-        val drawnRow1 = drawRow()
-        val drawnRow2 = drawRow()
+        val drawnRow1 = drawRow(nerf = nerf)
+        val drawnRow2 = drawRow(nerf = nerf)
         val baseCard = Card(basePower)
         drawnRow1.add(0, baseCard) // Doesn't matter which row it goes into
 
@@ -234,14 +253,19 @@ open class Deck(@Transient var controller: Controller? = null) {
         return combinedCard
     }
 
-    open fun disadvantage(basePower: Int = 0, userDirectlyRequested: Boolean = false) : Card {
+    open fun disadvantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
         controller!!.logIndent += 1
-        val drawnRow1 = drawRow()
-        val drawnRow2 = drawRow()
+        val drawnRow1 = drawRow(nerf = nerf)
+        val drawnRow2 = drawRow(nerf = nerf)
         val baseCard = Card(basePower)
 
         val loser = if (drawnRow1.last() < drawnRow2.last()) drawnRow1.last() else drawnRow2.last()
-        val combinedCard = baseCard + loser
+        var combinedCard = baseCard + loser
+
+        // Nerf (done here as well because it's otherwise ignored bc disadvantage)
+        for (i in 0..nerf) {
+            combinedCard += Card(-1)
+        }
 
         if (basePower == 0 && (drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
             controller!!.log("Can't infer the result without a base value, nerd.");
@@ -390,9 +414,9 @@ open class Deck(@Transient var controller: Controller? = null) {
                 }
 
                 controller!!.logMuted = true
-                val combinedCard = if (advantage > 0) advantage(basePower)
-                else if (advantage < 0) disadvantage(basePower)
-                else attack(basePower)
+                val combinedCard = if (advantage > 0) advantage(basePower, nerf=loops-1)
+                else if (advantage < 0) disadvantage(basePower, nerf=loops-1)
+                else attack(basePower, nerf=loops-1)
                 controller!!.logMuted = false
 
                 enemy.getAttacked(combinedCard, player)
@@ -400,7 +424,7 @@ open class Deck(@Transient var controller: Controller? = null) {
                 if (combinedCard.refresh) {
                     player.inventory.recover(player, this)
                     if (mainactivity!=null) {
-                        mainactivity.effectSpeed = mainactivity.effectSpeed*9/10
+                        mainactivity.effectSpeed = mainactivity.effectSpeed*7/10
                     }
                 }
                 if (combinedCard.extraTarget) {
@@ -444,12 +468,13 @@ open class Deck(@Transient var controller: Controller? = null) {
                             (enemies.sumOf { if (!it.getTargetable()) 0 else "1".toInt() } >= 3)
                             || (player.statuses.contains(Status.STRENGTHEN) &&enemies.sumOf { if (!it.getTargetable()) 0 else "1".toInt() } >= 2)
                         )
+                        && loops <= 10
                 canGoAgain = player.inventory.usableItems.contains(Item.RING_OF_BRUTALITY)
                         && (player.inventory.usableItems.contains(Item.MINOR_STAMINA_POTION) || player.inventory.usableItems.contains(Item.MAJOR_STAMINA_POTION))
             }
             setWantAndCan()
             // Maybe use belt
-            if (wantToGoAgain && !canGoAgain) {
+            if (wantToGoAgain && !canGoAgain ) {
                 if (player.inventory.usableItems.contains(Item.UTILITY_BELT)) {
                     // Belt will recover pendant, pendant will automatically recover major and ring
                     player.useItem(Item.UTILITY_BELT, this, true)

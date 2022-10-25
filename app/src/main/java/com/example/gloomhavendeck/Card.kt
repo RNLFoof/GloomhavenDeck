@@ -25,10 +25,10 @@ data class Card(
     override fun toString(): String {
         Card(healAlly = 2) + Card(healAlly = 2)
         // Named stuff
-        if (lose) {
-            if (value == 2) {
-                return " [bless] "
-            }
+        if (lose && value == 2) {
+            return " [bless] "
+        }
+        if (lose && value == 0) {
             return " [curse] "
         }
         if (value == 0 && multiplier) {

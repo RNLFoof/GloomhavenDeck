@@ -163,8 +163,8 @@ class MainActivity : AppCompatActivity() {
     init {effectLoop.start()}
 
     inner class MainActivityDeck(controller: Controller) : Deck(controller) {
-        override fun drawSingleCard(): Card {
-            val card = super.drawSingleCard()
+        override fun drawSingleCard(forcedCard: Card?): Card {
+            val card = super.drawSingleCard(forcedCard)
             val effectToAdd : Effect
 
             // Named
@@ -187,6 +187,8 @@ class MainActivity : AppCompatActivity() {
                 Effect(sound=SoundBundle.STUN, card=R.drawable.card_stun)
             else if (card.extraTarget)
                 Effect(sound=SoundBundle.EXTRATARGET, card=R.drawable.card_extra_target)
+            else if (card.refresh)
+                Effect(sound=SoundBundle.REFRESH, card=R.drawable.card_refresh)
             else if (card.healAlly > 0)
                 Effect(sound=SoundBundle.HEAL, card=R.drawable.card_plus1healally)
             else if (card.shieldSelf > 0)
@@ -196,11 +198,13 @@ class MainActivity : AppCompatActivity() {
             else if (card.regenerate)
                 Effect(sound=SoundBundle.REGENERATE, card=R.drawable.card_plus2regenerate)
             else if (card.curse)
-                Effect(sound=SoundBundle.CURSE, card=R.drawable.card_plus2curse)
+                Effect(sound=SoundBundle.CURSEADDED, card=R.drawable.card_plus2curse)
 
             // Numbers
             else if ("-2" in card.toString())
                 Effect(sound=SoundBundle.MINUS2, card=R.drawable.card_minus2)
+            else if (card.flippy && "-1" in card.toString())
+                Effect(sound=SoundBundle.MINUS1, card=R.drawable.card_minus1_flippy)
             else if ("-1" in card.toString())
                 Effect(sound=SoundBundle.MINUS1, card=R.drawable.card_minus1)
             else if ("+0" in card.toString())
@@ -248,22 +252,22 @@ class MainActivity : AppCompatActivity() {
             super.activeCardsToDiscardPile(userDirectlyRequested)
         }
 
-        override fun attack(basePower: Int, userDirectlyRequested: Boolean) : Card {
+        override fun attack(basePower: Int, userDirectlyRequested: Boolean, nerf: Int) : Card {
             currentlyDoingDisadvantage = false
             effectQueue.add(Effect(selectTopRow = true, hideBottomRow = true, wipe=true))
-            return super.attack(basePower, userDirectlyRequested)
+            return super.attack(basePower, userDirectlyRequested, nerf)
         }
 
-        override fun advantage(basePower: Int, userDirectlyRequested: Boolean) : Card {
+        override fun advantage(basePower: Int, userDirectlyRequested: Boolean, nerf: Int) : Card {
             currentlyDoingDisadvantage = false
             effectQueue.add(Effect(selectTopRow = true, showBottomRow = true, wipe=true))
-            return super.advantage(basePower, userDirectlyRequested)
+            return super.advantage(basePower, userDirectlyRequested, nerf)
         }
 
-        override fun disadvantage(basePower: Int, userDirectlyRequested: Boolean) : Card {
+        override fun disadvantage(basePower: Int, userDirectlyRequested: Boolean, nerf: Int) : Card {
             currentlyDoingDisadvantage = true
             effectQueue.add(Effect(selectTopRow = true, showBottomRow = true, wipe=true))
-            return super.disadvantage(basePower, userDirectlyRequested)
+            return super.disadvantage(basePower, userDirectlyRequested, nerf)
         }
     }
 
