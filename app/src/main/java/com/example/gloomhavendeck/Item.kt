@@ -48,6 +48,7 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT, va
     RING_OF_DUALITY(R.drawable.card_duality, sound=SoundBundle.RINGOFDUALITY),
     RING_OF_SKULLS(R.drawable.card_skulls, sound=SoundBundle.DEATH),
     ROCKET_BOOTS(R.drawable.card_boots, sound=SoundBundle.JUMP, spendOnly = true),
+    SECOND_CHANCE_RING(R.drawable.card_secondchancering, sound=SoundBundle.SECONDCHANCERING),
     SPIKED_SHIELD(R.drawable.card_spiked, spendOnly = true),
     SUPER_HEALING_POTION(R.drawable.card_healing, sound=SoundBundle.DRINK, getUsed=fun (player, _, fullAutoBehavior) {
         if (player.statuses.contains(Status.WOUND)) {

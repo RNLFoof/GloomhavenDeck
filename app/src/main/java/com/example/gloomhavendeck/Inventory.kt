@@ -14,7 +14,7 @@ open class Inventory {
     fun initializeThreeSpears() {
         usableItems = mutableListOf(
             Item.CLOAK_OF_POCKETS,
-            Item.MAJOR_CURE_POTION,
+            Item.SECOND_CHANCE_RING,
             Item.LUCKY_EYE,
             Item.MAJOR_STAMINA_POTION,
             Item.PENDANT_OF_DARK_PACTS,
@@ -31,15 +31,13 @@ open class Inventory {
         usableItems = mutableListOf(
             Item.CLOAK_OF_PHASING,
             Item.MAJOR_CURE_POTION,
-            Item.LUCKY_EYE,
             Item.MAJOR_STAMINA_POTION,
             Item.PENDANT_OF_DARK_PACTS,
-            Item.RING_OF_BRUTALITY,
             Item.RING_OF_DUALITY,
             Item.ROCKET_BOOTS,
             Item.SUPER_HEALING_POTION,
-            Item.WAR_HAMMER,
             Item.UTILITY_BELT,
+            Item.WAR_HAMMER,
         )
     }
 

@@ -189,6 +189,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
                     R.raw.ringofduality_church_organ_viola to 1f,
                     RINGOFDUALITY_FANON to 0.2f,
         )))
+        val SECONDCHANCERING = SoundBundle(R.raw.secondchancering_one_more_chance)
         val SHIELD_IRONDOOR = SoundBundle(listOf(
             R.raw.shield_irondoor_close1,
             R.raw.shield_irondoor_close2,
