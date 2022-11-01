@@ -104,6 +104,9 @@ open class Inventory {
         ) {
             yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, true))
         }
+        if (unusableItems.contains(Item.SECOND_CHANCE_RING)) {
+            yield(RecoveryCandidate(Item.SECOND_CHANCE_RING, false))
+        }
         if (unusableItems.contains(Item.SUPER_HEALING_POTION)
             && player.hp <= player.hpDangerThreshold) {
             yield(RecoveryCandidate(Item.SUPER_HEALING_POTION, true))
