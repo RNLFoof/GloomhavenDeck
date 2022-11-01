@@ -49,6 +49,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
         val BLESS = SoundBundle(R.raw.bless_choir)
         val CURSE = SoundBundle(R.raw.curse_ttyd_ghost)
         val CURSEADDED = SoundBundle(R.raw.curseadded_ttyd)
+        val DARK_FANON = SoundBundle(R.raw.dark_fanon_nightmaaaaare)
         val DARK_HUSKIES = SoundBundle(listOf(
             R.raw.dark_huskies_1,
             R.raw.dark_huskies_2,
@@ -57,7 +58,12 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
             R.raw.dark_huskies_5,
             R.raw.dark_huskies_6,
         ))
-        val DARK = SoundBundle(DARK_HUSKIES)
+        val DARK = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+                    DARK_FANON to 0.2f,
+                    DARK_HUSKIES to 1f,
+        )))
         val DEATH_AUDIES_XP = SoundBundle(listOf(
             R.raw.death_audies_xp_windows2kgoodbye,
             R.raw.death_audies_xp_xpgoodbye,
