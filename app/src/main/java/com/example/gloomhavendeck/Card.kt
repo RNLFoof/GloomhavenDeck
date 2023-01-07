@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class Card(
     var value: Int = 0,
     var multiplier: Boolean = false,
+    var nullOrCurse: Boolean = false, // Would be null but that's reserved
     var flippy: Boolean = false,
     var spinny: Boolean = false,
     var lose: Boolean = false,
@@ -18,7 +19,7 @@ data class Card(
     val shieldSelf: Int = 0,
     val element: Element? = null,
     val regenerate: Boolean = false,
-    val curse: Boolean = false,
+    val curses: Boolean = false,
 ) {
 
 
@@ -31,7 +32,7 @@ data class Card(
         if (lose && value == 0) {
             return " [curse] "
         }
-        if (value == 0 && multiplier) {
+        if (value == 0 && nullOrCurse) {
             return " [null] "
         }
 
@@ -60,7 +61,7 @@ data class Card(
 
     // Uhhhh
     fun toInt(): Int {
-        if (value == 0 && multiplier) {
+        if (nullOrCurse) {
             return -99
         }
         return value * 2 + (
@@ -70,19 +71,29 @@ data class Card(
 
     operator fun plus(increment: Card): Card {
         val retCard = this.copy()
-        retCard.flippy = false;
+        retCard.flippy = false // Since all the cards combine, this becomes irrelevant
+
+        // The few properties that still apply if this is a null/curse
+        retCard.spinny = retCard.spinny || increment.spinny
+        retCard.nullOrCurse = retCard.nullOrCurse || increment.nullOrCurse
+
+        // If it's a null/curse, end here, nothing else matters
+        if (retCard.nullOrCurse) {
+            retCard.value = 0
+            return retCard
+        }
+
+        // and the rest of it
         if (increment.multiplier)
             retCard.value *= increment.value
         else
             retCard.value += increment.value
         retCard.pierce += increment.pierce
-        // retCard.flippy = retCard.flippy || card.flippy
-        retCard.spinny = retCard.spinny || increment.spinny
-        retCard.lose = retCard.lose || increment.lose
         retCard.stun = retCard.stun || increment.stun
         retCard.muddle = retCard.muddle || increment.muddle
         retCard.extraTarget = retCard.extraTarget || increment.extraTarget
         retCard.refresh = retCard.refresh || increment.refresh
+        retCard.lose = retCard.lose || increment.lose // I'm not actually sure this needs to be here?
 
         return retCard
     }

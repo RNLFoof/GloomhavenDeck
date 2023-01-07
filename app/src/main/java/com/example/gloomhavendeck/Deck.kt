@@ -23,7 +23,7 @@ open class Deck(@Transient var controller: Controller? = null) {
     // Adding cards
     open fun addBaseDeckThreeSpears() {
         addMultipleToDrawPile(listOf(
-            Card(0, multiplier = true, spinny = true),
+            Card(0, nullOrCurse = true, spinny = true),
             Card(2, multiplier = true, spinny = true),
 
             Card(-2),
@@ -61,7 +61,7 @@ open class Deck(@Transient var controller: Controller? = null) {
 
     open fun addBaseDeckEye() {
         addMultipleToDrawPile(listOf(
-            Card(0, multiplier = true, spinny = true),
+            Card(0, nullOrCurse = true, spinny = true),
             Card(2, multiplier = true, spinny = true),
 
             Card(0),
@@ -75,7 +75,7 @@ open class Deck(@Transient var controller: Controller? = null) {
             Card(2),
             Card(2, element = Element.DARK),
             Card(2, regenerate = true),
-            Card(2, curse = true),
+            Card(2, curses = true),
 
             Card(3, shieldSelf = 1),
             Card(3, shieldSelf = 1),
@@ -102,7 +102,7 @@ open class Deck(@Transient var controller: Controller? = null) {
         controller!!.log("Adding a curse...")
         controller!!.logIndent += 1
         if (remainingCurses > 0) {
-            addToDrawPile(Card(0, multiplier = true, lose = true))
+            addToDrawPile(Card(0, nullOrCurse = true, lose = true))
             remainingCurses -= 1
         } else {
             controller!!.log("JK none left")

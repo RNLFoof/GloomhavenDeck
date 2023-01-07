@@ -209,7 +209,8 @@ data class Enemy(var creationString: String) {
         if (!getTargetable(ignoreTargeted = true)) {
             throw Exception("Shouldn't be attacking an untargetable guy.")
         }
-        taken += Integer.max(0, card.value - effectiveShield(player)) + if (poisoned) 1 else 0
+        taken += Integer.max(0, card.value - effectiveShield(player)) +
+                if (poisoned and !card.nullOrCurse) 1 else 0
         if (!dead && inRetaliateRange) {
             player.hp -= retaliate
         }

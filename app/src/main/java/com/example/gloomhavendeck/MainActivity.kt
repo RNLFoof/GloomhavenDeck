@@ -197,7 +197,7 @@ class MainActivity : AppCompatActivity() {
                 Effect(sound=SoundBundle.DARK, card=R.drawable.card_plus2dark)
             else if (card.regenerate)
                 Effect(sound=SoundBundle.REGENERATE, card=R.drawable.card_plus2regenerate)
-            else if (card.curse)
+            else if (card.curses)
                 Effect(sound=SoundBundle.CURSEADDED, card=R.drawable.card_plus2curse)
 
             // Numbers
