@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-open class Player() {
-    var hp = 26
+open class Player(val maxHp: Int) {
+    var hp = maxHp
     var dings = 0
     open var inventory = Inventory()
 
@@ -59,7 +59,6 @@ open class Player() {
                 discardedBallista = false
             }
         }
-    val maxHp = 26
 
     open fun useItem(item: Item, deck: Deck, fullAutoBehavior: Boolean) {
         inventory.useItem(this, deck, item, fullAutoBehavior)

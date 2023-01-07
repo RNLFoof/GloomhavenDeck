@@ -283,7 +283,7 @@ class MainActivity : AppCompatActivity() {
 
             // Player
             val decodedPlayer = Json.decodeFromString<Player>(playerJson)
-            controller.player = MainActivityPlayer() // New one is made because default values aren't serialized
+            controller.player = MainActivityPlayer(controller.player.maxHp) // New one is made because default values aren't serialized
             for (property in Player::class.memberProperties) {
                 try {
                     (property as KMutableProperty<*>).setter.call(controller.player, (property.get(decodedPlayer))
@@ -336,7 +336,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    inner class MainActivityPlayer() : Player() {
+    inner class MainActivityPlayer(maxHp: Int) : Player(maxHp) {
         init {
             inventory = MainActivityInventory()
         }
@@ -382,7 +382,7 @@ class MainActivity : AppCompatActivity() {
                 controller.InsertSelfIntoAllChildren()
                 // Player
                 val decodedPlayer = controller.player
-                controller.player = MainActivityPlayer() // New one is made because default values aren't serialized
+                controller.player = MainActivityPlayer(controller.player.maxHp) // New one is made because default values aren't serialized
                 for (property in Player::class.memberProperties) {
                     try {
                         (property as KMutableProperty<*>).setter.call(controller.player, (property.get(decodedPlayer))
@@ -413,7 +413,18 @@ class MainActivity : AppCompatActivity() {
             }
             loadBuilder.setNegativeButton("No") { _, _->
 
-                controller.player = MainActivityPlayer()
+                val deckBuilder = AlertDialog.Builder(this@MainActivity)
+                deckBuilder.setPositiveButton("Three Spears") { _, _ ->
+                    controller.player = MainActivityPlayer(26)
+                    controller.deck.addBaseDeckThreeSpears()
+                    controller.player.inventory.initializeThreeSpears()
+                }
+                deckBuilder.setNegativeButton("Eye") { _, _ ->
+                    controller.player = MainActivityPlayer(14)
+                    controller.deck.addBaseDeckEye()
+                    controller.player.inventory.initializeEye()
+                }
+
                 controller.enemies = Enemy.createMany("""Dog1 12
 2 8
 3 15,shield 1
@@ -421,15 +432,6 @@ class MainActivity : AppCompatActivity() {
 vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList()
                 // Because the controller.deck has controller.player undos it needs to be made after
                 controller.deck = MainActivityDeck(controller)
-                val deckBuilder = AlertDialog.Builder(this@MainActivity)
-                deckBuilder.setPositiveButton("Three Spears") { _, _ ->
-                    controller.deck.addBaseDeckThreeSpears()
-                    controller.player.inventory.initializeThreeSpears()
-                }
-                deckBuilder.setNegativeButton("Eye") { _, _ ->
-                    controller.deck.addBaseDeckEye()
-                    controller.player.inventory.initializeEye()
-                }
                 deckBuilder.setTitle("Class?")
                 deckBuilder.show()
             }
@@ -1075,7 +1077,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         // HP spinner
                         val npHP = NumberPicker(context)
                         npHP.minValue = 0
-                        npHP.maxValue = 26
+                        npHP.maxValue = controller.player.maxHp
                         npHP.value = controller.player.hp
                         npHP.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
                             controller.player.hp = new

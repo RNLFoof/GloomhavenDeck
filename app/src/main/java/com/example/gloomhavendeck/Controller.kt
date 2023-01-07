@@ -14,7 +14,7 @@ import java.nio.file.Paths
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
 open class Controller(private val filesDir: String) {
-    var player = Player()
+    var player = Player(26) // Like I guess I'll put 26 here?? fuck I should have structured this better
     var deck = Deck(this)
     var enemies: MutableList<Enemy> = mutableListOf()
 
