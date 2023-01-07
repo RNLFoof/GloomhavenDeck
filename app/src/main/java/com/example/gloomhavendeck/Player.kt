@@ -14,7 +14,7 @@ open class Player() {
     var statusDict = HashMap<Status, Int>()
     init {
         for (status in Status.values()) {
-            statusDict[status] = 0
+            statusDict.putIfAbsent(status, 0)  // putIfAbsent, and not just setting, because this happens after an undo point is loaded, so otherwise the values are overwritten
         }
     }
     val statuses: Set<Status>
