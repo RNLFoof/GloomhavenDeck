@@ -414,9 +414,13 @@ open class Deck(@Transient var controller: Controller? = null) {
                 }
 
                 controller!!.logMuted = true
-                val combinedCard = if (advantage > 0) advantage(basePower, nerf=loops-1)
-                else if (advantage < 0) disadvantage(basePower, nerf=loops-1)
-                else attack(basePower, nerf=loops-1)
+                val combinedCard = if (advantage > 0) advantage(basePower)
+                else if (advantage < 0) disadvantage(basePower)
+                else attack(basePower)
+
+                val nerf = loops-1
+                combinedCard.value = max(0, combinedCard.value-nerf)
+
                 controller!!.logMuted = false
 
                 enemy.getAttacked(combinedCard, player)
