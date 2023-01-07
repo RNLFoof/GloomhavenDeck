@@ -43,11 +43,22 @@ open class Inventory {
 
     // Manage directly
     open fun loseItem(item: Item) {
+        if (usableItems.contains(item)) {
+            usableItems.remove(item)
+        } else if (activeItems.contains(item)) {
+            activeItems.remove(item)
+        } else {
+            throw Exception("Don't have a $item in usable or active!")
+        }
+        unusableItems.add(item)
+    }
+
+    open fun activateItem(item: Item) {
         if (!usableItems.contains(item)) {
             throw Exception("Don't have a $item in usable!")
         }
         usableItems.remove(item)
-        unusableItems.add(item)
+        activeItems.add(item)
     }
 
     open fun regainItem(item: Item) {
@@ -63,6 +74,19 @@ open class Inventory {
             throw Exception("You don't HAVE a $item, dumbass")
         }
         item.getUsed(player, deck, fullAutoBehavior)
+        if (item.getsActivated) {
+            activateItem(item)
+        }
+        else {
+            loseItem(item)
+        }
+    }
+
+    open fun deactivateItem(player: Player, deck: Deck, item: Item, fullAutoBehavior: Boolean) {
+        if (!activeItems.contains(item)) {
+            throw Exception("You don't HAVE an active $item, dumbass")
+        }
+        item.getDeactivated(player, deck, fullAutoBehavior)
         loseItem(item)
     }
 

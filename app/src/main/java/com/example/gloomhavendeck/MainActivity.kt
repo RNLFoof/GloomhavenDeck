@@ -118,7 +118,7 @@ class MainActivity : AppCompatActivity() {
                     llItemRow.removeAllViews()
                 }
                 for ((i, item) in (controller.player.inventory.usableItems + controller.player.inventory.unusableItems).sortedBy { it.name }.withIndex()) {
-                    val imageView = item.getImageView(this@MainActivity, newItemRowDisplay!![i])
+                    val imageView = item.getImageView(this@MainActivity, newItemRowDisplay!![i], false)
                     runOnUiThread {
                         llItemRow.addView(imageView)
                     }
@@ -345,6 +345,13 @@ class MainActivity : AppCompatActivity() {
             controller.log("Using a $item...")
             controller.logIndent += 1
             super.useItem(item, controller.deck, viaPipis)
+            controller.logIndent -= 1
+        }
+        override fun deactivateItem(item: Item, deck: Deck, viaPipis: Boolean) {
+            effectQueue.add(Effect(sound = item.deactivationSound))
+            controller.log("Deactivating $item...")
+            controller.logIndent += 1
+            super.deactivateItem(item, controller.deck, viaPipis)
             controller.logIndent -= 1
         }
     }
@@ -987,7 +994,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         val llItemContainer = findViewById<LinearLayout>(R.id.llItemContainer)!!
                         llItemContainer.removeAllViews()
                         var row = LinearLayout(context)
-                        for ((n, item) in (controller.player.inventory.usableItems + controller.player.inventory.unusableItems).sorted().withIndex()) {
+                        for ((n, item) in (controller.player.inventory.usableItems + controller.player.inventory.unusableItems + controller.player.inventory.activeItems).sorted().withIndex()) {
                             if (n % 3 == 0) {
                                 llItemContainer.addView(row)
                                 row = LinearLayout(context)
@@ -998,7 +1005,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                                 )
                                 row.layoutParams = params
                             }
-                            val imageView = item.getImageView(context, controller.player.inventory.usableItems.contains(item))
+                            val imageView = item.getImageView(context, controller.player.inventory.usableItems.contains(item), controller.player.inventory.activeItems.contains(item))
 
                             if (!item.permanent) {
                                 // Click
@@ -1006,6 +1013,9 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                                     try {
                                         if (controller.player.inventory.usableItems.contains(item)) {
                                             controller.player.useItem(item, controller.deck, false)
+                                        }
+                                        else if (controller.player.inventory.activeItems.contains(item)) {
+                                            controller.player.deactivateItem(item, controller.deck, false)
                                         } else {
                                             controller.player.inventory.regainItem(item)
                                         }

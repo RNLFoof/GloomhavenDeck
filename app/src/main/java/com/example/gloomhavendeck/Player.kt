@@ -64,5 +64,9 @@ open class Player(val maxHp: Int) {
         inventory.useItem(this, deck, item, fullAutoBehavior)
     }
 
+    open fun deactivateItem(item: Item, deck: Deck, fullAutoBehavior: Boolean) {
+        inventory.deactivateItem(this, deck, item, fullAutoBehavior)
+    }
+
 
 }
