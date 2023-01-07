@@ -14,9 +14,7 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT, va
     CLOAK_OF_PHASING(R.drawable.card_cloakofphasing, permanent = true),
     CLOAK_OF_POCKETS(R.drawable.card_cloak, permanent = true),
     LUCKY_EYE(R.drawable.card_luckyeye, sound=SoundBundle.STRENGTHEN, getUsed=fun (player, _, _){
-        if (!player.statuses.contains(Status.STRENGTHEN)) {
-            player.statusDict[Status.STRENGTHEN] = 2
-        }
+        player.statusDict[Status.STRENGTHEN] = 2
     }),
     MAJOR_CURE_POTION(R.drawable.card_cure, sound=SoundBundle.DRINK, getUsed=fun (player, _, viaPipis){
         if (!viaPipis && !player.statuses.any{it.negative}) {
