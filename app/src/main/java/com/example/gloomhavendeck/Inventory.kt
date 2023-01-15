@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-open class Inventory {
+open class Inventory: Controllable() {
     var usableItems = mutableListOf<Item>()
     var activeItems = mutableListOf<Item>()
     var unusableItems = mutableListOf<Item>()
@@ -237,13 +237,13 @@ open class Inventory {
         for (recoveryCandidate in itemsRecovered) {
             if (recoveryCandidate.useImmediately) {
                 player.useItem(recoveryCandidate.item, deck, true)
-                deck.controller?.log("Recovered and immediately used ${recoveryCandidate.item}")
+                deck.controller?.logger?.log("Recovered and immediately used ${recoveryCandidate.item}")
             } else {
-                deck.controller?.log("Recovered ${recoveryCandidate.item}")
+                deck.controller?.logger?.log("Recovered ${recoveryCandidate.item}")
             }
         }
         if (itemsRecovered.size == 0) {
-            deck.controller?.log("Nothing to recover :c")
+            deck.controller?.logger?.log("Nothing to recover :c")
         }
         return itemsRecovered
     }

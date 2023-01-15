@@ -13,7 +13,7 @@ import kotlin.reflect.full.memberProperties
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-open class Deck(@Transient var controller: Controller? = null) {
+open class Deck(@Transient var controller: Controller = Controller())  {
     // Cards
     var drawPile = mutableListOf<Card>()
     var activeCards = mutableListOf<Card>()
@@ -56,7 +56,7 @@ open class Deck(@Transient var controller: Controller? = null) {
             Card(refresh = true),
             Card(refresh = true),
         ))
-        controller!!.addUndoPoint()
+        controller.undoManager?.addUndoPoint()
     }
 
     open fun addBaseDeckEye() {
@@ -81,13 +81,13 @@ open class Deck(@Transient var controller: Controller? = null) {
             Card(3, shieldSelf = 1),
             Card(3, muddle = true),
         ))
-        controller!!.addUndoPoint()
+        controller.undoManager?.addUndoPoint()
     }
 
     open fun addToDrawPile(card: Card) {
         drawPile.add(card)
         drawPile.shuffle()
-        controller!!.log("Shuffled this card into the draw pile: $card")
+        controller.logger?.log("Shuffled this card into the draw pile: $card")
     }
 
     open fun addMultipleToDrawPile(cards: Iterable<Card>) {
@@ -95,60 +95,60 @@ open class Deck(@Transient var controller: Controller? = null) {
             drawPile.add(card)
         }
         drawPile.shuffle()
-        controller!!.log("Shuffled these cards into the draw pile: $cards")
+        controller.logger?.log("Shuffled these cards into the draw pile: $cards")
     }
 
     fun curse(userDirectlyRequested: Boolean = false) {
-        controller!!.log("Adding a curse...")
-        controller!!.logIndent += 1
+        controller.logger?.log("Adding a curse...")
+        controller.logger?.let {it.logIndent += 1}
         if (remainingCurses > 0) {
             addToDrawPile(Card(0, nullOrCurse = true, lose = true))
             remainingCurses -= 1
         } else {
-            controller!!.log("JK none left")
+            controller.logger?.log("JK none left")
         }
-        controller!!.logIndent -= 1
+        controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller!!.addUndoPoint()
+            controller.undoManager?.addUndoPoint()
     }
 
     fun bless(userDirectlyRequested: Boolean = false) {
-        controller!!.log("Adding a bless...")
-        controller!!.logIndent += 1
+        controller.logger?.log("Adding a bless...")
+        controller.logger?.let {it.logIndent += 1}
         addToDrawPile(Card(2, multiplier = true, lose = true))
-        controller!!.logIndent -= 1
+        controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller!!.addUndoPoint()
+            controller.undoManager?.addUndoPoint()
     }
 
 
     // Moving cards
     open fun drawSingleCard(forcedCard: Card? = null): Card {
         if (drawPile.size == 0){
-            controller!!.log("Out of cards, have to dominion it...")
-            controller!!.logIndent += 1
+            controller.logger?.log("Out of cards, have to dominion it...")
+            controller.logger?.let {it.logIndent += 1}
             discardPileToDrawPile()
-            controller!!.logIndent -= 1
+            controller.logger?.let {it.logIndent -= 1}
         }
         if (drawPile.size == 0){
-            controller!!.log("!!! Absorbing the active cards just to avoid crashing. Yikes!")
-            controller!!.logIndent += 1
+            controller.logger?.log("!!! Absorbing the active cards just to avoid crashing. Yikes!")
+            controller.logger?.let {it.logIndent += 1}
             activeCardsToDiscardPile()
             discardPileToDrawPile()
-            controller!!.logIndent -= 1
+            controller.logger?.let {it.logIndent -= 1}
         }
         val drewCard = if (forcedCard !== null) {
             forcedCard
         } else {
             drawPile.removeFirst()
         }
-        controller!!.log("Drew this card: $drewCard")
+        controller.logger?.log("Drew this card: $drewCard")
         return drewCard
     }
 
     fun drawRow(nerf: Int = 0): MutableList<Card> {
-        controller!!.log("Drawing a row of cards...")
-        controller!!.logIndent += 1
+        controller.logger?.log("Drawing a row of cards...")
+        controller.logger?.let {it.logIndent += 1}
         val drawnRow = mutableListOf<Card>()
         // Nerf
         Log.d("haaaaaaaaaaaaa", "Nerf of $nerf")
@@ -177,7 +177,7 @@ open class Deck(@Transient var controller: Controller? = null) {
             }
         }
         // log("Overall, drew this row of cards: $drawnRow")
-        controller!!.logIndent -= 1
+        controller.logger?.let {it.logIndent -= 1}
         Log.d("haaaaaaaaaaaaa", drawnRow.toString())
         return drawnRow
     }
@@ -185,40 +185,40 @@ open class Deck(@Transient var controller: Controller? = null) {
     open fun activeCardsToDiscardPile(userDirectlyRequested: Boolean = false) {
         discardPile.addAll(activeCards);
         activeCards.clear()
-        controller!!.log("Moved the active cards to the discard pile.")
+        controller.logger?.log("Moved the active cards to the discard pile.")
         if (userDirectlyRequested)
-            controller!!.addUndoPoint()
+            controller.undoManager?.addUndoPoint()
     }
 
     fun discardPileToDrawPile(userDirectlyRequested: Boolean = false) {
-        controller!!.log("Shuffling the discard pile into the draw pile...")
-        controller!!.logIndent += 1
+        controller.logger?.log("Shuffling the discard pile into the draw pile...")
+        controller.logger?.let {it.logIndent += 1}
         addMultipleToDrawPile(discardPile);
         discardPile.clear()
-        controller!!.logIndent -= 1
+        controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller!!.addUndoPoint()
+            controller.undoManager?.addUndoPoint()
     }
 
     open fun attack(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
-        controller!!.logIndent += 1
+        controller.logger?.let {it.logIndent += 1}
         val drawnRow = drawRow(nerf = nerf)
         val baseCard = Card(basePower)
         drawnRow.add(0, baseCard)
         val combinedCard = drawnRow.sum()
         if (basePower == 0 && drawnRow.any{it.multiplier && it.value == 2}) {
-            controller!!.log("Can't infer the result without a base value, nerd.")
+            controller.logger?.log("Can't infer the result without a base value, nerd.")
         } else {
-            controller!!.log("Effectively drew a ${combinedCard}");
+            controller.logger?.log("Effectively drew a ${combinedCard}");
         }
-        controller!!.logIndent -= 1;
+        controller.logger?.let {it.logIndent -= 1};
         if (userDirectlyRequested)
-            controller!!.addUndoPoint()
+            controller.undoManager?.addUndoPoint()
         return combinedCard
     }
 
     open fun advantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
-        controller!!.logIndent += 1
+        controller.logger?.let {it.logIndent += 1}
         val drawnRow1 = drawRow(nerf = nerf)
         val drawnRow2 = drawRow(nerf = nerf)
         val baseCard = Card(basePower)
@@ -243,18 +243,18 @@ open class Deck(@Transient var controller: Controller? = null) {
                 ).sum()
 
         if (basePower == 0 && (drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
-            controller!!.log("Can't infer the result without a base value, nerd.");
+            controller.logger?.log("Can't infer the result without a base value, nerd.");
         } else {
-            controller!!.log("Effectively drew a ${combinedCard}");
+            controller.logger?.log("Effectively drew a ${combinedCard}");
         }
-        controller!!.logIndent -= 1
+        controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller!!.addUndoPoint()
+            controller.undoManager?.addUndoPoint()
         return combinedCard
     }
 
     open fun disadvantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
-        controller!!.logIndent += 1
+        controller.logger?.let {it.logIndent += 1}
         val drawnRow1 = drawRow(nerf = nerf)
         val drawnRow2 = drawRow(nerf = nerf)
         val baseCard = Card(basePower)
@@ -268,13 +268,13 @@ open class Deck(@Transient var controller: Controller? = null) {
         }
 
         if (basePower == 0 && (drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
-            controller!!.log("Can't infer the result without a base value, nerd.");
+            controller.logger?.log("Can't infer the result without a base value, nerd.");
         } else {
-            controller!!.log("Effectively drew a $loser")
+            controller.logger?.log("Effectively drew a $loser")
         }
-        controller!!.logIndent -= 1;
+        controller.logger?.let {it.logIndent -= 1};
         if (userDirectlyRequested)
-            controller!!.addUndoPoint()
+            controller.undoManager?.addUndoPoint()
         return combinedCard
     }
 
@@ -333,15 +333,15 @@ open class Deck(@Transient var controller: Controller? = null) {
             return enemies.filter { it.getTargetable() }.all { it.inBallistaRange }
         }
 
-        controller!!.log("Pipis...")
+        controller.logger?.log("Pipis...")
         val startSummary = getSummary()
-        controller!!.logIndent += 1
+        controller.logger?.let {it.logIndent += 1}
         var allowedToContinue = true
         var loops = 0
         var bonusItems = 0
         var gotASpinny = false
         while (allowedToContinue) {
-            controller!!.log("")
+            controller.logger?.log("")
             enemyIndex = 0
             allowedToContinue = false
             // Init power up here instead so that pendant can use it
@@ -387,8 +387,8 @@ open class Deck(@Transient var controller: Controller? = null) {
                 player.useItem(Item.MAJOR_POWER_POTION, this, true)
             }
             // Display
-            controller!!.log("")
-            controller!!.log("Loop ${++loops}, for ${basePower}+-${if (usingBallistaInstead) ", using ballista" else ""}...")
+            controller.logger?.log("")
+            controller.logger?.log("Loop ${++loops}, for ${basePower}+-${if (usingBallistaInstead) ", using ballista" else ""}...")
             // Attacks
             var gotExtraTarget = false
             fun attackEnemy(enemy: Enemy) {
@@ -413,7 +413,7 @@ open class Deck(@Transient var controller: Controller? = null) {
                     advantage -= 1
                 }
 
-                controller!!.logMuted = true
+                controller.logger?.let {it.logMuted = true}
                 val combinedCard = if (advantage > 0) advantage(basePower)
                 else if (advantage < 0) disadvantage(basePower)
                 else attack(basePower)
@@ -421,10 +421,10 @@ open class Deck(@Transient var controller: Controller? = null) {
                 val nerf = loops-1
                 combinedCard.value = max(0, combinedCard.value-nerf)
 
-                controller!!.logMuted = false
+                controller.logger?.let {it.logMuted = false}
 
                 enemy.getAttacked(combinedCard, player)
-                controller!!.log("Hit ${enemy.name} with $combinedCard${if (enemy.dead) ", dies!" else ""}")
+                controller.logger?.log("Hit ${enemy.name} with $combinedCard${if (enemy.dead) ", dies!" else ""}")
                 if (combinedCard.refresh) {
                     player.inventory.recover(player, this)
                     if (mainactivity!=null) {
@@ -448,7 +448,7 @@ open class Deck(@Transient var controller: Controller? = null) {
             }
             // Extra
             if (gotExtraTarget) {
-                controller!!.log("Extra target!")
+                controller.logger?.log("Extra target!")
                 var foundExtraTarget = false
                 for (enemy in enemies) {
                     if (enemy.getTargetable(ignoreTargeted = true) && enemy.extraTarget &&
@@ -460,7 +460,7 @@ open class Deck(@Transient var controller: Controller? = null) {
                     }
                 }
                 if (!foundExtraTarget) {
-                    controller!!.log("But couldn't find an extra target.")
+                    controller.logger?.log("But couldn't find an extra target.")
                 }
             }
             // One more time?
@@ -516,17 +516,17 @@ open class Deck(@Transient var controller: Controller? = null) {
                         allowedToContinue = true
                 }
                 else {
-                    controller!!.log("How the fuck did you get here")
+                    controller.logger?.log("How the fuck did you get here")
                 }
             }
             else if (wantToGoAgain && !canGoAgain) {
-                controller!!.log("Want to go again, but can't.")
+                controller.logger?.log("Want to go again, but can't.")
             }
             else if (!wantToGoAgain && canGoAgain) {
-                controller!!.log("Can go again, but don't wanna.")
+                controller.logger?.log("Can go again, but don't wanna.")
             }
             else {
-                controller!!.log("GET ME OUT OF THIS THING")
+                controller.logger?.log("GET ME OUT OF THIS THING")
             }
             activeCardsToDiscardPile()
         }
@@ -534,9 +534,9 @@ open class Deck(@Transient var controller: Controller? = null) {
             discardPileToDrawPile()
         }
 
-        controller!!.log("End summary:")
-        controller!!.logIndent += 1
-        controller!!.log("Bonus items for your allies: $bonusItems")
+        controller.logger?.log("End summary:")
+        controller.logger?.let {it.logIndent += 1}
+        controller.logger?.log("Bonus items for your allies: $bonusItems")
         player.dings += loops
         val endSummary = getSummary()
         for (startKv in startSummary) {
@@ -545,18 +545,18 @@ open class Deck(@Transient var controller: Controller? = null) {
                 if (startKv.value is Int && endV is Int) {
                     val dif = endV - (startKv.value as Int)
                     if (dif >= 0) {
-                        controller!!.log("${startKv.key}: ${startKv.value} -> ${endV} (+${dif})")
+                        controller.logger?.log("${startKv.key}: ${startKv.value} -> ${endV} (+${dif})")
                     } else {
-                        controller!!.log("${startKv.key}: ${startKv.value} -> ${endV} (${dif})")
+                        controller.logger?.log("${startKv.key}: ${startKv.value} -> ${endV} (${dif})")
                     }
                 }
                 else {
-                    controller!!.log("${startKv.key}: ${startKv.value} -> ${endV}")
+                    controller.logger?.log("${startKv.key}: ${startKv.value} -> ${endV}")
                 }
             }
         }
-        controller!!.logIndent -= 1
-        controller!!.logIndent -= 1
-        controller!!.addUndoPoint()
+        controller.logger?.let {it.logIndent -= 1}
+        controller.logger?.let {it.logIndent -= 1}
+        controller.undoManager?.addUndoPoint()
     }
 }

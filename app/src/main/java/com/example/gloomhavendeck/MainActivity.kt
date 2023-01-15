@@ -19,10 +19,9 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.children
-import androidx.core.view.isVisible
 import androidx.core.view.size
+import com.example.gloomhavendeck.meta.Saver
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.nio.file.Paths
@@ -42,7 +41,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var btnUndo : Button
     lateinit var btnRedo : Button
 
-    lateinit var controller : MainActivityController
+    lateinit var controller : Controller
     var enemyOrder: MutableList<String> = mutableListOf()
     var effectQueue = LinkedList<Effect>()
     lateinit var selectedCardRow : LinearLayout
@@ -138,12 +137,6 @@ class MainActivity : AppCompatActivity() {
                 -1
             }
         }.toMutableList()
-    }
-
-    inner class MainActivityController(filesDir: String) : Controller(filesDir) {
-        override fun getUndoPoint(): UndoPoint {
-            return MainActivityUndoPoint(this)
-        }
     }
 
     val effectLoop = Thread {
@@ -271,90 +264,45 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    inner class MainActivityUndoPoint(controller: Controller) : UndoPoint(controller) {
-        var playerJson = Json.encodeToString(controller.player as Player)
-        var enemyBlock = controller.enemies.joinToString(separator = "\n") { it.toString() }
+//    inner class MainActivityInventory() : Inventory() {
+//        override fun regainItem(item: Item) {
+//            super.regainItem(item)
+//            displayChangedInventory()
+//        }
+//        override fun loseItem(item: Item) {
+//            super.loseItem(item)
+//            displayChangedInventory()
+//        }
+//        fun displayChangedInventory() {
+//            if (llItemRow.isVisible) {
+//                val newItemRowDisplay = mutableListOf<Boolean>()
+//                for (item in (controller.player.inventory.usableItems + controller.player.inventory.unusableItems).sortedBy { it.name }) {
+//                    newItemRowDisplay.add(item in controller.player.inventory.usableItems)
+//                }
+//                effectQueue.add(Effect(newItemRowDisplay = newItemRowDisplay))
+//            }
+//        }
+//    }
 
-        override fun use(controller: Controller) {
-            super.use(controller)
-            // Done like this because inner classes can't be serialized and you can't cast a
-            // super into a child class
-            // Could be done faster if I manually mapped every field but fuck that lol
-
-            // Player
-            val decodedPlayer = Json.decodeFromString<Player>(playerJson)
-            controller.player = MainActivityPlayer(controller.player.maxHp) // New one is made because default values aren't serialized
-            for (property in Player::class.memberProperties) {
-                try {
-                    (property as KMutableProperty<*>).setter.call(controller.player, (property.get(decodedPlayer))
-                    )}
-                catch (e: Exception)
-                {}
-            }
-            // Inventory
-            val decodedInventory = controller.player.inventory
-            controller.player.inventory = MainActivityInventory() // New one is made because default values aren't serialized
-            for (property in Inventory::class.memberProperties) {
-                try {
-                    (property as KMutableProperty<*>).setter.call(controller.player.inventory, (property.get(decodedInventory))
-                    )}
-                catch (e: Exception)
-                {}
-            }
-            // Deck
-            val decodedDeck = controller.deck
-            controller.deck = MainActivityDeck(controller) // New one is made because default values aren't serialized
-            for (property in Deck::class.memberProperties) {
-                try {
-                    (property as KMutableProperty<*>).setter.call(controller.deck, (property.get(decodedDeck))
-                    )}
-                catch (e: Exception)
-                {}
-            }
-            // Enemies
-            controller.enemies = Enemy.createMany(enemyBlock, controller.player.scenarioLevel).toMutableList()
-        }
-    }
-
-    inner class MainActivityInventory() : Inventory() {
-        override fun regainItem(item: Item) {
-            super.regainItem(item)
-            displayChangedInventory()
-        }
-        override fun loseItem(item: Item) {
-            super.loseItem(item)
-            displayChangedInventory()
-        }
-        fun displayChangedInventory() {
-            if (llItemRow.isVisible) {
-                val newItemRowDisplay = mutableListOf<Boolean>()
-                for (item in (controller.player.inventory.usableItems + controller.player.inventory.unusableItems).sortedBy { it.name }) {
-                    newItemRowDisplay.add(item in controller.player.inventory.usableItems)
-                }
-                effectQueue.add(Effect(newItemRowDisplay = newItemRowDisplay))
-            }
-        }
-    }
-
-    inner class MainActivityPlayer(maxHp: Int) : Player(maxHp) {
-        init {
-            inventory = MainActivityInventory()
-        }
-        override fun useItem(item: Item, deck: Deck, viaPipis: Boolean) {
-            effectQueue.add(Effect(card = item.graphic, sound = item.sound, selectTopRow = true))
-            controller.log("Using a $item...")
-            controller.logIndent += 1
-            super.useItem(item, controller.deck, viaPipis)
-            controller.logIndent -= 1
-        }
-        override fun deactivateItem(item: Item, deck: Deck, viaPipis: Boolean) {
-            effectQueue.add(Effect(sound = item.deactivationSound))
-            controller.log("Deactivating $item...")
-            controller.logIndent += 1
-            super.deactivateItem(item, controller.deck, viaPipis)
-            controller.logIndent -= 1
-        }
-    }
+//    inner class MainActivityPlayer(maxHp: Int) : Player(maxHp) {
+//        init {
+//            inventory = MainActivityInventory()
+//        }
+//        override fun useItem(item: Item, deck: Deck, viaPipis: Boolean) {
+//            effectQueue.add(Effect(card = item.graphic, sound = item.sound, selectTopRow = true))
+//            controller.logger?.log("Using a $item...")
+//            controller.logIndent += 1
+//            super.useItem(item, controller.deck, viaPipis)
+//            controller.logIndent -= 1
+//        }
+//        override fun deactivateItem(item: Item, deck: Deck, viaPipis: Boolean) {
+//            effectQueue.add(Effect(sound = item.deactivationSound))
+//            controller.logger?.log("Deactivating $item...")
+//            controller.logIndent += 1
+//            super.deactivateItem(item, controller.deck, viaPipis)
+//            controller.logIndent -= 1
+//        }
+//    }
 
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -374,60 +322,23 @@ class MainActivity : AppCompatActivity() {
         val btnSimplify = findViewById<Button>(R.id.btnSimplify)
         val btnManage = findViewById<Button>(R.id.btnManage)
 
-        controller = MainActivityController(applicationContext.filesDir.canonicalPath)
+        controller = Controller()
+        Saver(controller, applicationContext.filesDir.canonicalPath)
         runOnUiThread {
             val loadBuilder = AlertDialog.Builder(this@MainActivity)
             loadBuilder.setPositiveButton("Yeah") { dialog, which ->
-                val decodedController = Json.decodeFromString<Controller>(File(Paths.get(applicationContext.filesDir.canonicalPath, "current_state.json").toString()).readText())
-                for (property in Controller::class.memberProperties) {
-                    try {
-                        (property as KMutableProperty<*>).setter.call(controller, (property.get(decodedController))
-                        )}
-                    catch (e: Exception)
-                    {Log.d("heyyyyy", e.message.toString())}
-                }
-                controller.InsertSelfIntoAllChildren()
-                // Player
-                val decodedPlayer = controller.player
-                controller.player = MainActivityPlayer(controller.player.maxHp) // New one is made because default values aren't serialized
-                for (property in Player::class.memberProperties) {
-                    try {
-                        (property as KMutableProperty<*>).setter.call(controller.player, (property.get(decodedPlayer))
-                        )}
-                    catch (e: Exception)
-                    {}
-                }
-                // Inventory
-                val decodedInventory = controller.player.inventory
-                controller.player.inventory = MainActivityInventory() // New one is made because default values aren't serialized
-                for (property in Inventory::class.memberProperties) {
-                    try {
-                        (property as KMutableProperty<*>).setter.call(controller.player.inventory, (property.get(decodedInventory))
-                        )}
-                    catch (e: Exception)
-                    {}
-                }
-                // Deck
-                val decodedDeck = controller.deck
-                controller.deck = MainActivityDeck(controller) // New one is made because default values aren't serialized
-                for (property in Deck::class.memberProperties) {
-                    try {
-                        (property as KMutableProperty<*>).setter.call(controller.deck, (property.get(decodedDeck))
-                        )}
-                    catch (e: Exception)
-                    {}
-                }
+                controller.saver!!.updateControllerFrom(controller.saver!!.currentStateSavedAt)
             }
             loadBuilder.setNegativeButton("No") { _, _->
 
                 val deckBuilder = AlertDialog.Builder(this@MainActivity)
                 deckBuilder.setPositiveButton("Three Spears") { _, _ ->
-                    controller.player = MainActivityPlayer(26)
+                    controller.player = Player(26)
                     controller.deck.addBaseDeckThreeSpears()
                     controller.player.inventory.initializeThreeSpears()
                 }
                 deckBuilder.setNegativeButton("Eye") { _, _ ->
-                    controller.player = MainActivityPlayer(14)
+                    controller.player = Player(14)
                     controller.deck.addBaseDeckEye()
                     controller.player.inventory.initializeEye()
                 }
@@ -520,12 +431,12 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
 
         // Undos
         btnUndo.setOnClickListener {
-            controller.Undo()
+            controller.undoManager?.Undo()
             endAction(btnUndo)
         }
 
         btnRedo.setOnClickListener {
-            controller.Redo()
+            controller.undoManager?.Redo()
             endAction(btnRedo)
         }
 
@@ -590,8 +501,8 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                                 } else {
                                     controller.player.inventory.loseItem(item)
                                 }
-                                controller.log("Updated items.")
-                                controller.addUndoPoint()
+                                controller.logger?.log("Updated items.")
+                                controller.undoManager?.addUndoPoint()
                                 endAction(btnPipis)
                             }
                             linearLayout.addView(checkBox)
@@ -622,8 +533,8 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                                 }
                                 showAlert()
                                 sortEnemies()
-                                controller.log("Updated controller.enemies.")
-                                controller.addUndoPoint()
+                                controller.logger?.log("Updated controller.enemies.")
+                                controller.undoManager?.addUndoPoint()
                                 endAction(btnPipis)
                             }
                             alert.show()
@@ -657,9 +568,9 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                                     if (enemyNames.size > 0) {
                                         showAlert()
                                     } else {
-                                        controller.log("Updated enemy order.")
+                                        controller.logger?.log("Updated enemy order.")
                                         sortEnemies()
-                                        controller.addUndoPoint()
+                                        controller.undoManager?.addUndoPoint()
                                         endAction(btnPipis)
                                     }
                                     alert.cancel()
@@ -801,8 +712,8 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         }
                         alert.setView(scrollView)
                         alert.setOnDismissListener{
-                            controller.log("Updated controller.enemies via menu.")
-                            controller.addUndoPoint()
+                            controller.logger?.log("Updated controller.enemies via menu.")
+                            controller.undoManager?.addUndoPoint()
                             endAction(btnPipis)
                         }
                         alert.show()
@@ -818,8 +729,8 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
                             controller.player.hp = input.text.toString().toInt()
-                            controller.log("Updated HP.")
-                            controller.addUndoPoint()
+                            controller.logger?.log("Updated HP.")
+                            controller.undoManager?.addUndoPoint()
                             endAction(btnPipis)
                         }
                         alert.show()
@@ -835,8 +746,8 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
                             controller.player.powerPotionThreshold = input.text.toString().toInt()
-                            controller.log("Updated power pot threshold.")
-                            controller.addUndoPoint()
+                            controller.logger?.log("Updated power pot threshold.")
+                            controller.undoManager?.addUndoPoint()
                             endAction(btnPipis)
                         }
                         alert.show()
@@ -852,8 +763,8 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
                             controller.player.hpDangerThreshold = input.text.toString().toInt()
-                            controller.log("Updated HP danger threshold.")
-                            controller.addUndoPoint()
+                            controller.logger?.log("Updated HP danger threshold.")
+                            controller.undoManager?.addUndoPoint()
                             endAction(btnPipis)
                         }
                         alert.show()
@@ -869,8 +780,8 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
                             controller.player.pierce = input.text.toString().toInt()
-                            controller.log("Updated pierce.")
-                            controller.addUndoPoint()
+                            controller.logger?.log("Updated pierce.")
+                            controller.undoManager?.addUndoPoint()
                             endAction(btnPipis)
                         }
                         alert.show()
@@ -886,8 +797,8 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         alert.setView(input)
                         alert.setPositiveButton("Set") { _, _ ->
                             controller.player.scenarioLevel = input.text.toString().toInt()
-                            controller.log("Updated scenario level.")
-                            controller.addUndoPoint()
+                            controller.logger?.log("Updated scenario level.")
+                            controller.undoManager?.addUndoPoint()
                             endAction(btnPipis)
                         }
                         alert.show()
@@ -935,8 +846,8 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                         }
                         linearLayout.addView(cbBallista)
                         alert.setOnDismissListener{
-                            controller.log("Updated discard status.")
-                            controller.addUndoPoint()
+                            controller.logger?.log("Updated discard status.")
+                            controller.undoManager?.addUndoPoint()
                             endAction(btnPipis)
                         }
                         alert.show()
@@ -944,7 +855,8 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                     // Go
                     i++ -> {
                         effectQueue.add(Effect(showItemRow=true))
-                        (controller.player.inventory as MainActivityInventory).displayChangedInventory()
+                        // PUT THIS BACK AAAAAA
+                        // (controller.player.inventory as MainActivityInventory).displayChangedInventory()
                         effectSpeed = 1_000/4L
                         controller.deck.pipis(controller.player, controller.enemies, this)
                         effectSpeed = baseEffectSpeed
@@ -983,7 +895,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
         btnSimplify.setOnClickListener {
             buttonBehavior(btnSimplify) {
                 simplifyTheGamestate()
-                controller.addUndoPoint()
+                controller.undoManager?.addUndoPoint()
             }
         }
 
@@ -1123,8 +1035,8 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
                 dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
                 dialog.getWindow()?.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT)
                 dialog.setOnDismissListener{
-                    controller.log("Managed.")
-                    controller.addUndoPoint()
+                    controller.logger?.log("Managed.")
+                    controller.undoManager?.addUndoPoint()
                 }
                 dialog.show()
 
@@ -1150,7 +1062,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
             }
         }
         //
-        controller.log("Simplified the gamestate.")
+        controller.logger?.log("Simplified the gamestate.")
     }
 
     fun buttonBehavior(button: Button, function: () -> Unit = {}) {
@@ -1171,8 +1083,8 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
         endAction(button)
     }
     fun startAction(button: Button) {
-        controller.log("")
-        controller.log("[${button.text.toString().uppercase()}]")
+        controller.logger?.log("")
+        controller.logger?.log("[${button.text.toString().uppercase()}]")
         effectQueue.add(Effect(wipe = true))
     }
 
@@ -1188,9 +1100,11 @@ vermling scout 7: 1 2 3 n5 6""", controller.player.scenarioLevel).toMutableList(
             discardAnim.start()
         }
         // Undo+Redo buttons?
-        btnUndo.isEnabled = controller.undosBack != controller.undoPoints.size - 1
-        btnRedo.isEnabled = controller.undosBack != 0
+        btnUndo.isEnabled = controller.undoManager?.undosBack != controller.undoManager?.undoPoints?.size?.minus(
+            1
+        )
+        btnRedo.isEnabled = controller.undoManager?.undosBack != 0
         // Logs
-        tvLog.text = controller.getShownLogs().joinToString(separator="\n")
+        tvLog.text = controller.logger?.getShownLogs()?.joinToString(separator="\n")
     }
 }
