@@ -20,10 +20,6 @@ class UndoManager(override var controller: Controller = Controller()): Controlla
     val undoPoints = mutableListOf<UndoPoint>()
     var undosBack = 0
 
-    init {
-        controller.undoManager = this
-    }
-
     fun Undo() {
         undosBack += 1
         Log.d("undos", "Loading state ${undoPoints.size-undosBack-1+1}/${undoPoints.size}")

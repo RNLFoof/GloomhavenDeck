@@ -13,7 +13,10 @@ import kotlin.reflect.full.memberProperties
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-open class Deck(@Transient var controller: Controller = Controller())  {
+open class Deck(final override var controller: Controller = Controller()): Controllable(controller) {
+    init {
+        controller.deck = this
+    }
     // Cards
     var drawPile = mutableListOf<Card>()
     var activeCards = mutableListOf<Card>()
@@ -279,6 +282,9 @@ open class Deck(@Transient var controller: Controller = Controller())  {
     }
 
     fun pipis(player : Player, enemies : Iterable<Enemy>, mainactivity: MainActivity? = null) {
+        if (controller.inventory == null) {
+            throw Exception("Can't pipis without an inventory")
+        }
         var enemyIndex = 0
         fun powerPotAggregatedPower() : Int {
             var aggregatedPower = 0
@@ -316,7 +322,9 @@ open class Deck(@Transient var controller: Controller = Controller())  {
             }
             // Player Items
             for (item in Item.values()) {
-                vars["Inventory has $item"] = player.inventory.usableItems.contains(item)
+                if (controller.inventory != null) {
+                    vars["Inventory has $item"] = controller.inventory!!.usableItems.contains(item)
+                }
             }
             // Enemy
             for (enemy in enemies) {
@@ -347,16 +355,16 @@ open class Deck(@Transient var controller: Controller = Controller())  {
             // Init power up here instead so that pendant can use it
             var basePower = 1
             fun tryToDitchPendant() {
-                if (player.inventory.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
+                if (controller.inventory!!.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
                     return
                 }
-                val roomMade = player.inventory.makeRoom(player, this,2, powerPotThresholdReached(),
+                val roomMade = controller.inventory!!.makeRoom(2, powerPotThresholdReached(),
                     powerPotAggregatedPower() > 0)
                 if (roomMade.contains(Item.MAJOR_POWER_POTION)) {
                     basePower += 2
                 }
-                if (player.inventory.unusableItems.size >= 2) {
-                    player.useItem(Item.PENDANT_OF_DARK_PACTS, this, true)
+                if (controller.inventory!!.unusableItems.size >= 2) {
+                    controller.inventory!!.useItem(Item.PENDANT_OF_DARK_PACTS,  true)
                 }
             }
 
@@ -371,20 +379,20 @@ open class Deck(@Transient var controller: Controller = Controller())  {
             }
             // Power?
             if (usingBallistaInstead) {basePower += 3}
-            if (powerPotThresholdReached() && player.inventory.usableItems.contains(Item.MAJOR_POWER_POTION)) {
+            if (powerPotThresholdReached() && controller.inventory!!.usableItems.contains(Item.MAJOR_POWER_POTION)) {
                 basePower += 2
-                player.useItem(Item.MAJOR_POWER_POTION, this, true)
+                controller.inventory!!.useItem(Item.MAJOR_POWER_POTION, true)
             }
             // Eye?
-            if (player.inventory.usableItems.contains(Item.LUCKY_EYE) && !player.statuses.contains(Status.STRENGTHEN)) {
-                player.useItem(Item.LUCKY_EYE, this, true)
+            if (controller.inventory!!.usableItems.contains(Item.LUCKY_EYE) && !player.statuses.contains(Status.STRENGTHEN)) {
+                controller.inventory!!.useItem(Item.LUCKY_EYE, true)
             }
             // Room?
             tryToDitchPendant()
             // Another potion?
-            if (powerPotThresholdReached() && player.inventory.usableItems.contains(Item.MAJOR_POWER_POTION)) {
+            if (powerPotThresholdReached() && controller.inventory!!.usableItems.contains(Item.MAJOR_POWER_POTION)) {
                 basePower += 2
-                player.useItem(Item.MAJOR_POWER_POTION, this, true)
+                controller.inventory!!.useItem(Item.MAJOR_POWER_POTION, true)
             }
             // Display
             controller.logger?.log("")
@@ -426,7 +434,7 @@ open class Deck(@Transient var controller: Controller = Controller())  {
                 enemy.getAttacked(combinedCard, player)
                 controller.logger?.log("Hit ${enemy.name} with $combinedCard${if (enemy.dead) ", dies!" else ""}")
                 if (combinedCard.refresh) {
-                    player.inventory.recover(player, this)
+                    controller.inventory!!.recover()
                     if (mainactivity!=null) {
                         mainactivity.effectSpeed = mainactivity.effectSpeed*7/10
                     }
@@ -473,46 +481,46 @@ open class Deck(@Transient var controller: Controller = Controller())  {
                             || (player.statuses.contains(Status.STRENGTHEN) &&enemies.sumOf { if (!it.getTargetable()) 0 else "1".toInt() } >= 2)
                         )
                         && loops <= 10
-                canGoAgain = player.inventory.usableItems.contains(Item.RING_OF_BRUTALITY)
-                        && (player.inventory.usableItems.contains(Item.MINOR_STAMINA_POTION) || player.inventory.usableItems.contains(Item.MAJOR_STAMINA_POTION))
+                canGoAgain = controller.inventory!!.usableItems.contains(Item.RING_OF_BRUTALITY)
+                        && (controller.inventory!!.usableItems.contains(Item.MINOR_STAMINA_POTION) || controller.inventory!!.usableItems.contains(Item.MAJOR_STAMINA_POTION))
             }
             setWantAndCan()
             // Maybe use belt
             if (wantToGoAgain && !canGoAgain ) {
-                if (player.inventory.usableItems.contains(Item.UTILITY_BELT)) {
+                if (controller.inventory!!.usableItems.contains(Item.UTILITY_BELT)) {
                     // Belt will recover pendant, pendant will automatically recover major and ring
-                    player.useItem(Item.UTILITY_BELT, this, true)
+                    controller.inventory!!.useItem(Item.UTILITY_BELT, true)
                     setWantAndCan()
                 }
             }
             // Maybe get a bonus ball
-            if (player.inventory.unusableItems.size == 0 && player.inventory.usableItems.contains(Item.UTILITY_BELT)) {
-                player.useItem(Item.UTILITY_BELT, this, false)
+            if (controller.inventory!!.unusableItems.size == 0 && controller.inventory!!.usableItems.contains(Item.UTILITY_BELT)) {
+                controller.inventory!!.useItem(Item.UTILITY_BELT, false)
                 bonusItems += 1
             }
             // Ok go
             if (wantToGoAgain && canGoAgain) {
                 // Can I?
-                if (player.inventory.usableItems.contains(Item.MINOR_STAMINA_POTION)) {
+                if (controller.inventory!!.usableItems.contains(Item.MINOR_STAMINA_POTION)) {
                         if (shouldUseBallista() && player.discardedBallista) {
                             player.discardedBallista = false
                         }
                         if (!shouldUseBallista() && player.discardedPipis) {
                             player.discardedPipis = false
                         }
-                        player.useItem(Item.MINOR_STAMINA_POTION, this, true)
-                        player.useItem(Item.RING_OF_BRUTALITY, this, true)
+                        controller.inventory!!.useItem(Item.MINOR_STAMINA_POTION, true)
+                        controller.inventory!!.useItem(Item.RING_OF_BRUTALITY, true)
                         allowedToContinue = true
                 }
-                else if (player.inventory.usableItems.contains(Item.MAJOR_STAMINA_POTION)) {
+                else if (controller.inventory!!.usableItems.contains(Item.MAJOR_STAMINA_POTION)) {
                         if (shouldUseBallista() && player.discardedBallista) {
                             player.discardedBallista = false
                         }
                         if (!shouldUseBallista() && player.discardedPipis) {
                             player.discardedPipis = false
                         }
-                        player.useItem(Item.MAJOR_STAMINA_POTION, this, true)
-                        player.useItem(Item.RING_OF_BRUTALITY, this, true)
+                        controller.inventory!!.useItem(Item.MAJOR_STAMINA_POTION, true)
+                        controller.inventory!!.useItem(Item.RING_OF_BRUTALITY, true)
                         allowedToContinue = true
                 }
                 else {

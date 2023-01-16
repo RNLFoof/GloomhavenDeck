@@ -11,6 +11,7 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.util.concurrent.Callable
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
@@ -19,7 +20,8 @@ open class Controller(
     var saver: Saver? = null
     var logger: Logger? = null
     var undoManager: UndoManager?= null
-    var player = Player(26) // Like I guess I'll put 26 here?? fuck I should have structured this better
-    var deck = Deck(this)
+    var player: Player? = null
+    var inventory: Inventory? = null
+    var deck: Deck? = null
     var enemies: MutableList<Enemy> = mutableListOf()
 }

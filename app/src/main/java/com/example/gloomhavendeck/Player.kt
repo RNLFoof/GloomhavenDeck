@@ -6,10 +6,13 @@ import kotlinx.serialization.Serializable
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-open class Player(val maxHp: Int) {
+class Player(override var controller: Controller = Controller(), var maxHp: Int): Controllable(controller) {
+    init {
+        controller.player = this
+    }
+
     var hp = maxHp
     var dings = 0
-    open var inventory = Inventory()
 
     var statusDict = HashMap<Status, Int>()
     init {
@@ -59,14 +62,4 @@ open class Player(val maxHp: Int) {
                 discardedBallista = false
             }
         }
-
-    open fun useItem(item: Item, deck: Deck, fullAutoBehavior: Boolean) {
-        inventory.useItem(this, deck, item, fullAutoBehavior)
-    }
-
-    open fun deactivateItem(item: Item, deck: Deck, fullAutoBehavior: Boolean) {
-        inventory.deactivateItem(this, deck, item, fullAutoBehavior)
-    }
-
-
 }
