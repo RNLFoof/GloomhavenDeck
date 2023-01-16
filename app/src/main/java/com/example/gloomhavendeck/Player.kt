@@ -62,4 +62,18 @@ class Player(override var controller: Controller = Controller(), var maxHp: Int)
                 discardedBallista = false
             }
         }
+
+    fun heal(amount: Int) {
+        if (statuses.contains(Status.WOUND)) {
+            statusDict[Status.WOUND] = 0
+        }
+        if (statuses.contains(Status.POISON)) {
+            statusDict[Status.POISON] = 0
+        } else {
+            if (hp >= maxHp) {
+                throw kotlin.Exception("Already at max HP!")
+            }
+            hp = Integer.min(hp + amount, maxHp)
+        }
+    }
 }

@@ -55,19 +55,7 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT,
     SECOND_CHANCE_RING(R.drawable.card_secondchancering, sound=SoundBundle.SECONDCHANCERING),
     SPIKED_SHIELD(R.drawable.card_spiked, spendOnly = true),
     SUPER_HEALING_POTION(R.drawable.card_healing, sound=SoundBundle.DRINK, getUsed=fun (controller, fullAutoBehavior) {
-        controller.player?.let {
-            if (it.statuses.contains(Status.WOUND)) {
-                it.statusDict[Status.WOUND] = 0
-            }
-            if (it.statuses.contains(Status.POISON)) {
-                it.statusDict[Status.POISON] = 0
-            } else {
-                if (it.hp >= it.maxHp) {
-                    throw kotlin.Exception("Already at max HP!")
-                }
-                it.hp = min(it.hp + 7, it.maxHp)
-            }
-        }
+        controller.player?.heal(7)
     }),
     TOWER_SHIELD(R.drawable.card_tower, spendOnly = true),
     UTILITY_BELT(R.drawable.card_belt, sound=SoundBundle.UTILITYBELT, getUsed=fun(controller, fullAutoBehavior) {
