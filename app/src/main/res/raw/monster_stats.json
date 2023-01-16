@@ -5923,6 +5923,226 @@
           }
         }
       ]
+    },
+    "Valrath Tracker": {
+      "level": [
+        {
+          "level": 0,
+          "normal": {
+            "health": 1,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 1,
+            "attributes": [
+            ]
+          }
+        },
+        {
+          "level": 1,
+          "normal": {
+            "health": 1,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 1,
+            "attributes": [
+            ]
+          }
+        },
+        {
+          "level": 2,
+          "normal": {
+            "health": 1,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 1,
+            "attributes": [
+            ]
+          }
+        },
+        {
+          "level": 3,
+          "normal": {
+            "health": 1,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 1,
+            "attributes": [
+            ]
+          }
+        },
+        {
+          "level": 4,
+          "normal": {
+            "health": 10,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 16,
+            "attributes": [
+            ]
+          }
+        },
+        {
+          "level": 5,
+          "normal": {
+            "health": 12,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 18,
+            "attributes": [
+            ]
+          }
+        },
+        {
+          "level": 6,
+          "normal": {
+            "health": 14,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 21,
+            "attributes": [
+            ]
+          }
+        },
+        {
+          "level": 7,
+          "normal": {
+            "health": 17,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 24,
+            "attributes": [
+            ]
+          }
+        }
+      ]
+    },
+    "Aesther Ashblade": {
+      "level": [
+        {
+          "level": 0,
+          "normal": {
+            "health": 1,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 1,
+            "attributes": [
+            ]
+          }
+        },
+        {
+          "level": 1,
+          "normal": {
+            "health": 1,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 1,
+            "attributes": [
+            ]
+          }
+        },
+        {
+          "level": 2,
+          "normal": {
+            "health": 1,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 1,
+            "attributes": [
+            ]
+          }
+        },
+        {
+          "level": 3,
+          "normal": {
+            "health": 1,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 1,
+            "attributes": [
+            ]
+          }
+        },
+        {
+          "level": 4,
+          "normal": {
+            "health": 15,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 21,
+            "attributes": [
+              "Attackers gain Disadvantage"
+            ]
+          }
+        },
+        {
+          "level": 5,
+          "normal": {
+            "health": 18,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 25,
+            "attributes": [
+              "Attackers gain Disadvantage"
+            ]
+          }
+        },
+        {
+          "level": 6,
+          "normal": {
+            "health": 21,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 28,
+            "attributes": [
+              "Attackers gain Disadvantage"
+            ]
+          }
+        },
+        {
+          "level": 7,
+          "normal": {
+            "health": 24,
+            "attributes": [
+            ]
+          },
+          "elite": {
+            "health": 32,
+            "attributes": [
+              "Attackers gain Disadvantage"
+            ]
+          }
+        }
+      ]
     }
   },
   "bosses": {
