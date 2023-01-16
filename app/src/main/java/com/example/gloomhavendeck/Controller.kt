@@ -24,4 +24,20 @@ open class Controller(
     var inventory: Inventory? = null
     var deck: Deck? = null
     var enemies: MutableList<Enemy> = mutableListOf()
+
+    companion object {
+        fun newFullyStocked(): Controller {
+            // Only for testing, really
+            val controller = Controller()
+            Saver(controller, "")
+            Logger(controller)
+            UndoManager(controller)
+            Player(controller, 26).statusDict[Status.POISON] = 2
+            Inventory(controller).usableItems.add(Item.LUCKY_EYE)
+            Deck(controller)
+            controller.enemies.add(Enemy("dog 300 300"))
+
+            return controller
+        }
+    }
 }
