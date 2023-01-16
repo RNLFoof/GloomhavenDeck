@@ -5,6 +5,7 @@ import androidx.annotation.RequiresApi
 import com.example.gloomhavendeck.Controllable
 import com.example.gloomhavendeck.Controller
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -13,7 +14,7 @@ import java.nio.file.Paths
 
 @Serializable
 @RequiresApi(Build.VERSION_CODES.O)
-class Saver(override var controller: Controller = Controller(), private val filesDir: String): Controllable() {
+class Saver(@Transient override var controller: Controller = Controller(), private val filesDir: String): Controllable() {
 
     init {
         controller.saver = this

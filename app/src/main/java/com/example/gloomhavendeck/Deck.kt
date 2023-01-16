@@ -13,7 +13,7 @@ import kotlin.reflect.full.memberProperties
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-open class Deck(final override var controller: Controller = Controller()): Controllable(controller) {
+open class Deck(@Transient final override var controller: Controller = Controller()): Controllable(controller) {
     init {
         controller.deck = this
     }

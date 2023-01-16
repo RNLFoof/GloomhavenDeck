@@ -3,10 +3,11 @@ package com.example.gloomhavendeck
 import android.os.Build
 import androidx.annotation.RequiresApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-class Player(override var controller: Controller = Controller(), var maxHp: Int): Controllable(controller) {
+class Player(@Transient override var controller: Controller = Controller(), var maxHp: Int): Controllable(controller) {
     init {
         controller.player = this
     }

@@ -2,10 +2,11 @@ package com.example.gloomhavendeck
 import android.os.Build
 import androidx.annotation.RequiresApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-class Inventory(override var controller: Controller = Controller()): Controllable(controller) {
+class Inventory(@Transient override var controller: Controller = Controller()): Controllable(controller) {
     init {
         controller.inventory = this
     }

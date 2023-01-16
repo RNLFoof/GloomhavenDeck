@@ -10,7 +10,7 @@ import kotlinx.serialization.Transient
 
 @Serializable
 @RequiresApi(Build.VERSION_CODES.O)
-class Logger(override var controller: Controller = Controller()): Controllable(controller) {
+class Logger(@Transient override var controller: Controller = Controller()): Controllable(controller) {
 
     init {
         controller.logger = this

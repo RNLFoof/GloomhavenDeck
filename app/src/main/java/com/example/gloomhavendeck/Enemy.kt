@@ -99,7 +99,6 @@ data class Enemy(var creationString: String) {
                 }
             }
         }
-        Log.d("hey", this.toString())
     }
 
     companion object {

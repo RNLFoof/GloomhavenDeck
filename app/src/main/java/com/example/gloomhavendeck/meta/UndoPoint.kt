@@ -5,13 +5,14 @@ import androidx.annotation.RequiresApi
 import com.example.gloomhavendeck.Controllable
 import com.example.gloomhavendeck.Controller
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Serializable
 @RequiresApi(Build.VERSION_CODES.O)
-class UndoPoint(override var controller: Controller = Controller()) : Controllable(){
+class UndoPoint(@Transient override var controller: Controller = Controller()) : Controllable(){
     private var heldStateJson = Json.encodeToString(controller)
 
     fun use() {
