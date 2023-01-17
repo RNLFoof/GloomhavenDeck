@@ -7,7 +7,7 @@ import kotlinx.serialization.Transient
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-class Inventory(@Transient override var controller: Controller = Controller()): Controllable(controller) {
+class Inventory(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(controller) {
     init {
         controller.inventory = this
     }
@@ -290,7 +290,7 @@ class Inventory(@Transient override var controller: Controller = Controller()): 
         controller.activityConnector?.let {
             if (it.llItemRow.isVisible) {
                 val newItemRowDisplay = mutableListOf<Boolean>()
-                for (item in (controller.inventory!!.usableItems + controller.inventory!!.unusableItems).sortedBy { it.name }) {
+                for (item in controller.inventory!!.allItemsSorted()) {
                     newItemRowDisplay.add(item in controller.inventory!!.usableItems)
                 }
                 it.effectQueue.add(Effect(controller, newItemRowDisplay = newItemRowDisplay))

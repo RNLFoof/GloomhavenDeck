@@ -15,7 +15,7 @@ import java.util.concurrent.Callable
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-open class Controller(
+open class Controller(var destroyTheUniverseUponInitiation: Boolean = false
 ) {
     var saver: Saver? = null
     var logger: Logger? = null
@@ -27,7 +27,13 @@ open class Controller(
 
     @Transient var activityConnector: ActivityConnector? = null
     init {
-        Thread.dumpStack()
+        // This is true on all the default of all the controlables.
+        // It needs a default value, because it's transient, so it doesn't loop forever when saving
+        // But those defaults shouldn't ever actually be used
+        // Unless it's just to immediately replace
+        if (destroyTheUniverseUponInitiation) {
+            throw destroyTheUniverseUponInitiationException()
+        }
     }
 
     companion object {
@@ -58,4 +64,8 @@ open class Controller(
             }
         }.toMutableList()
     }
+}
+
+class destroyTheUniverseUponInitiationException: Exception() {
+
 }

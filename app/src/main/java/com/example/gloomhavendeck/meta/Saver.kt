@@ -14,7 +14,7 @@ import java.nio.file.Paths
 
 @Serializable
 @RequiresApi(Build.VERSION_CODES.O)
-class Saver(@Transient override var controller: Controller = Controller(), private val filesDir: String): Controllable() {
+class Saver(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true), private val filesDir: String): Controllable() {
 
     init {
         controller.saver = this
