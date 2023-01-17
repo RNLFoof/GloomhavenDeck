@@ -196,6 +196,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
         if (activeCards.size != 0) {
             controller.activityConnector?.effectQueue?.add(Effect(controller, sound=SoundBundle.DISCARD))
         }
+        controller.activityConnector?.effectQueue?.add(Effect(controller, sound=SoundBundle.DISCARD))
     }
 
     fun discardPileToDrawPile(userDirectlyRequested: Boolean = false) {
