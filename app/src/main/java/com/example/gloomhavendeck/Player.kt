@@ -64,7 +64,7 @@ class Player(@Transient override var controller: Controller = Controller(destroy
             }
         }
 
-    fun heal(amount: Int) {
+    fun heal(amount: Int, viaItem: Boolean) {
         if (statuses.contains(Status.WOUND)) {
             statusDict[Status.WOUND] = 0
         }
@@ -72,7 +72,11 @@ class Player(@Transient override var controller: Controller = Controller(destroy
             statusDict[Status.POISON] = 0
         } else {
             if (hp >= maxHp) {
-                throw kotlin.Exception("Already at max HP!")
+                if (viaItem) {
+                    throw ItemUnusableException("Already at max HP!")
+                } else {
+                    throw kotlin.Exception("Already at max HP!")
+                }
             }
             hp = Integer.min(hp + amount, maxHp)
         }

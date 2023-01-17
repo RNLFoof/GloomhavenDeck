@@ -23,7 +23,7 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT,
     MAJOR_CURE_POTION(R.drawable.card_cure, sound=SoundBundle.DRINK, getUsed=fun (controller, viaPipis){
         if (controller.player != null) {
             if (!viaPipis && !controller.player!!.statuses.any { it.negative }) {
-                throw kotlin.Exception("No negative statuses!")
+                throw ItemUnusableException("No negative statuses!")
             }
             controller.player!!.statusDict.filterKeys { it.negative }.forEach { controller.player!!.statusDict[it.key] = 0 }
         }
@@ -42,7 +42,7 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT,
                     UTILITY_BELT
                 ))
             ) {
-                throw kotlin.Exception("There aren't two items to recover!")
+                throw ItemUnautomatableException("There aren't two items to recover!")
             }
             controller.inventory!!.recover(howMany = 2, cantRecover = listOf(UTILITY_BELT))
         }
@@ -55,14 +55,14 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT,
     SECOND_CHANCE_RING(R.drawable.card_secondchancering, sound=SoundBundle.SECONDCHANCERING),
     SPIKED_SHIELD(R.drawable.card_spiked, spendOnly = true),
     SUPER_HEALING_POTION(R.drawable.card_healing, sound=SoundBundle.DRINK, getUsed=fun (controller, fullAutoBehavior) {
-        controller.player?.heal(7)
+        controller.player?.heal(7, true)
     }),
     TOWER_SHIELD(R.drawable.card_tower, spendOnly = true),
     UTILITY_BELT(R.drawable.card_belt, sound=SoundBundle.UTILITYBELT, getUsed=fun(controller, fullAutoBehavior) {
         controller.inventory?.let {
             if (fullAutoBehavior) {
                 if (it.unusableItems.size <= 0) {
-                    throw kotlin.Exception("There isn't an item to recover!")
+                    throw ItemUnautomatableException("There isn't an item to recover!")
                 }
                 it.recover(howMany = 1)
             }
@@ -92,3 +92,6 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT,
         return imageView
     }
 }
+
+class ItemUnusableException(override val message: String?): Exception(message)
+class ItemUnautomatableException(override val message: String?): Exception(message)

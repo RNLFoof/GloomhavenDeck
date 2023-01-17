@@ -299,17 +299,19 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                                     val btnName = Button(this)
                                     btnName.text = enemyName
                                     btnName.setOnClickListener {
-                                        enemyNames.remove(enemyName)
-                                        enemyOrder.add(enemyName)
-                                        if (enemyNames.size > 0) {
-                                            showAlert()
-                                        } else {
-                                            controller.logger?.log("Updated enemy order.")
-                                            controller.sortEnemies(enemyOrder)
-                                            controller.undoManager?.addUndoPoint()
-                                            endAction(btnPipis)
+                                        crashProtector {
+                                            enemyNames.remove(enemyName)
+                                            enemyOrder.add(enemyName)
+                                            if (enemyNames.size > 0) {
+                                                showAlert()
+                                            } else {
+                                                controller.logger?.log("Updated enemy order.")
+                                                controller.sortEnemies(enemyOrder)
+                                                controller.undoManager?.addUndoPoint()
+                                                endAction(btnPipis)
+                                            }
+                                            alert.cancel()
                                         }
-                                        alert.cancel()
                                     }
                                     llRows.addView(btnName)
                                 }
@@ -367,7 +369,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                                 npTaken.gravity = Gravity.LEFT
                                 npTaken.layoutParams = ViewGroup.LayoutParams(300,200)
                                 npTaken.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
-                                    changeTakenTo(new)
+                                    crashProtector{ changeTakenTo(new) }
                                 }
                                 llRow.addView(npTaken)
                                 // This bit has two rows
@@ -379,14 +381,14 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                                 btnPlus1.text = "+1"
                                 btnPlus1.layoutParams = ViewGroup.LayoutParams(200,100)
                                 btnPlus1.setOnClickListener() {
-                                    changeTakenTo(enemy.taken+1)
+                                    crashProtector{ changeTakenTo(enemy.taken+1) }
                                 }
                                 llRowRow.addView(btnPlus1)
                                 // +5
                                 btnPlus5.text = "+5"
                                 btnPlus5.layoutParams = ViewGroup.LayoutParams(200,100)
                                 btnPlus5.setOnClickListener() {
-                                    changeTakenTo(enemy.taken+5)
+                                    crashProtector{ changeTakenTo(enemy.taken+5) }
                                 }
                                 llRowRow.addView(btnPlus5)
                                 // Display change
@@ -397,7 +399,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                                 cbTargeted.text = "Trgt"
                                 cbTargeted.isChecked = enemy.targeted
                                 cbTargeted.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                    enemy.targeted = !enemy.targeted
+                                    crashProtector{ enemy.targeted = !enemy.targeted }
                                 }
                                 llRow.addView(cbTargeted)
                                 // Ballista checkbox
@@ -406,7 +408,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                                 cbBallista.text = "Blst"
                                 cbBallista.isChecked = enemy.inBallistaRange
                                 cbBallista.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                    enemy.inBallistaRange = !enemy.inBallistaRange
+                                    crashProtector{ enemy.inBallistaRange = !enemy.inBallistaRange }
                                 }
                                 llRow.addView(cbBallista)
                                 // Extra Target checkbox
@@ -415,7 +417,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                                 cbExtraTarget.text = "ExTr"
                                 cbExtraTarget.isChecked = enemy.extraTarget
                                 cbExtraTarget.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                    enemy.extraTarget = !enemy.extraTarget
+                                    crashProtector{ enemy.extraTarget = !enemy.extraTarget }
                                 }
                                 llRow.addView(cbExtraTarget)
                                 // Melee Range checkbox
@@ -424,7 +426,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                                 cbMeleeRange.text = "MlRn"
                                 cbMeleeRange.isChecked = enemy.inMeleeRange
                                 cbMeleeRange.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                    enemy.inMeleeRange = !enemy.inMeleeRange
+                                    crashProtector{ enemy.inMeleeRange = !enemy.inMeleeRange }
                                 }
                                 llRow.addView(cbMeleeRange)
                                 // Retaliate Range checkbox
@@ -433,7 +435,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                                 cbRetaliateRange.text = "RtRn"
                                 cbRetaliateRange.isChecked = enemy.inRetaliateRange
                                 cbRetaliateRange.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                    enemy.inRetaliateRange = !enemy.inRetaliateRange
+                                    crashProtector{ enemy.inRetaliateRange = !enemy.inRetaliateRange }
                                 }
                                 llRow.addView(cbRetaliateRange)
                                 // Poisoned checkbox
@@ -442,15 +444,17 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                                 cbPoisoned.text = "Poisn"
                                 cbPoisoned.isChecked = enemy.poisoned
                                 cbPoisoned.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                    enemy.poisoned = !enemy.poisoned
+                                    crashProtector{ enemy.poisoned = !enemy.poisoned }
                                 }
                                 llRow.addView(cbPoisoned)
                             }
                             alert.setView(scrollView)
                             alert.setOnDismissListener{
-                                controller.logger?.log("Updated controller.enemies via menu.")
-                                controller.undoManager?.addUndoPoint()
-                                endAction(btnPipis)
+                                crashProtector {
+                                    controller.logger?.log("Updated controller.enemies via menu.")
+                                    controller.undoManager?.addUndoPoint()
+                                    endAction(btnPipis)
+                                }
                             }
                             alert.show()
                         }
@@ -543,31 +547,39 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                             npDiscarded.maxValue = 9
                             npDiscarded.value = controller.player!!.discardedCards
                             npDiscarded.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
-                                controller.player!!.discardedCards = new
-                                cbBallista.isChecked = controller.player!!.discardedBallista
-                                cbPipis.isChecked = controller.player!!.discardedPipis
+                                crashProtector {
+                                    controller.player!!.discardedCards = new
+                                    cbBallista.isChecked = controller.player!!.discardedBallista
+                                    cbPipis.isChecked = controller.player!!.discardedPipis
+                                }
                             }
                             linearLayout.addView(npDiscarded)
                             // Targeted checkbox
                             cbPipis.text = "Discarded Pipis"
                             cbPipis.isChecked = controller.player!!.discardedPipis
                             cbPipis.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                controller.player!!.discardedPipis = on
-                                npDiscarded.value = controller.player!!.discardedCards
+                                crashProtector {
+                                    controller.player!!.discardedPipis = on
+                                    npDiscarded.value = controller.player!!.discardedCards
+                                }
                             }
                             linearLayout.addView(cbPipis)
                             // Ballista checkbox
                             cbBallista.text = "Discarded Ballista"
                             cbBallista.isChecked = controller.player!!.discardedBallista
                             cbBallista.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                controller.player!!.discardedBallista = on
-                                npDiscarded.value = controller.player!!.discardedCards
+                                crashProtector {
+                                    controller.player!!.discardedBallista = on
+                                    npDiscarded.value = controller.player!!.discardedCards
+                                }
                             }
                             linearLayout.addView(cbBallista)
                             alert.setOnDismissListener{
-                                controller.logger?.log("Updated discard status.")
-                                controller.undoManager?.addUndoPoint()
-                                endAction(btnPipis)
+                                crashProtector {
+                                    controller.logger?.log("Updated discard status.")
+                                    controller.undoManager?.addUndoPoint()
+                                    endAction(btnPipis)
+                                }
                             }
                             alert.show()
                         }
@@ -651,7 +663,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                                             controller.inventory!!.regainItem(item)
                                         }
                                         setUpEverything()
-                                    } catch (e: Exception) {
+                                    } catch (e: ItemUnusableException) {
 
                                     }
                                 }
@@ -783,9 +795,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
         controller.logger?.log("Simplified the gamestate.")
     }
 
-    fun buttonBehavior(button: Button, function: () -> Unit = {}) {
-        startAction(button)
-
+    fun crashProtector(function: () -> Unit = {}) {
         try {
             function()
         } catch (e: Exception) {
@@ -797,7 +807,11 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
             alert.setTitle("OW?")
             alert.show()
         }
+    }
 
+    fun buttonBehavior(button: Button, function: () -> Unit = {}) {
+        startAction(button)
+        crashProtector(function)
         endAction(button)
     }
     fun startAction(button: Button) {

@@ -30,11 +30,13 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
             R.raw.plus2_thwomp,
             PLUS2_ttyd_weirdness,
         ))
+        val PLUS3_FANON = SoundBundle(R.raw.plus3_fanon_joenuke)
         val PLUS3 = SoundBundle(
             LinkedHashMap(
                 mapOf(
                     R.raw.plus3_blast_zone to 1f,
                     R.raw.plus3_bong to 0.1f,
+                    PLUS3_FANON to 0.2f,
         )))
         val MINUS1_GOO = SoundBundle(listOf(
             R.raw.minus1_goo_hamsterball_glue_stuck,
@@ -47,6 +49,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
         ))
         val MINUS2 = SoundBundle(R.raw.minus2_mario_fall)
         val BLESS = SoundBundle(R.raw.bless_choir)
+        val BLINKINGCAPE = SoundBundle(R.raw.blinkingcape_why_are_you_guys_here)
         val CURSE = SoundBundle(R.raw.curse_ttyd_ghost)
         val CURSEADDED = SoundBundle(R.raw.curseadded_ttyd)
         val DARK_FANON = SoundBundle(R.raw.dark_fanon_nightmaaaaare)
@@ -90,6 +93,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
             R.raw.death_mvm_player_died,
             R.raw.death_poof,
             R.raw.death_ttyd_mario_fucking_dies,
+            R.raw.death_wonderlanddeath,
             DEATH_AUDIES,
             DEATH_BEETHRO,
             DEATH_GRINDER,
@@ -119,6 +123,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
             LinkedHashMap(
                 mapOf(
                     R.raw.drink_fanon_bottle_break to 0.1f,
+                    R.raw.drink_fanon_tap_water to 1f,
                     DRINK_FANON_LIQUID to 0.5f,
         )))
         val DRINK = SoundBundle(
@@ -138,15 +143,18 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
                     EXTRATARGET_FANON to 0.2f,
         )))
         val HEAL = SoundBundle(R.raw.heal_heal)
-        val JOHNSON = SoundBundle(R.raw.johnson_johnson)
+        val ITEMUNUSABLE = SoundBundle(R.raw.itemunusable_hmm)
+        val JOHNSON_FANON = SoundBundle(R.raw.johnson_fanon_expert_race_guitar)
+        val JOHNSON = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+                    R.raw.johnson_johnson to 1f,
+                    JOHNSON_FANON to 0.1f,
+        )))
         val JUMP_DEMOCHARGE = SoundBundle(listOf(
             R.raw.jump_democharge_demo_charge_windup1,
             R.raw.jump_democharge_demo_charge_windup2,
             R.raw.jump_democharge_demo_charge_windup3,
-        ))
-        val JUMP_TIMROCKETS = SoundBundle(listOf(
-            R.raw.jump_timrockets_rocket_launch_also,
-            R.raw.jump_timrockets_rocket_launch,
         ))
         val JUMP = SoundBundle(
             LinkedHashMap(
@@ -159,8 +167,8 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
                     R.raw.jump_jack_in_the_box to 1f,
                     R.raw.jump_launch1 to 1f,
                     JUMP_DEMOCHARGE to 1f,
-                    JUMP_TIMROCKETS to 1f,
         )))
+        val LUCKYEYE = SoundBundle(R.raw.luckyeye_ringside)
         val MUDDLE = SoundBundle(R.raw.muddle_hamsterball_dizzy)
         val NULL = SoundBundle(
             LinkedHashMap(
@@ -189,6 +197,11 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
                     R.raw.ringofduality_church_organ_viola to 1f,
                     RINGOFDUALITY_FANON to 0.2f,
         )))
+        val ROCKETBOOTS_TIMROCKETS = SoundBundle(listOf(
+            R.raw.rocketboots_timrockets_rocket_launch_also,
+            R.raw.rocketboots_timrockets_rocket_launch,
+        ))
+        val ROCKETBOOTS = SoundBundle(ROCKETBOOTS_TIMROCKETS)
         val SECONDCHANCERING = SoundBundle(R.raw.secondchancering_one_more_chance)
         val SHIELD_IRONDOOR = SoundBundle(listOf(
             R.raw.shield_irondoor_close1,
@@ -226,7 +239,12 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
                     SHIELD_WOODDOOR to 0.1f,
         )))
         val SHUFFLE = SoundBundle(R.raw.shuffle_shuffle)
-        val STRENGTHEN = SoundBundle(R.raw.strengthen_ringside)
+        val STRENGTHEN_NOSE = SoundBundle(listOf(
+            R.raw.strengthen_nose_1,
+            R.raw.strengthen_nose_2,
+            R.raw.strengthen_nose_3,
+        ))
+        val STRENGTHEN = SoundBundle(STRENGTHEN_NOSE)
         val STUN = SoundBundle(listOf(
             R.raw.stun_ttyd_dizzy_dial,
             R.raw.stun_ttyd_sleep,

@@ -87,16 +87,19 @@ for root, dirs, files in os.walk(original_dir, topdown=False):
         new_file_name, chance = extract_chance(original_filename)
         new_file_name = remove_undesirables(os.path.join(root_sans_originals, new_file_name)).lower()
         print(original_filename)
+        tempname = os.path.splitext("temp" + original_filename)[0] + ".wav"
         os.system(
-            f'ffmpeg -i "{os.path.join(root, original_filename)}" -af silenceremove=1:0:-50dB -af "volume=5dB" -vn -ar '
-            f'44100 -ac 2 -b:a 192k LOL.mp3')
+            f'ffmpeg -i "{os.path.join(root, original_filename)}" -y  -af silenceremove=1:0:-50dB -af "volume=5dB" -vn -ar '
+            f'44100 -ac 2 -b:a 192k "{tempname}"')
 
-        sound = AudioSegment.from_file("yourAudio.m4a", "m4a")
+
+        print("normalizing...")
+        sound = AudioSegment.from_file(tempname, "wav")
         normalized_sound = match_target_amplitude(sound, -20.0)
-        normalized_sound.export("nomrmalizedAudio.m4a", format="mp4")
+        normalized_sound.export(tempname, format="wav")
         if os.path.exists(os.path.join(fixed_dir, new_file_name)):
             os.remove(os.path.join(fixed_dir, new_file_name))
-        os.rename("LOL.mp3", os.path.join(fixed_dir, new_file_name))
+        os.rename(tempname, os.path.join(fixed_dir, new_file_name))
 
         # Handle SoundBundles
         head, ext = os.path.splitext(new_file_name)
