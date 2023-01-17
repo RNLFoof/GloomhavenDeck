@@ -22,13 +22,13 @@ class Saver(@Transient override var controller: Controller = Controller(), priva
 
     val currentStateSavedAt = Paths.get(filesDir, "current_state.json").toString()
 
-    fun saveJsonTo(saveMe: Any, location: String) {
+    inline fun <reified T>saveJsonTo(saveMe: T, location: String) {
         val currentStateJson = Json.encodeToString(saveMe)
         File(location).writeText(currentStateJson)
     }
 
     inline fun <reified T>loadJsonFrom(location: String): T {
-        return Json.decodeFromString<T>(File(location).readText())
+        return Json.decodeFromString(File(location).readText())
     }
 
     fun updateControllerFrom(location: String) {

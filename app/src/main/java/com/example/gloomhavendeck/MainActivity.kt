@@ -1,14 +1,11 @@
 package com.example.gloomhavendeck
-
 import android.animation.ArgbEvaluator
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
 import android.content.res.Configuration
 import android.graphics.Color
-import android.media.MediaPlayer
 import android.os.Build
 import android.os.Bundle
 import android.text.InputType
@@ -19,25 +16,14 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.children
-import androidx.core.view.size
 import com.example.gloomhavendeck.meta.Logger
 import com.example.gloomhavendeck.meta.Saver
 import com.example.gloomhavendeck.meta.UndoManager
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-import java.io.File
-import java.nio.file.Paths
 import java.util.*
-import kotlin.reflect.KMutableProperty
-import kotlin.reflect.full.memberProperties
 
 
 @RequiresApi(Build.VERSION_CODES.O)
 class MainActivity : AppCompatActivity() {
-    lateinit var tvLog : TextView
-    lateinit var llTopCardRow : LinearLayout
-    lateinit var llBottomCardRow : LinearLayout
-    lateinit var llItemRow : LinearLayout
     lateinit var btnSpinny : Button
     lateinit var btnDiscard : Button
     lateinit var btnUndo : Button
@@ -45,248 +31,9 @@ class MainActivity : AppCompatActivity() {
 
     lateinit var controller : Controller
     var enemyOrder: MutableList<String> = mutableListOf()
-    var effectQueue = LinkedList<Effect>()
-    lateinit var selectedCardRow : LinearLayout
-    var currentlyDoingDisadvantage = false
-    val baseEffectSpeed = 1_000/3L
-    var effectSpeed = baseEffectSpeed
 
     lateinit var discardAnim: ObjectAnimator
     lateinit var spinnyAnim: ObjectAnimator
-
-    inner class Effect(var sound: SoundBundle? = null, var card: Int? = null, var wipe: Boolean = false,
-                       var selectTopRow: Boolean = false, var selectBottomRow: Boolean = false,
-                       var showBottomRow: Boolean = false, var hideBottomRow: Boolean = false,
-                       var showItemRow: Boolean = false, var hideItemRow: Boolean = false,
-                       var newItemRowDisplay: List<Boolean>? = null) {
-        var speed = effectSpeed
-        @SuppressLint("UseCompatLoadingForDrawables")
-        fun run() {
-            if (sound != null) {
-                val mediaPlayer: MediaPlayer = MediaPlayer.create(this@MainActivity, sound!!.getSound() as Int)
-                mediaPlayer.start()
-            }
-            if (card != null) {
-                val imageView = ImageView(this@MainActivity)
-                imageView.setImageResource(card!!)
-                imageView.rotation = (Random().nextFloat()*1-0.5).toFloat() // This masks bad scanning lol
-                imageView.adjustViewBounds = true
-                // Show the bottom row if there's already three cards
-                // If it's already visible then whatever
-                if (llTopCardRow.size == 3) {
-                    showBottomRow = true
-                }
-                runOnUiThread {
-                    selectedCardRow.addView(imageView)
-                }
-            }
-            if (wipe) {
-                runOnUiThread {
-                    llTopCardRow.removeAllViews()
-                    llBottomCardRow.removeAllViews()
-                }
-            }
-            if (selectTopRow) {
-                selectedCardRow = llTopCardRow
-            }
-            if (selectBottomRow) {
-                selectedCardRow = llBottomCardRow
-            }
-
-            if (showBottomRow) {
-                runOnUiThread {
-                    llBottomCardRow.visibility = View.VISIBLE
-                }
-            }
-            if (hideBottomRow) {
-                runOnUiThread {
-                    llBottomCardRow.visibility = View.GONE
-                }
-            }
-            
-            if (showItemRow) {
-                runOnUiThread {
-                    llItemRow.visibility = View.VISIBLE
-                }
-            }
-            if (hideItemRow) {
-                runOnUiThread {
-                    llItemRow.visibility = View.GONE
-                }
-            }
-            if (newItemRowDisplay != null) {
-                runOnUiThread {
-                    llItemRow.removeAllViews()
-                }
-                if (controller.inventory != null) {
-                    for ((i, item) in (controller.inventory!!.allItemsSorted().withIndex())) {
-                        val imageView = item.getImageView(this@MainActivity, newItemRowDisplay!![i], false)
-                        runOnUiThread {
-                            llItemRow.addView(imageView)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    fun sortEnemies() {
-        val nameRegex = Regex("[a-z]+", RegexOption.IGNORE_CASE)
-        controller.enemies = controller.enemies.sortedBy { it.name }.toMutableList()
-        controller.enemies = controller.enemies.sortedBy {
-            val name = nameRegex.find(it.name)!!.value
-            if (name in enemyOrder) {
-                enemyOrder.indexOf(name)
-            } else {
-                -1
-            }
-        }.toMutableList()
-    }
-
-    val effectLoop = Thread {
-        while (true) {
-            if (effectQueue.size > 0) {
-                val effect = effectQueue.remove()
-                effect.run()
-                if (effect.sound != null) {
-                    Thread.sleep(effect.speed)
-                }
-            }
-            else {
-                Thread.sleep(1_000/3)
-            }
-        }
-    }
-    init {effectLoop.start()}
-
-    inner class MainActivityDeck(controller: Controller) : Deck(controller) {
-        override fun drawSingleCard(forcedCard: Card?): Card {
-            val card = super.drawSingleCard(forcedCard)
-            val effectToAdd : Effect
-
-            // Named
-            effectToAdd = if ("null" in card.toString())
-                Effect(sound=SoundBundle.NULL, card=R.drawable.card_null)
-            else if ("curse" in card.toString())
-                Effect(sound=SoundBundle.CURSE, card=R.drawable.card_curse)
-            else if ("bless" in card.toString())
-                Effect(sound=SoundBundle.BLESS, card=R.drawable.card_bless)
-
-
-            // Effects
-            else if (card.pierce > 0)
-                Effect(sound=SoundBundle.PIERCE, card=R.drawable.card_pierce)
-            else if ("+3" in card.toString() && card.muddle)
-                Effect(sound=SoundBundle.MUDDLE, card=R.drawable.card_plus3muddle)
-            else if (card.muddle)
-                Effect(sound=SoundBundle.MUDDLE, card=R.drawable.card_muddle)
-            else if (card.stun)
-                Effect(sound=SoundBundle.STUN, card=R.drawable.card_stun)
-            else if (card.extraTarget)
-                Effect(sound=SoundBundle.EXTRATARGET, card=R.drawable.card_extra_target)
-            else if (card.refresh)
-                Effect(sound=SoundBundle.REFRESH, card=R.drawable.card_refresh)
-            else if (card.healAlly > 0)
-                Effect(sound=SoundBundle.HEAL, card=R.drawable.card_plus1healally)
-            else if (card.shieldSelf > 0)
-                Effect(sound=SoundBundle.SHIELD, card=R.drawable.card_plus3shield)
-            else if (card.element == Element.DARK)
-                Effect(sound=SoundBundle.DARK, card=R.drawable.card_plus2dark)
-            else if (card.regenerate)
-                Effect(sound=SoundBundle.REGENERATE, card=R.drawable.card_plus2regenerate)
-            else if (card.curses)
-                Effect(sound=SoundBundle.CURSEADDED, card=R.drawable.card_plus2curse)
-
-            // Numbers
-            else if ("-2" in card.toString())
-                Effect(sound=SoundBundle.MINUS2, card=R.drawable.card_minus2)
-            else if (card.flippy && "-1" in card.toString())
-                Effect(sound=SoundBundle.MINUS1, card=R.drawable.card_minus1_flippy)
-            else if ("-1" in card.toString())
-                Effect(sound=SoundBundle.MINUS1, card=R.drawable.card_minus1)
-            else if ("+0" in card.toString())
-                Effect(sound=SoundBundle.DEFAULT, card=R.drawable.card_plus0)
-            else if (card.flippy && "+1" in card.toString())
-                Effect(sound=SoundBundle.PLUS1, card=R.drawable.card_plus1_flippy)
-            else if ("+1" in card.toString())
-                Effect(sound=SoundBundle.PLUS1, card=R.drawable.card_plus1)
-            else if ("+2" in card.toString())
-                Effect(sound=SoundBundle.PLUS2, card=R.drawable.card_plus2)
-            else// if ("x2" in card.toString())
-                Effect(sound=SoundBundle.X2, card=R.drawable.card_x2)
-
-            // Replace sound if it's in disadvantage
-            if (card.flippy && currentlyDoingDisadvantage) {
-                effectToAdd.sound = SoundBundle.DISADVANTAGE
-            }
-
-            // Add effect
-            effectQueue.add(effectToAdd)
-
-            // Move to bottom row if this is an end
-            // If there's only one row, it'll get reset before the next draw anyway
-            if (!card.flippy) {
-                effectQueue.add(Effect(selectBottomRow = true))
-            }
-
-            return card
-        }
-
-        override fun addToDrawPile(card: Card) {
-            super.addToDrawPile(card)
-            effectQueue.add(Effect(sound=SoundBundle.SHUFFLE))
-        }
-
-        override fun addMultipleToDrawPile(cards: Iterable<Card>) {
-            super.addMultipleToDrawPile(cards)
-            effectQueue.add(Effect(sound=SoundBundle.SHUFFLE))
-        }
-
-        override fun activeCardsToDiscardPile(userDirectlyRequested: Boolean) {
-            if (activeCards.size != 0) {
-                effectQueue.add(Effect(sound=SoundBundle.DISCARD))
-            }
-            super.activeCardsToDiscardPile(userDirectlyRequested)
-        }
-
-        override fun attack(basePower: Int, userDirectlyRequested: Boolean, nerf: Int) : Card {
-            currentlyDoingDisadvantage = false
-            effectQueue.add(Effect(selectTopRow = true, hideBottomRow = true, wipe=true))
-            return super.attack(basePower, userDirectlyRequested, nerf)
-        }
-
-        override fun advantage(basePower: Int, userDirectlyRequested: Boolean, nerf: Int) : Card {
-            currentlyDoingDisadvantage = false
-            effectQueue.add(Effect(selectTopRow = true, showBottomRow = true, wipe=true))
-            return super.advantage(basePower, userDirectlyRequested, nerf)
-        }
-
-        override fun disadvantage(basePower: Int, userDirectlyRequested: Boolean, nerf: Int) : Card {
-            currentlyDoingDisadvantage = true
-            effectQueue.add(Effect(selectTopRow = true, showBottomRow = true, wipe=true))
-            return super.disadvantage(basePower, userDirectlyRequested, nerf)
-        }
-    }
-
-//    inner class MainActivityInventory() : Inventory() {
-//        override fun regainItem(item: Item) {
-//            super.regainItem(item)
-//            displayChangedInventory()
-//        }
-//        override fun loseItem(item: Item) {
-//            super.loseItem(item)
-//            displayChangedInventory()
-//        }
-//        fun displayChangedInventory() {
-//            if (llItemRow.isVisible) {
-//                val newItemRowDisplay = mutableListOf<Boolean>()
-//                for (item in (controller.inventory!!.usableItems + controller.inventory!!.unusableItems).sortedBy { it.name }) {
-//                    newItemRowDisplay.add(item in controller.inventory!!.usableItems)
-//                }
-//                effectQueue.add(Effect(newItemRowDisplay = newItemRowDisplay))
-//            }
-//        }
-//    }
 
 //    inner class MainActivityPlayer(maxHp: Int) : Player(maxHp) {
 //        init {
@@ -310,7 +57,6 @@ class MainActivity : AppCompatActivity() {
 
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -327,11 +73,19 @@ class MainActivity : AppCompatActivity() {
         val btnManage = findViewById<Button>(R.id.btnManage)
 
         controller = Controller()
-        //Saver(controller, applicationContext.filesDir.canonicalPath)
+        Saver(controller, applicationContext.filesDir.canonicalPath)
         Inventory(controller)
         Deck(controller)
         Logger(controller)
-        //UndoManager(controller)
+        UndoManager(controller)
+
+        ActivityConnector(controller,
+            activity = this,
+            llBottomCardRow = findViewById(R.id.llBottomCardRow),
+            llTopCardRow = findViewById(R.id.llTopCardRow),
+            llItemRow = findViewById(R.id.llItemRow),
+            tvLog = findViewById(R.id.tvLog)
+        )
 
         runOnUiThread {
             val loadBuilder = AlertDialog.Builder(this@MainActivity)
@@ -360,22 +114,15 @@ class MainActivity : AppCompatActivity() {
 3 15,shield 1
 4 4
 vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutableList()
-                // Because the controller.deck!! has controller.player!! undos it needs to be made after
-                controller.deck = MainActivityDeck(controller)
             }
             loadBuilder.setTitle("Load?")
             loadBuilder.show()
         }
 
-        btnDiscard = findViewById<Button>(R.id.btnDiscard)
-        btnRedo = findViewById<Button>(R.id.btnRedo)
-        btnSpinny = findViewById<Button>(R.id.btnSpinny)
-        btnUndo = findViewById<Button>(R.id.btnUndo)
-        llBottomCardRow = findViewById<LinearLayout>(R.id.llBottomCardRow)
-        llTopCardRow = findViewById<LinearLayout>(R.id.llTopCardRow)
-        llItemRow = findViewById<LinearLayout>(R.id.llItemRow)
-        selectedCardRow = llTopCardRow
-        tvLog = findViewById<TextView>(R.id.tvLog)
+        btnDiscard = findViewById(R.id.btnDiscard)
+        btnRedo = findViewById(R.id.btnRedo)
+        btnSpinny = findViewById(R.id.btnSpinny)
+        btnUndo = findViewById(R.id.btnUndo)
 
         discardAnim = ObjectAnimator.ofInt(
             btnDiscard,
@@ -397,17 +144,16 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
             anim.repeatMode = ValueAnimator.REVERSE
         }
 
-            //Enemy("Dog 2 g")
         // Adding cards
         btnBless.setOnClickListener {
             buttonBehavior(btnBless) {
-                controller.deck!!?.bless(true)
+                controller.deck!!.bless(true)
             }
         }
 
         btnCurse.setOnClickListener {
             buttonBehavior(btnCurse) {
-                controller.deck!!?.curse(true)
+                controller.deck!!.curse(true)
             }
         }
 
@@ -420,7 +166,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                     run {
                         val dialogBuilder = AlertDialog.Builder(this)
                         if (controller.deck!! != null) {
-                            dialogBuilder.setMessage("Draw pile:\n${controller.deck!!!!.drawPile}\n\nActive cards:\n${controller.deck!!!!.activeCards}\n\nDiscard pile:\n${controller.deck!!!!.discardPile}")
+                            dialogBuilder.setMessage("Draw pile:\n${controller.deck!!.drawPile}\n\nActive cards:\n${controller.deck!!.activeCards}\n\nDiscard pile:\n${controller.deck!!.discardPile}")
                         }
                         val alert = dialogBuilder.create()
                         alert.setTitle("Cheat!")
@@ -457,22 +203,22 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
         // Attacks
         btnAttack.setOnClickListener {
             buttonBehavior(btnAttack) {
-                effectQueue.add(Effect(hideItemRow=true))
-                controller.deck!!?.attack(userDirectlyRequested = true)
+                controller.activityConnector?.effectQueue?.add(Effect(hideItemRow=true))
+                controller.deck!!.attack(userDirectlyRequested = true)
             }
         }
 
         btnAdvantage.setOnClickListener {
             buttonBehavior(btnAdvantage) {
-                effectQueue.add(Effect(hideItemRow=true))
-                controller.deck!!?.advantage(userDirectlyRequested = true)
+                controller.activityConnector?.effectQueue?.add(Effect(hideItemRow=true))
+                controller.deck!!.advantage(userDirectlyRequested = true)
             }
         }
 
         btnDisadvantage.setOnClickListener {
             buttonBehavior(btnDisadvantage) {
-                effectQueue.add(Effect(hideItemRow=true))
-                controller.deck!!?.disadvantage(userDirectlyRequested = true)
+                controller.activityConnector?.effectQueue?.add(Effect(hideItemRow=true))
+                controller.deck!!.disadvantage(userDirectlyRequested = true)
             }
         }
 
@@ -481,11 +227,9 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
 
             var i = 0
             dialogBuilder.setItems(arrayOf(
-                "Inventory (Currently ${controller.inventory!!.usableItems.size}/${controller.inventory!!.usableItems.size+controller.inventory!!.unusableItems.size})",
                 "Enemies",
                 "Enemy Order",
                 "Enemy Menu",
-                "HP (Currently ${controller.player!!.hp})",
                 "Power Potion Threshold (Currently ${controller.player!!.powerPotionThreshold})",
                 "HP Danger Threshold (Currently ${controller.player!!.hpDangerThreshold})",
                 "Pierce (Currently ${controller.player!!.pierce})",
@@ -494,37 +238,6 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                 "Go")
             ) { _, which ->
                 when (which) {
-                    // Inventory
-                    i++ -> {
-                        val alert = AlertDialog.Builder(this)
-                        alert.setTitle("New Usable Items?")
-                        val scrollView = ScrollView(this)
-                        val linearLayout = LinearLayout(this)
-                        scrollView.addView(linearLayout)
-                        linearLayout.orientation = LinearLayout.VERTICAL
-                        for (item in (controller.inventory!!.usableItems + controller.inventory!!.unusableItems).sortedBy { it.name }) {
-                            if (item.permanent) {
-                                continue
-                            }
-                            val checkBox = CheckBox(this)
-                            checkBox.setText(item.name)
-                            checkBox.isChecked = item in controller.inventory!!.usableItems
-                            checkBox.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                if (on) {
-                                    controller.inventory!!.regainItem(item)
-                                } else {
-                                    controller.inventory!!.loseItem(item)
-                                }
-                                controller.logger?.log("Updated items.")
-                                controller.undoManager?.addUndoPoint()
-                                endAction(btnPipis)
-                            }
-                            linearLayout.addView(checkBox)
-                        }
-                        alert.setView(scrollView)
-                        alert.setPositiveButton("Done") {_,_ ->}
-                        alert.show()
-                    }
                     // Enemies
                     i++ -> {
                         // This will eventually stack overflow if the user is sufficiently stupid but whatever lol
@@ -546,7 +259,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                                     title = e.message.toString()
                                 }
                                 showAlert()
-                                sortEnemies()
+                                controller.sortEnemies(enemyOrder)
                                 controller.logger?.log("Updated controller.enemies.")
                                 controller.undoManager?.addUndoPoint()
                                 endAction(btnPipis)
@@ -583,7 +296,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                                         showAlert()
                                     } else {
                                         controller.logger?.log("Updated enemy order.")
-                                        sortEnemies()
+                                        controller.sortEnemies(enemyOrder)
                                         controller.undoManager?.addUndoPoint()
                                         endAction(btnPipis)
                                     }
@@ -732,23 +445,6 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                         }
                         alert.show()
                     }
-                    // HP
-                    i++ -> {
-                        val alert = AlertDialog.Builder(this)
-                        alert.setTitle("New HP?")
-                        val input = EditText(this)
-                        input.inputType = InputType.TYPE_CLASS_NUMBER
-                        input.setRawInputType(Configuration.KEYBOARD_12KEY)
-                        input.setText(controller.player!!.hp.toString())
-                        alert.setView(input)
-                        alert.setPositiveButton("Set") { _, _ ->
-                            controller.player!!.hp = input.text.toString().toInt()
-                            controller.logger?.log("Updated HP.")
-                            controller.undoManager?.addUndoPoint()
-                            endAction(btnPipis)
-                        }
-                        alert.show()
-                    }
                     // Power Potion Threshold
                     i++ -> {
                         val alert = AlertDialog.Builder(this)
@@ -868,12 +564,11 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                     }
                     // Go
                     i++ -> {
-                        effectQueue.add(Effect(showItemRow=true))
-                        // PUT THIS BACK AAAAAA
-                        // (controller.inventory!! as MainActivityInventory).displayChangedInventory()
-                        effectSpeed = 1_000/4L
-                        controller.deck!!.pipis(controller.player!!, controller.enemies, this)
-                        effectSpeed = baseEffectSpeed
+                        controller.activityConnector?.effectQueue?.add(Effect(showItemRow=true))
+                        controller.inventory?.displayChangedInventory()
+                        controller.activityConnector?.effectSpeed = 1_000/4L
+                        controller.deck!!.pipis(controller.player!!, controller.enemies)
+                        controller.activityConnector?.effectSpeed = controller.activityConnector!!.baseEffectSpeed
                         simplifyTheGamestate()
                         endAction(btnPipis)
                     }
@@ -1031,7 +726,6 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                         }
                         npDings.setBackgroundColor(Color.BLUE)
                         llStatsContainer.addView(npDings)
-                        Log.d("EEEEEEEEEEEEEEEEEEEEEEE", tlStatusContainer.childCount.toString())
                     }
 
                     override fun onCreate(savedInstanceState: Bundle?) {
@@ -1099,7 +793,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
     fun startAction(button: Button) {
         controller.logger?.log("")
         controller.logger?.log("[${button.text.toString().uppercase()}]")
-        effectQueue.add(Effect(wipe = true))
+        controller.activityConnector?.effectQueue?.add(Effect(wipe = true))
     }
 
     fun endAction(button: Button) {
@@ -1118,7 +812,5 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
             1
         )
         btnRedo.isEnabled = controller.undoManager?.undosBack != 0
-        // Logs
-        tvLog.text = controller.logger?.getShownLogs()?.joinToString(separator="\n")
     }
 }

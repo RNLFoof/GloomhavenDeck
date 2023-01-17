@@ -27,7 +27,6 @@ class Logger(@Transient override var controller: Controller = Controller()): Con
     private val logCap = 100
 
     fun log(text: String) {
-        Log.d("Log", text)
         if (!logMuted) {
             // Override any "future" logs
             while (logsToHide > 0 && logList.size > 0) {
@@ -40,11 +39,12 @@ class Logger(@Transient override var controller: Controller = Controller()): Con
                 logList.removeFirst()
             }
             logCount += 1
+
+            controller.activityConnector?.tvLog?.text = getShownLogs().joinToString(separator="\n")
         }
     }
 
     fun getShownLogs(): MutableList<String> {
-        Log.d("undos", "Hiding $logsToHide logs. Final log is ${logList.last()}")
         return logList.subList(0, Integer.max(0, logList.size - logsToHide))
     }
 }

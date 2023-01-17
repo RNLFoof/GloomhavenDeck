@@ -1,11 +1,9 @@
 package com.example.gloomhavendeck
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import java.lang.Exception
 import java.lang.Integer.max
 import java.lang.Integer.min
 import kotlin.reflect.full.createType
@@ -87,9 +85,14 @@ open class Deck(@Transient final override var controller: Controller = Controlle
         controller.undoManager?.addUndoPoint()
     }
 
+    fun shuffle() {
+        drawPile.shuffle()
+        controller.activityConnector?.effectQueue?.add(Effect(sound=SoundBundle.SHUFFLE))
+    }
+
     open fun addToDrawPile(card: Card) {
         drawPile.add(card)
-        drawPile.shuffle()
+        shuffle()
         controller.logger?.log("Shuffled this card into the draw pile: $card")
     }
 
@@ -97,7 +100,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
         for (card in cards) {
             drawPile.add(card)
         }
-        drawPile.shuffle()
+        shuffle()
         controller.logger?.log("Shuffled these cards into the draw pile: $cards")
     }
 
@@ -126,7 +129,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
 
 
     // Moving cards
-    open fun drawSingleCard(forcedCard: Card? = null): Card {
+    open fun drawSingleCard(forcedCard: Card? = null, doingDisadvantage: Boolean = false): Card {
         if (drawPile.size == 0){
             controller.logger?.log("Out of cards, have to dominion it...")
             controller.logger?.let {it.logIndent += 1}
@@ -146,6 +149,10 @@ open class Deck(@Transient final override var controller: Controller = Controlle
             drawPile.removeFirst()
         }
         controller.logger?.log("Drew this card: $drewCard")
+
+        // Add effect
+        controller.activityConnector?.effectQueue?.add(drewCard.effect(doingDisadvantage = doingDisadvantage))
+
         return drewCard
     }
 
@@ -153,14 +160,9 @@ open class Deck(@Transient final override var controller: Controller = Controlle
         controller.logger?.log("Drawing a row of cards...")
         controller.logger?.let {it.logIndent += 1}
         val drawnRow = mutableListOf<Card>()
-        // Nerf
-        Log.d("haaaaaaaaaaaaa", "Nerf of $nerf")
-        for (i in 1..nerf) {
-            Log.d("haaaaaaaaaaaaa", "#$i")
-        }
+
         // Actual drawing
         var continueDrawing = true
-        Log.d("haaaaaaaaaaaaa", "Nerf of $nerf")
         var nerfsLeft = nerf
         while (continueDrawing) {
             val latestCard = if (nerfsLeft <= 0) {
@@ -179,24 +181,26 @@ open class Deck(@Transient final override var controller: Controller = Controlle
                 remainingCurses += 1
             }
         }
-        // log("Overall, drew this row of cards: $drawnRow")
         controller.logger?.let {it.logIndent -= 1}
-        Log.d("haaaaaaaaaaaaa", drawnRow.toString())
         return drawnRow
     }
 
     open fun activeCardsToDiscardPile(userDirectlyRequested: Boolean = false) {
-        discardPile.addAll(activeCards);
+        discardPile.addAll(activeCards)
         activeCards.clear()
         controller.logger?.log("Moved the active cards to the discard pile.")
-        if (userDirectlyRequested)
+        if (userDirectlyRequested) {
             controller.undoManager?.addUndoPoint()
+        }
+        if (activeCards.size != 0) {
+            controller.activityConnector?.effectQueue?.add(Effect(sound=SoundBundle.DISCARD))
+        }
     }
 
     fun discardPileToDrawPile(userDirectlyRequested: Boolean = false) {
         controller.logger?.log("Shuffling the discard pile into the draw pile...")
         controller.logger?.let {it.logIndent += 1}
-        addMultipleToDrawPile(discardPile);
+        addMultipleToDrawPile(discardPile)
         discardPile.clear()
         controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
@@ -205,6 +209,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
 
     open fun attack(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
         controller.logger?.let {it.logIndent += 1}
+        controller.activityConnector?.effectQueue?.add(Effect(selectTopRow = true, hideBottomRow = true, wipe=true))
         val drawnRow = drawRow(nerf = nerf)
         val baseCard = Card(basePower)
         drawnRow.add(0, baseCard)
@@ -212,15 +217,16 @@ open class Deck(@Transient final override var controller: Controller = Controlle
         if (basePower == 0 && drawnRow.any{it.multiplier && it.value == 2}) {
             controller.logger?.log("Can't infer the result without a base value, nerd.")
         } else {
-            controller.logger?.log("Effectively drew a ${combinedCard}");
+            controller.logger?.log("Effectively drew a ${combinedCard}")
         }
-        controller.logger?.let {it.logIndent -= 1};
+        controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
             controller.undoManager?.addUndoPoint()
         return combinedCard
     }
 
     open fun advantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
+        controller.activityConnector?.effectQueue?.add(Effect(selectTopRow = true, hideBottomRow = false, wipe=true))
         controller.logger?.let {it.logIndent += 1}
         val drawnRow1 = drawRow(nerf = nerf)
         val drawnRow2 = drawRow(nerf = nerf)
@@ -246,9 +252,9 @@ open class Deck(@Transient final override var controller: Controller = Controlle
                 ).sum()
 
         if (basePower == 0 && (drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
-            controller.logger?.log("Can't infer the result without a base value, nerd.");
+            controller.logger?.log("Can't infer the result without a base value, nerd.")
         } else {
-            controller.logger?.log("Effectively drew a ${combinedCard}");
+            controller.logger?.log("Effectively drew a ${combinedCard}")
         }
         controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
@@ -257,6 +263,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
     }
 
     open fun disadvantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
+        controller.activityConnector?.effectQueue?.add(Effect(selectTopRow = true, hideBottomRow = false, wipe=true))
         controller.logger?.let {it.logIndent += 1}
         val drawnRow1 = drawRow(nerf = nerf)
         val drawnRow2 = drawRow(nerf = nerf)
@@ -271,17 +278,17 @@ open class Deck(@Transient final override var controller: Controller = Controlle
         }
 
         if (basePower == 0 && (drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
-            controller.logger?.log("Can't infer the result without a base value, nerd.");
+            controller.logger?.log("Can't infer the result without a base value, nerd.")
         } else {
             controller.logger?.log("Effectively drew a $loser")
         }
-        controller.logger?.let {it.logIndent -= 1};
+        controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
             controller.undoManager?.addUndoPoint()
         return combinedCard
     }
 
-    fun pipis(player : Player, enemies : Iterable<Enemy>, mainactivity: MainActivity? = null) {
+    fun pipis(player : Player, enemies : Iterable<Enemy>) {
         if (controller.inventory == null) {
             throw Exception("Can't pipis without an inventory")
         }
@@ -435,8 +442,8 @@ open class Deck(@Transient final override var controller: Controller = Controlle
                 controller.logger?.log("Hit ${enemy.name} with $combinedCard${if (enemy.dead) ", dies!" else ""}")
                 if (combinedCard.refresh) {
                     controller.inventory!!.recover()
-                    if (mainactivity!=null) {
-                        mainactivity.effectSpeed = mainactivity.effectSpeed*7/10
+                    if (controller.activityConnector != null) {
+                        controller.activityConnector!!.effectSpeed = controller.activityConnector!!.effectSpeed*7/10
                     }
                 }
                 if (combinedCard.extraTarget) {

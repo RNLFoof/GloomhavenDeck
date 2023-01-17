@@ -1,12 +1,14 @@
 package com.example.gloomhavendeck
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Card(
     var value: Int = 0,
     var multiplier: Boolean = false,
-    var nullOrCurse: Boolean = false, // Would be null but that's reserved
+    var nullOrCurse: Boolean = false,
     var flippy: Boolean = false,
     var spinny: Boolean = false,
     var lose: Boolean = false,
@@ -21,7 +23,74 @@ data class Card(
     val regenerate: Boolean = false,
     val curses: Boolean = false,
 ) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun effect(doingDisadvantage: Boolean = false): Effect {
+        val effectToAdd : Effect
 
+        // Named
+        effectToAdd = if ("null" in toString())
+            Effect(sound=SoundBundle.NULL, card=R.drawable.card_null)
+        else if ("curse" in toString())
+            Effect(sound=SoundBundle.CURSE, card=R.drawable.card_curse)
+        else if ("bless" in toString())
+            Effect(sound=SoundBundle.BLESS, card=R.drawable.card_bless)
+
+
+        // Effects
+        else if (pierce > 0)
+            Effect(sound=SoundBundle.PIERCE, card=R.drawable.card_pierce)
+        else if ("+3" in toString() && muddle)
+            Effect(sound=SoundBundle.MUDDLE, card=R.drawable.card_plus3muddle)
+        else if (muddle)
+            Effect(sound=SoundBundle.MUDDLE, card=R.drawable.card_muddle)
+        else if (stun)
+            Effect(sound=SoundBundle.STUN, card=R.drawable.card_stun)
+        else if (extraTarget)
+            Effect(sound=SoundBundle.EXTRATARGET, card=R.drawable.card_extra_target)
+        else if (refresh)
+            Effect(sound=SoundBundle.REFRESH, card=R.drawable.card_refresh)
+        else if (healAlly > 0)
+            Effect(sound=SoundBundle.HEAL, card=R.drawable.card_plus1healally)
+        else if (shieldSelf > 0)
+            Effect(sound=SoundBundle.SHIELD, card=R.drawable.card_plus3shield)
+        else if (element == Element.DARK)
+            Effect(sound=SoundBundle.DARK, card=R.drawable.card_plus2dark)
+        else if (regenerate)
+            Effect(sound=SoundBundle.REGENERATE, card=R.drawable.card_plus2regenerate)
+        else if (curses)
+            Effect(sound=SoundBundle.CURSEADDED, card=R.drawable.card_plus2curse)
+
+        // Numbers
+        else if ("-2" in toString())
+            Effect(sound=SoundBundle.MINUS2, card=R.drawable.card_minus2)
+        else if (flippy && "-1" in toString())
+            Effect(sound=SoundBundle.MINUS1, card=R.drawable.card_minus1_flippy)
+        else if ("-1" in toString())
+            Effect(sound=SoundBundle.MINUS1, card=R.drawable.card_minus1)
+        else if ("+0" in toString())
+            Effect(sound=SoundBundle.DEFAULT, card=R.drawable.card_plus0)
+        else if (flippy && "+1" in toString())
+            Effect(sound=SoundBundle.PLUS1, card=R.drawable.card_plus1_flippy)
+        else if ("+1" in toString())
+            Effect(sound=SoundBundle.PLUS1, card=R.drawable.card_plus1)
+        else if ("+2" in toString())
+            Effect(sound=SoundBundle.PLUS2, card=R.drawable.card_plus2)
+        else// if ("x2" in toString())
+            Effect(sound=SoundBundle.X2, card=R.drawable.card_x2)
+
+        // Replace sound if it's in disadvantage
+        if (flippy && doingDisadvantage) {
+            effectToAdd.sound = SoundBundle.DISADVANTAGE
+        }
+
+        // Move to bottom row if this is an end
+        // If there's only one row, it'll get reset before the next draw anyway
+        if (!flippy) {
+            effectToAdd.selectBottomRow = true
+        }
+
+        return effectToAdd
+    }
 
     override fun toString(): String {
         Card(healAlly = 2) + Card(healAlly = 2)
@@ -105,11 +174,11 @@ data class Card(
 
 fun List<Card>.sum(): Card {
     if (this.size == 1) {
-        return this[0];
+        return this[0]
     }
-    var retCard = this[0];
+    var retCard = this[0]
     for (card in this.subList(1, this.size)) {
-        retCard += card;
+        retCard += card
     }
-    return retCard;
+    return retCard
 }

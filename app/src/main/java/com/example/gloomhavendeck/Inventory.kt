@@ -1,6 +1,7 @@
 package com.example.gloomhavendeck
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.core.view.isVisible
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
@@ -60,6 +61,7 @@ class Inventory(@Transient override var controller: Controller = Controller()): 
             throw Exception("Don't have a $item in usable or active!")
         }
         unusableItems.add(item)
+        displayChangedInventory()
     }
 
     fun activateItem(item: Item) {
@@ -68,6 +70,7 @@ class Inventory(@Transient override var controller: Controller = Controller()): 
         }
         usableItems.remove(item)
         activeItems.add(item)
+        displayChangedInventory()
     }
 
     fun regainItem(item: Item) {
@@ -76,6 +79,7 @@ class Inventory(@Transient override var controller: Controller = Controller()): 
         }
         unusableItems.remove(item)
         usableItems.add(item)
+        displayChangedInventory()
     }
 
     fun useItem(item: Item, fullAutoBehavior: Boolean) {
@@ -89,6 +93,7 @@ class Inventory(@Transient override var controller: Controller = Controller()): 
         else {
             loseItem(item)
         }
+        displayChangedInventory()
     }
 
     fun deactivateItem(item: Item, fullAutoBehavior: Boolean) {
@@ -97,6 +102,7 @@ class Inventory(@Transient override var controller: Controller = Controller()): 
         }
         item.getDeactivated(controller, fullAutoBehavior)
         loseItem(item)
+        displayChangedInventory()
     }
 
     // Analyze
@@ -278,5 +284,17 @@ class Inventory(@Transient override var controller: Controller = Controller()): 
             itemsConsumed.add(roomMakingItem)
         }
         return itemsConsumed
+    }
+
+    fun displayChangedInventory() {
+        controller.activityConnector?.let {
+            if (it.llItemRow.isVisible) {
+                val newItemRowDisplay = mutableListOf<Boolean>()
+                for (item in (controller.inventory!!.usableItems + controller.inventory!!.unusableItems).sortedBy { it.name }) {
+                    newItemRowDisplay.add(item in controller.inventory!!.usableItems)
+                }
+                it.effectQueue.add(Effect(newItemRowDisplay = newItemRowDisplay))
+            }
+        }
     }
 }

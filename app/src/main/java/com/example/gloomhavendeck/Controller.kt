@@ -25,6 +25,8 @@ open class Controller(
     var deck: Deck? = null
     var enemies: MutableList<Enemy> = mutableListOf()
 
+    @Transient var activityConnector: ActivityConnector? = null
+
     companion object {
         fun newFullyStocked(): Controller {
             // Only for testing, really
@@ -39,5 +41,18 @@ open class Controller(
 
             return controller
         }
+    }
+
+    fun sortEnemies(enemyOrder: List<String>) {
+        val nameRegex = Regex("[a-z]+", RegexOption.IGNORE_CASE)
+        enemies = enemies.sortedBy { it.name }.toMutableList()
+        enemies = enemies.sortedBy {
+            val name = nameRegex.find(it.name)!!.value
+            if (name in enemyOrder) {
+                enemyOrder.indexOf(name)
+            } else {
+                -1
+            }
+        }.toMutableList()
     }
 }

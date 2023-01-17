@@ -6,6 +6,7 @@ import com.example.gloomhavendeck.meta.Logger
 import com.example.gloomhavendeck.meta.Saver
 import com.example.gloomhavendeck.meta.UndoManager
 import com.example.gloomhavendeck.meta.UndoPoint
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.Assert
@@ -33,6 +34,14 @@ internal class UndoManagerTest {
             Json.encodeToString(o)
         }
         Json.encodeToString(Controller.newFullyStocked())
+    }
+
+    @Test
+    fun encodeDecodeController() {
+        val fullyStockedController = Controller.newFullyStocked()
+        val encoded = Json.encodeToString(fullyStockedController)
+        val decoded: Controller = Json.decodeFromString( encoded )
+        Assert.assertEquals(encoded, Json.encodeToString(decoded))
     }
 
     @Before
