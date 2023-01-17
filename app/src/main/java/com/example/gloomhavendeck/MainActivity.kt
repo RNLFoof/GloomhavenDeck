@@ -790,7 +790,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
             function()
         } catch (e: Exception) {
             val dialogBuilder = AlertDialog.Builder(this)
-            dialogBuilder.setMessage(e.message)
+            dialogBuilder.setMessage(e.stackTraceToString())
             dialogBuilder.setPositiveButton("Ignore") {_,_ ->}
             dialogBuilder.setNegativeButton("Crash the app lmao") {_,_ -> throw e}
             val alert = dialogBuilder.create()
