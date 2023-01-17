@@ -6,6 +6,8 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import com.example.gloomhavendeck.*
+import java.io.File
+import java.nio.file.Paths
 import java.util.*
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.full.memberProperties
@@ -52,5 +54,19 @@ open class Crap() {
                 }
             }
         }
+
+
+        fun getResourceAsText(path: String): String {
+            var output = {}.javaClass.getResource(path)?.readText()
+            if (output == null) {
+                val file = File("src/main/" + path)
+                println(file.name)
+                println(file.absoluteFile)
+                output = file.readText()
+            }
+            return output
+        }
+
+
     }
 }
