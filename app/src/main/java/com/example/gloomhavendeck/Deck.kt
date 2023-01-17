@@ -227,7 +227,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
     }
 
     open fun advantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
-        controller.activityConnector?.effectQueue?.add(Effect(controller, selectTopRow = true, hideBottomRow = false, wipe=true))
+        controller.activityConnector?.effectQueue?.add(Effect(controller, selectTopRow = true, showBottomRow = true, wipe=true))
         controller.logger?.let {it.logIndent += 1}
         val drawnRow1 = drawRow(nerf = nerf)
         val drawnRow2 = drawRow(nerf = nerf)
@@ -264,7 +264,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
     }
 
     open fun disadvantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
-        controller.activityConnector?.effectQueue?.add(Effect(controller, selectTopRow = true, hideBottomRow = false, wipe=true))
+        controller.activityConnector?.effectQueue?.add(Effect(controller, selectTopRow = true, showBottomRow = true, wipe=true))
         controller.logger?.let {it.logIndent += 1}
         val drawnRow1 = drawRow(nerf = nerf)
         val drawnRow2 = drawRow(nerf = nerf)
