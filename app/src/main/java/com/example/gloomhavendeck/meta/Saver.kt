@@ -28,7 +28,9 @@ class Saver(@Transient override var controller: Controller = Controller(destroyT
     }
 
     inline fun <reified T>loadJsonFrom(location: String): T {
-        return Json.decodeFromString(File(location).readText())
+        return Controller.doWithoutDestroyingTheUniverse<T> {
+            return@doWithoutDestroyingTheUniverse Json.decodeFromString(File(location).readText())
+        }
     }
 
     fun updateControllerFrom(location: String) {

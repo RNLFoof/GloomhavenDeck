@@ -16,11 +16,13 @@ class UndoPoint(@Transient override var controller: Controller = Controller(dest
     private var heldStateJson = Json.encodeToString(controller)
 
     fun use() {
-        val heldState: Controller = Json.decodeFromString(heldStateJson)
-        if (controller.logger != null && heldState.logger != null) {
-            controller.logger!!.logsToHide =
-                controller.logger!!.logsToHide + heldState.logger!!.logsToHide
+        Controller.doWithoutDestroyingTheUniverse {
+            val heldState: Controller = Json.decodeFromString(heldStateJson)
+            if (controller.logger != null && heldState.logger != null) {
+                controller.logger!!.logsToHide =
+                    controller.logger!!.logsToHide + heldState.logger!!.logsToHide
+            }
+            Crap.fieldsFromInto(heldState, controller)
         }
-        Crap.fieldsFromInto(heldState, controller)
     }
 }

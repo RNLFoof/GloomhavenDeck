@@ -56,18 +56,19 @@ open class Controller(var destroyTheUniverseUponInitiation: Boolean = false
 
     var enemies: MutableList<Enemy> = mutableListOf()
 
-    @Transient var activityConnector: ActivityConnector? = null
     init {
         // This is true on all the default of all the controlables.
         // It needs a default value, because it's transient, so it doesn't loop forever when saving
         // But those defaults shouldn't ever actually be used
         // Unless it's just to immediately replace
-        if (destroyTheUniverseUponInitiation) {
+        if (destroyTheUniverseUponInitiation and !suppressUniverseDestruction) {
             throw destroyTheUniverseUponInitiationException()
         }
     }
 
     companion object {
+        var suppressUniverseDestruction = false
+
         fun newFullyStocked(): Controller {
             // Only for testing, really
             val controller = Controller()
@@ -80,6 +81,28 @@ open class Controller(var destroyTheUniverseUponInitiation: Boolean = false
             controller.enemies.add(Enemy("dog 300 300"))
 
             return controller
+        }
+
+        fun doWithoutDestroyingTheUniverse(function: () -> Unit) {
+            // dw I think this method of doing it is stupid too
+            // I worry about thread safety but the point of universe destruction is just to prevent
+            // me from coding something dumb so it should be fine
+            // This will, most of the time, warn me of a bug, which is what it needs to do
+            suppressUniverseDestruction = true
+            val output = function()
+            suppressUniverseDestruction = false
+            return output
+        }
+
+        inline fun <reified T>doWithoutDestroyingTheUniverse(function: () -> T): T {
+            // dw I think this method of doing it is stupid too
+            // I worry about thread safety but the point of universe destruction is just to prevent
+            // me from coding something dumb so it should be fine
+            // This will, most of the time, warn me of a bug, which is what it needs to do
+            suppressUniverseDestruction = true
+            val output = function()
+            suppressUniverseDestruction = false
+            return output
         }
     }
 
