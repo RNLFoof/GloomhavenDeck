@@ -19,7 +19,7 @@ internal class PlayerTest {
                         player.statusDict[Status.POISON] = if (poisoned) 2 else 0
                         player.statusDict[Status.WOUND] = if (wounded) 2 else 0
 
-                        player.heal(amount)
+                        player.heal(amount, false)
 
                         Assert.assertFalse(player.statuses.contains(Status.WOUND))
                         Assert.assertFalse(player.statuses.contains(Status.POISON))

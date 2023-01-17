@@ -30,18 +30,22 @@ internal class UndoManagerTest {
 
     @Test
     fun encodeEach() {
-        for (o in allControllables()) {
-            Json.encodeToString(o)
+        Controller.doWithoutDestroyingTheUniverse {
+            for (o in allControllables()) {
+                Json.encodeToString(o)
+            }
+            Json.encodeToString(Controller.newFullyStocked())
         }
-        Json.encodeToString(Controller.newFullyStocked())
     }
 
     @Test
     fun encodeDecodeController() {
-        val fullyStockedController = Controller.newFullyStocked()
-        val encoded = Json.encodeToString(fullyStockedController)
-        val decoded: Controller = Json.decodeFromString( encoded )
-        Assert.assertEquals(encoded, Json.encodeToString(decoded))
+        Controller.doWithoutDestroyingTheUniverse {
+            val fullyStockedController = Controller.newFullyStocked()
+            val encoded = Json.encodeToString(fullyStockedController)
+            val decoded: Controller = Json.decodeFromString( encoded )
+            Assert.assertEquals(encoded, Json.encodeToString(decoded))
+        }
     }
 
     @Before
