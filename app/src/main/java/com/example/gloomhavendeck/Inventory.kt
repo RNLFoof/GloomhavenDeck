@@ -83,6 +83,10 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
     }
 
     fun useItem(item: Item, fullAutoBehavior: Boolean) {
+        controller.activityConnector?.effectQueue?.add(Effect(controller, card = item.graphic, sound = item.sound, selectTopRow = true))
+        controller.logger?.log("Using a $item...")
+        controller.logger?.let {it.logIndent += 1}
+
         if (!usableItems.contains(item)) {
             throw Exception("You don't HAVE a $item, dumbass")
         }
@@ -94,15 +98,23 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
             loseItem(item)
         }
         displayChangedInventory()
+
+        controller.logger?.let {it.logIndent -= 1}
     }
 
     fun deactivateItem(item: Item, fullAutoBehavior: Boolean) {
+        controller.activityConnector?.effectQueue?.add(Effect(controller, card = item.graphic, sound = item.sound, selectTopRow = true))
+        controller.logger?.log("Deactivating $item...")
+        controller.logger?.let {it.logIndent += 1}
+
         if (!activeItems.contains(item)) {
             throw Exception("You don't HAVE an active $item, dumbass")
         }
         item.getDeactivated(controller, fullAutoBehavior)
         loseItem(item)
         displayChangedInventory()
+
+        controller.logger?.let {it.logIndent -= 1}
     }
 
     // Analyze

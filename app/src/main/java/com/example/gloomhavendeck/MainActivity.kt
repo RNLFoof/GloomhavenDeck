@@ -36,26 +36,6 @@ class MainActivity : AppCompatActivity() {
     lateinit var discardAnim: ObjectAnimator
     lateinit var spinnyAnim: ObjectAnimator
 
-//    inner class MainActivityPlayer(maxHp: Int) : Player(maxHp) {
-//        init {
-//            inventory = MainActivityInventory()
-//        }
-//        override fun useItem(item: Item, deck: Deck, viaPipis: Boolean) {
-//            effectQueue.add(Effect(card = item.graphic, sound = item.sound, selectTopRow = true))
-//            controller.logger?.log("Using a $item...")
-//            controller.logIndent += 1
-//            super.useItem(item, controller.deck!!, viaPipis)
-//            controller.logIndent -= 1
-//        }
-//        override fun deactivateItem(item: Item, deck: Deck, viaPipis: Boolean) {
-//            effectQueue.add(Effect(sound = item.deactivationSound))
-//            controller.logger?.log("Deactivating $item...")
-//            controller.logIndent += 1
-//            super.deactivateItem(item, controller.deck!!, viaPipis)
-//            controller.logIndent -= 1
-//        }
-//    }
-
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
