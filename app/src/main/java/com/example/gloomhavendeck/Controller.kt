@@ -17,12 +17,43 @@ import java.util.concurrent.Callable
 @Serializable
 open class Controller(var destroyTheUniverseUponInitiation: Boolean = false
 ) {
+    // I wonder if there's a way to do all these setters in a way that isn't ugly and redundant
     var saver: Saver? = null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
     var logger: Logger? = null
-    var undoManager: UndoManager?= null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
     var player: Player? = null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
     var inventory: Inventory? = null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
     var deck: Deck? = null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
+    @Transient var undoManager: UndoManager?= null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
+    @Transient var activityConnector: ActivityConnector? = null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
+
     var enemies: MutableList<Enemy> = mutableListOf()
 
     @Transient var activityConnector: ActivityConnector? = null
