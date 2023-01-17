@@ -1,7 +1,10 @@
 package com.example.gloomhavendeck.meta
 
+import android.app.Activity
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import com.example.gloomhavendeck.*
 import java.util.*
 import kotlin.reflect.KMutableProperty
@@ -13,7 +16,9 @@ open class Crap() {
         inline fun <reified T> fieldsFromInto(from: T, to: T) where T : Any {
             for (property in T::class.memberProperties) {
                 if (property is KMutableProperty<*>) {
-                    property.setter.call(to, property.get(from))
+                    if (property.get(from) != null) {
+                        property.setter.call(to, property.get(from))
+                    }
                 }
             }
         }
@@ -30,6 +35,22 @@ open class Crap() {
                 UndoManager(),
                 UndoPoint()
             )
+        }
+
+        fun crashProtector(activity: Activity, function: () -> Unit = {}) {
+            try {
+                function()
+            } catch (e: Exception) {
+                activity.runOnUiThread {
+                    val dialogBuilder = AlertDialog.Builder(activity)
+                    dialogBuilder.setMessage(e.stackTraceToString())
+                    dialogBuilder.setPositiveButton("Ignore") {_,_ ->}
+                    dialogBuilder.setNegativeButton("Crash the app lmao") {_,_ -> throw e}
+                    val alert = dialogBuilder.create()
+                    alert.setTitle("OW?")
+                    alert.show()
+                }
+            }
         }
     }
 }

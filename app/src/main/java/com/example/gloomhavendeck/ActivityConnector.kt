@@ -5,6 +5,7 @@ import android.os.Build
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.annotation.RequiresApi
+import com.example.gloomhavendeck.meta.Crap
 import java.util.*
 import kotlinx.serialization.Transient
 
@@ -30,15 +31,17 @@ class ActivityConnector(
     init {
         val effectLoop = Thread {
             while (true) {
-                if (effectQueue.size > 0) {
-                    val effect = effectQueue.remove()
-                    effect.run()
-                    if (effect.sound != null) {
-                        Thread.sleep(effect.speed)
+                Crap.crashProtector(activity) {
+                    if (effectQueue.size > 0) {
+                        val effect = effectQueue.remove()
+                        effect.run()
+                        if (effect.sound != null) {
+                            Thread.sleep(effect.speed)
+                        }
                     }
-                }
-                else {
-                    Thread.sleep(1_000/3)
+                    else {
+                        Thread.sleep(1_000/3)
+                    }
                 }
             }
         }
