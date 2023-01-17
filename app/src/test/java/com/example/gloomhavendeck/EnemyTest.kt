@@ -36,6 +36,21 @@ internal class EnemyTest {
         Assert.assertTrue(ashblade.attackersGainDisadvantage)
     }
 
+    @Test
+    fun teamsOfThisGuy() {
+        val thisGuy = Enemy.createOne("verm sc: 1", 7)
+        var finalN = -1
+        val teamSizes = mutableSetOf<Int>()
+        val dudeExponent = 4
+        val dudeMultiplier = 4
+        for ((n, team) in Enemy.teamsOfThisGuy(thisGuy, dudeExponent).withIndex()) {
+            finalN = n
+            teamSizes.add(team.count())
+        }
+        Assert.assertEquals(256, finalN + 1) // +1 because index vs size
+        Assert.assertEquals(setOf(0*dudeMultiplier, 1*dudeMultiplier, 2*dudeMultiplier, 3*dudeMultiplier, 4*dudeMultiplier), teamSizes)
+    }
+
     @Before
     fun setUp() {
     }

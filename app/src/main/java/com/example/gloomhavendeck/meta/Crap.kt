@@ -60,8 +60,6 @@ open class Crap() {
             var output = {}.javaClass.getResource(path)?.readText()
             if (output == null) {
                 val file = File("src/main/" + path)
-                println(file.name)
-                println(file.absoluteFile)
                 output = file.readText()
             }
             return output

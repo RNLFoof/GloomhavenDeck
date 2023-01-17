@@ -115,6 +115,9 @@ data class Enemy(var creationString: String) {
             val retaliateRegex = Regex("Retaliate (\\d+)")
 
             for (line in block.split("\n")) {
+                if (line.strip().isEmpty()) {
+                    continue
+                }
                 // Does this line contain a DB shorthand?
                 val fromJsonMatch = fromJsonRegex.find(line)
                 if (fromJsonMatch != null) {
@@ -189,15 +192,17 @@ data class Enemy(var creationString: String) {
             // instead of
             // "Dog 1\nDog 2\nDog 3"
             val nameRegex = Regex("^[a-zA-Z]+")
-            var previousName = nameRegex.find(jsonExpandedBlock)!!.value
-            for (line in jsonExpandedBlock.split("\n")) {
-                val currentName = nameRegex.find(line)
-                if (currentName == null) {
-                    yield(Enemy(previousName + line))
-                }
-                else {
-                    previousName = currentName.value
-                    yield(Enemy(line))
+            var previousNameMatch = nameRegex.find(jsonExpandedBlock)
+            if (previousNameMatch != null) {
+                var previousName = previousNameMatch.value
+                for (line in jsonExpandedBlock.split("\n")) {
+                    val currentName = nameRegex.find(line)
+                    if (currentName == null) {
+                        yield(Enemy(previousName + line))
+                    } else {
+                        previousName = currentName.value
+                        yield(Enemy(line))
+                    }
                 }
             }
         }
@@ -223,6 +228,36 @@ data class Enemy(var creationString: String) {
             }
 
             return createMany(template, 7)
+        }
+
+        fun teamsOfThisGuy(enemy: Enemy, dudeExponent: Int = 4, dudeMultiplier: Int = 4) = sequence {
+            // This number, in binary, has maxEnemies*2 digits
+            // Which we want because each enemy can be in one of four states(max hp, 1 hp, dead, removed)
+            // This is exponential so don't be stupid
+            // val states = 2.toDouble().pow(maxClones*2-1).toInt()
+            val states = 4f.pow(dudeExponent).toInt()
+            for (code in 0 until states) { // Last state is skipped because it has an extra digit. 10000 or whatever
+                val codeString = code.toString(4).padStart(dudeExponent, '0')
+                println(codeString)
+                var template = ""
+                for (n in codeString) {
+                    template += (
+                        if (n == '0') {
+                            "${enemy.name} ${enemy.maxHp} 0"
+                        }
+                        else if (n == '1') {
+                            "${enemy.name} ${enemy.maxHp} ${enemy.maxHp-1}"
+                        }
+                        else if (n == '2') {
+                            "${enemy.name} ${enemy.maxHp} ${enemy.maxHp}"
+                        }
+                        else {
+                            ""
+                        }
+                    ) + "\n"
+                }
+                yield(createMany(template.repeat(dudeMultiplier), 7))
+            }
         }
     }
 
