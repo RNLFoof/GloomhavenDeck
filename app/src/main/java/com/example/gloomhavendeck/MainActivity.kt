@@ -159,45 +159,53 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
 
         // Viewing cards
         btnCheat.setOnClickListener {
-            val dialogBuilder = AlertDialog.Builder(this)
+            buttonBehavior(btnCheat) {
+                val dialogBuilder = AlertDialog.Builder(this)
 
-            dialogBuilder.setMessage("Are you sure you want to view all card states?")
-                .setPositiveButton("Yeah lol") { _, _ ->
-                    run {
-                        val innerDialogBuilder = AlertDialog.Builder(this)
-                        if (controller.deck != null) {
-                            innerDialogBuilder.setMessage("Draw pile:\n${controller.deck!!.drawPile}\n\nActive cards:\n${controller.deck!!.activeCards}\n\nDiscard pile:\n${controller.deck!!.discardPile}")
+                dialogBuilder.setMessage("Are you sure you want to view all card states?")
+                    .setPositiveButton("Yeah lol") { _, _ ->
+                        run {
+                            val innerDialogBuilder = AlertDialog.Builder(this)
+                            if (controller.deck != null) {
+                                innerDialogBuilder.setMessage("Draw pile:\n${controller.deck!!.drawPile}\n\nActive cards:\n${controller.deck!!.activeCards}\n\nDiscard pile:\n${controller.deck!!.discardPile}")
+                            }
+                            val alert = innerDialogBuilder.create()
+                            alert.setTitle("Cheat!")
+                            alert.show()
                         }
-                        val alert = innerDialogBuilder.create()
-                        alert.setTitle("Cheat!")
-                        alert.show()
                     }
-                }
 
-            val alert = dialogBuilder.create()
-            alert.setTitle("Cheat?")
-            alert.show()
+                val alert = dialogBuilder.create()
+                alert.setTitle("Cheat?")
+                alert.show()
+            }
         }
 
         btnViewCards.setOnClickListener {
-            val dialogBuilder = AlertDialog.Builder(this)
-            if (controller.deck != null) {
-                dialogBuilder.setMessage("Active cards:\n${controller.deck!!.activeCards}\n\nDiscard pile:\n${controller.deck!!.discardPile}")
+            buttonBehavior(btnViewCards) {
+                val dialogBuilder = AlertDialog.Builder(this)
+                if (controller.deck != null) {
+                    dialogBuilder.setMessage("Active cards:\n${controller.deck!!.activeCards}\n\nDiscard pile:\n${controller.deck!!.discardPile}")
+                }
+                val alert = dialogBuilder.create()
+                alert.setTitle("Cards")
+                alert.show()
             }
-            val alert = dialogBuilder.create()
-            alert.setTitle("Cards")
-            alert.show()
         }
 
         // Undos
         btnUndo.setOnClickListener {
-            controller.undoManager?.Undo()
-            endAction(btnUndo)
+            buttonBehavior(btnUndo) {
+                controller.undoManager?.Undo()
+                endAction(btnUndo)
+            }
         }
 
         btnRedo.setOnClickListener {
-            controller.undoManager?.Redo()
-            endAction(btnRedo)
+            buttonBehavior(btnRedo) {
+                controller.undoManager?.Redo()
+                endAction(btnRedo)
+            }
         }
 
         // Attacks
@@ -223,361 +231,363 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
         }
 
         btnPipis.setOnClickListener {
-            val dialogBuilder = AlertDialog.Builder(this)
+            buttonBehavior(btnPipis) {
+                val dialogBuilder = AlertDialog.Builder(this)
 
-            var i = 0
-            dialogBuilder.setItems(arrayOf(
-                "Enemies",
-                "Enemy Order",
-                "Enemy Menu",
-                "Power Potion Threshold (Currently ${controller.player!!.powerPotionThreshold})",
-                "HP Danger Threshold (Currently ${controller.player!!.hpDangerThreshold})",
-                "Pierce (Currently ${controller.player!!.pierce})",
-                "Scenario Level (Currently ${controller.player!!.scenarioLevel})",
-                "Discard Status (Currently ${controller.player!!.discardedCards})",
-                "Go")
-            ) { _, which ->
-                when (which) {
-                    // Enemies
-                    i++ -> {
-                        // This will eventually stack overflow if the user is sufficiently stupid but whatever lol
-                        var text = controller.enemies.joinToString(separator = "\n") { it.toString() }
-                        var title = "New controller.enemies?"
-                        fun showAlert() {
-                            val alert = AlertDialog.Builder(this)
-                            alert.setTitle(title)
-                            val input = EditText(this)
-                            input.setText(text)
-                            alert.setView(input)
-                            alert.setPositiveButton("Set") { _, _ ->
-                                try {
-                                    text = input.text.toString()
-                                    controller.enemies = Enemy.createMany(text, controller.player!!.scenarioLevel).toMutableList()
-                                    text = controller.enemies.joinToString(separator = "\n") { it.toString() }
-                                    title = "Result:"
-                                } catch (e: Exception) {
-                                    title = e.message.toString()
+                var i = 0
+                dialogBuilder.setItems(arrayOf(
+                    "Enemies",
+                    "Enemy Order",
+                    "Enemy Menu",
+                    "Power Potion Threshold (Currently ${controller.player!!.powerPotionThreshold})",
+                    "HP Danger Threshold (Currently ${controller.player!!.hpDangerThreshold})",
+                    "Pierce (Currently ${controller.player!!.pierce})",
+                    "Scenario Level (Currently ${controller.player!!.scenarioLevel})",
+                    "Discard Status (Currently ${controller.player!!.discardedCards})",
+                    "Go")
+                ) { _, which ->
+                    when (which) {
+                        // Enemies
+                        i++ -> {
+                            // This will eventually stack overflow if the user is sufficiently stupid but whatever lol
+                            var text = controller.enemies.joinToString(separator = "\n") { it.toString() }
+                            var title = "New controller.enemies?"
+                            fun showAlert() {
+                                val alert = AlertDialog.Builder(this)
+                                alert.setTitle(title)
+                                val input = EditText(this)
+                                input.setText(text)
+                                alert.setView(input)
+                                alert.setPositiveButton("Set") { _, _ ->
+                                    try {
+                                        text = input.text.toString()
+                                        controller.enemies = Enemy.createMany(text, controller.player!!.scenarioLevel).toMutableList()
+                                        text = controller.enemies.joinToString(separator = "\n") { it.toString() }
+                                        title = "Result:"
+                                    } catch (e: Exception) {
+                                        title = e.message.toString()
+                                    }
+                                    showAlert()
+                                    controller.sortEnemies(enemyOrder)
+                                    controller.logger?.log("Updated controller.enemies.")
+                                    controller.undoManager?.addUndoPoint()
+                                    endAction(btnPipis)
                                 }
-                                showAlert()
-                                controller.sortEnemies(enemyOrder)
-                                controller.logger?.log("Updated controller.enemies.")
+                                alert.show()
+                            }
+                            showAlert()
+                        }
+                        // Enemy order
+                        i++ -> {
+                            val nameRegex = Regex("[a-z]+", RegexOption.IGNORE_CASE)
+                            val enemyNames = HashSet<String>()
+                            for (enemy in controller.enemies) {
+                                enemyNames.add(nameRegex.find(enemy.name)!!.value)
+                            }
+                            enemyOrder = mutableListOf()
+                            // This will eventually stack overflow if the user is sufficiently stupid but whatever lol
+                            fun showAlert() {
+                                val builder = AlertDialog.Builder(this)
+                                builder.setTitle("ORDER??????????")
+                                val alert = builder.create()
+                                val scrollView = ScrollView(this)
+                                val llRows = LinearLayout(this)
+                                scrollView.addView(llRows)
+                                llRows.orientation = LinearLayout.VERTICAL
+                                for (enemyName in enemyNames.sorted()) {
+                                    // Name
+                                    val btnName = Button(this)
+                                    btnName.text = enemyName
+                                    btnName.setOnClickListener {
+                                        enemyNames.remove(enemyName)
+                                        enemyOrder.add(enemyName)
+                                        if (enemyNames.size > 0) {
+                                            showAlert()
+                                        } else {
+                                            controller.logger?.log("Updated enemy order.")
+                                            controller.sortEnemies(enemyOrder)
+                                            controller.undoManager?.addUndoPoint()
+                                            endAction(btnPipis)
+                                        }
+                                        alert.cancel()
+                                    }
+                                    llRows.addView(btnName)
+                                }
+                                alert.setView(scrollView)
+                                alert.show()
+                            }
+                            showAlert()
+                        }
+                        // Enemy menu
+                        i++ -> {
+                            val alert = AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar)
+                            alert.setTitle("Enemy Menu")
+                            val scrollView = ScrollView(this)
+                            val llRows = LinearLayout(this)
+                            scrollView.addView(llRows)
+                            llRows.orientation = LinearLayout.VERTICAL
+                            val textSize = 8f
+                            for (enemy in controller.enemies) {
+                                val llRow = LinearLayout(this)
+                                llRow.orientation = LinearLayout.HORIZONTAL
+                                llRow.gravity = Gravity.CENTER_VERTICAL
+                                llRows.addView(llRow)
+                                // Update change display, and also create the stuff that needs to be there in advance
+                                val btnPlus1 = Button(this)
+                                val btnPlus5 = Button(this)
+                                val npTaken = NumberPicker(this)
+                                val tvChangeDisplay = TextView(this)
+                                val startingTaken = enemy.taken
+                                var takenChange = 0
+                                fun changeTakenTo(taken: Int) {
+                                    if (takenChange != taken-startingTaken) {
+                                        takenChange = taken-startingTaken
+                                        enemy.taken = taken
+                                        npTaken.value = taken
+                                        tvChangeDisplay.text = takenChange.toString()
+                                        if (takenChange > 0) {
+                                            tvChangeDisplay.setTextColor(Color.GREEN)
+                                        }
+                                        else if (takenChange < 0) {
+                                            tvChangeDisplay.setTextColor(Color.RED)
+                                        } else {
+                                            tvChangeDisplay.setTextColor(Color.BLACK)
+                                        }
+                                    }
+                                }
+                                // Name
+                                val tvName = TextView(this)
+                                tvName.textSize = textSize
+                                tvName.text = enemy.name
+                                llRow.addView(tvName)
+                                // Taken
+                                npTaken.minValue = 0
+                                npTaken.maxValue = enemy.maxHp
+                                npTaken.value = enemy.taken
+                                npTaken.gravity = Gravity.LEFT
+                                npTaken.layoutParams = ViewGroup.LayoutParams(300,200)
+                                npTaken.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
+                                    changeTakenTo(new)
+                                }
+                                llRow.addView(npTaken)
+                                // This bit has two rows
+                                val llRowRow = LinearLayout(this)
+                                llRowRow.orientation = LinearLayout.VERTICAL
+                                llRowRow.gravity = Gravity.CENTER_VERTICAL
+                                llRow.addView(llRowRow)
+                                // +1
+                                btnPlus1.text = "+1"
+                                btnPlus1.layoutParams = ViewGroup.LayoutParams(200,100)
+                                btnPlus1.setOnClickListener() {
+                                    changeTakenTo(enemy.taken+1)
+                                }
+                                llRowRow.addView(btnPlus1)
+                                // +5
+                                btnPlus5.text = "+5"
+                                btnPlus5.layoutParams = ViewGroup.LayoutParams(200,100)
+                                btnPlus5.setOnClickListener() {
+                                    changeTakenTo(enemy.taken+5)
+                                }
+                                llRowRow.addView(btnPlus5)
+                                // Display change
+                                llRowRow.addView(tvChangeDisplay)
+                                // Targeted checkbox
+                                val cbTargeted = CheckBox(this)
+                                cbTargeted.textSize = textSize
+                                cbTargeted.text = "Trgt"
+                                cbTargeted.isChecked = enemy.targeted
+                                cbTargeted.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                    enemy.targeted = !enemy.targeted
+                                }
+                                llRow.addView(cbTargeted)
+                                // Ballista checkbox
+                                val cbBallista = CheckBox(this)
+                                cbBallista.textSize = textSize
+                                cbBallista.text = "Blst"
+                                cbBallista.isChecked = enemy.inBallistaRange
+                                cbBallista.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                    enemy.inBallistaRange = !enemy.inBallistaRange
+                                }
+                                llRow.addView(cbBallista)
+                                // Extra Target checkbox
+                                val cbExtraTarget = CheckBox(this)
+                                cbExtraTarget.textSize = textSize
+                                cbExtraTarget.text = "ExTr"
+                                cbExtraTarget.isChecked = enemy.extraTarget
+                                cbExtraTarget.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                    enemy.extraTarget = !enemy.extraTarget
+                                }
+                                llRow.addView(cbExtraTarget)
+                                // Melee Range checkbox
+                                val cbMeleeRange = CheckBox(this)
+                                cbMeleeRange.textSize = textSize
+                                cbMeleeRange.text = "MlRn"
+                                cbMeleeRange.isChecked = enemy.inMeleeRange
+                                cbMeleeRange.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                    enemy.inMeleeRange = !enemy.inMeleeRange
+                                }
+                                llRow.addView(cbMeleeRange)
+                                // Retaliate Range checkbox
+                                val cbRetaliateRange = CheckBox(this)
+                                cbRetaliateRange.textSize = textSize
+                                cbRetaliateRange.text = "RtRn"
+                                cbRetaliateRange.isChecked = enemy.inRetaliateRange
+                                cbRetaliateRange.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                    enemy.inRetaliateRange = !enemy.inRetaliateRange
+                                }
+                                llRow.addView(cbRetaliateRange)
+                                // Poisoned checkbox
+                                val cbPoisoned = CheckBox(this)
+                                cbPoisoned.textSize = textSize
+                                cbPoisoned.text = "Poisn"
+                                cbPoisoned.isChecked = enemy.poisoned
+                                cbPoisoned.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                    enemy.poisoned = !enemy.poisoned
+                                }
+                                llRow.addView(cbPoisoned)
+                            }
+                            alert.setView(scrollView)
+                            alert.setOnDismissListener{
+                                controller.logger?.log("Updated controller.enemies via menu.")
                                 controller.undoManager?.addUndoPoint()
                                 endAction(btnPipis)
                             }
                             alert.show()
                         }
-                        showAlert()
-                    }
-                    // Enemy order
-                    i++ -> {
-                        val nameRegex = Regex("[a-z]+", RegexOption.IGNORE_CASE)
-                        val enemyNames = HashSet<String>()
-                        for (enemy in controller.enemies) {
-                            enemyNames.add(nameRegex.find(enemy.name)!!.value)
-                        }
-                        enemyOrder = mutableListOf()
-                        // This will eventually stack overflow if the user is sufficiently stupid but whatever lol
-                        fun showAlert() {
-                            val builder = AlertDialog.Builder(this)
-                            builder.setTitle("ORDER??????????")
-                            val alert = builder.create()
-                            val scrollView = ScrollView(this)
-                            val llRows = LinearLayout(this)
-                            scrollView.addView(llRows)
-                            llRows.orientation = LinearLayout.VERTICAL
-                            for (enemyName in enemyNames.sorted()) {
-                                // Name
-                                val btnName = Button(this)
-                                btnName.text = enemyName
-                                btnName.setOnClickListener {
-                                    enemyNames.remove(enemyName)
-                                    enemyOrder.add(enemyName)
-                                    if (enemyNames.size > 0) {
-                                        showAlert()
-                                    } else {
-                                        controller.logger?.log("Updated enemy order.")
-                                        controller.sortEnemies(enemyOrder)
-                                        controller.undoManager?.addUndoPoint()
-                                        endAction(btnPipis)
-                                    }
-                                    alert.cancel()
-                                }
-                                llRows.addView(btnName)
+                        // Power Potion Threshold
+                        i++ -> {
+                            val alert = AlertDialog.Builder(this)
+                            alert.setTitle("New Power Potion Threshold?")
+                            val input = EditText(this)
+                            input.inputType = InputType.TYPE_CLASS_NUMBER
+                            input.setRawInputType(Configuration.KEYBOARD_12KEY)
+                            input.setText(controller.player!!.powerPotionThreshold.toString())
+                            alert.setView(input)
+                            alert.setPositiveButton("Set") { _, _ ->
+                                controller.player!!.powerPotionThreshold = input.text.toString().toInt()
+                                controller.logger?.log("Updated power pot threshold.")
+                                controller.undoManager?.addUndoPoint()
+                                endAction(btnPipis)
                             }
-                            alert.setView(scrollView)
                             alert.show()
                         }
-                        showAlert()
-                    }
-                    // Enemy menu
-                    i++ -> {
-                        val alert = AlertDialog.Builder(this, android.R.style.Theme_Black_NoTitleBar)
-                        alert.setTitle("Enemy Menu")
-                        val scrollView = ScrollView(this)
-                        val llRows = LinearLayout(this)
-                        scrollView.addView(llRows)
-                        llRows.orientation = LinearLayout.VERTICAL
-                        val textSize = 8f
-                        for (enemy in controller.enemies) {
-                            val llRow = LinearLayout(this)
-                            llRow.orientation = LinearLayout.HORIZONTAL
-                            llRow.gravity = Gravity.CENTER_VERTICAL
-                            llRows.addView(llRow)
-                            // Update change display, and also create the stuff that needs to be there in advance
-                            val btnPlus1 = Button(this)
-                            val btnPlus5 = Button(this)
-                            val npTaken = NumberPicker(this)
-                            val tvChangeDisplay = TextView(this)
-                            val startingTaken = enemy.taken
-                            var takenChange = 0
-                            fun changeTakenTo(taken: Int) {
-                                if (takenChange != taken-startingTaken) {
-                                    takenChange = taken-startingTaken
-                                    enemy.taken = taken
-                                    npTaken.value = taken
-                                    tvChangeDisplay.text = takenChange.toString()
-                                    if (takenChange > 0) {
-                                        tvChangeDisplay.setTextColor(Color.GREEN)
-                                    }
-                                    else if (takenChange < 0) {
-                                        tvChangeDisplay.setTextColor(Color.RED)
-                                    } else {
-                                        tvChangeDisplay.setTextColor(Color.BLACK)
-                                    }
-                                }
+                        // HP Danger Threshold
+                        i++ -> {
+                            val alert = AlertDialog.Builder(this)
+                            alert.setTitle("New HP Danger Threshold?")
+                            val input = EditText(this)
+                            input.inputType = InputType.TYPE_CLASS_NUMBER
+                            input.setRawInputType(Configuration.KEYBOARD_12KEY)
+                            input.setText(controller.player!!.hpDangerThreshold.toString())
+                            alert.setView(input)
+                            alert.setPositiveButton("Set") { _, _ ->
+                                controller.player!!.hpDangerThreshold = input.text.toString().toInt()
+                                controller.logger?.log("Updated HP danger threshold.")
+                                controller.undoManager?.addUndoPoint()
+                                endAction(btnPipis)
                             }
-                            // Name
-                            val tvName = TextView(this)
-                            tvName.textSize = textSize
-                            tvName.text = enemy.name
-                            llRow.addView(tvName)
-                            // Taken
-                            npTaken.minValue = 0
-                            npTaken.maxValue = enemy.maxHp
-                            npTaken.value = enemy.taken
-                            npTaken.gravity = Gravity.LEFT
-                            npTaken.layoutParams = ViewGroup.LayoutParams(300,200)
-                            npTaken.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
-                                changeTakenTo(new)
+                            alert.show()
+                        }
+                        // Pierce
+                        i++ -> {
+                            val alert = AlertDialog.Builder(this)
+                            alert.setTitle("New Pierce?")
+                            val input = EditText(this)
+                            input.inputType = InputType.TYPE_CLASS_NUMBER
+                            input.setRawInputType(Configuration.KEYBOARD_12KEY)
+                            input.setText(controller.player!!.pierce.toString())
+                            alert.setView(input)
+                            alert.setPositiveButton("Set") { _, _ ->
+                                controller.player!!.pierce = input.text.toString().toInt()
+                                controller.logger?.log("Updated pierce.")
+                                controller.undoManager?.addUndoPoint()
+                                endAction(btnPipis)
                             }
-                            llRow.addView(npTaken)
-                            // This bit has two rows
-                            val llRowRow = LinearLayout(this)
-                            llRowRow.orientation = LinearLayout.VERTICAL
-                            llRowRow.gravity = Gravity.CENTER_VERTICAL
-                            llRow.addView(llRowRow)
-                            // +1
-                            btnPlus1.text = "+1"
-                            btnPlus1.layoutParams = ViewGroup.LayoutParams(200,100)
-                            btnPlus1.setOnClickListener() {
-                                changeTakenTo(enemy.taken+1)
+                            alert.show()
+                        }
+                        // Scenario Level
+                        i++ -> {
+                            val alert = AlertDialog.Builder(this)
+                            alert.setTitle("New Scenario Level?")
+                            val input = EditText(this)
+                            input.inputType = InputType.TYPE_CLASS_NUMBER
+                            input.setRawInputType(Configuration.KEYBOARD_12KEY)
+                            input.setText(controller.player!!.scenarioLevel.toString())
+                            alert.setView(input)
+                            alert.setPositiveButton("Set") { _, _ ->
+                                controller.player!!.scenarioLevel = input.text.toString().toInt()
+                                controller.logger?.log("Updated scenario level.")
+                                controller.undoManager?.addUndoPoint()
+                                endAction(btnPipis)
                             }
-                            llRowRow.addView(btnPlus1)
-                            // +5
-                            btnPlus5.text = "+5"
-                            btnPlus5.layoutParams = ViewGroup.LayoutParams(200,100)
-                            btnPlus5.setOnClickListener() {
-                                changeTakenTo(enemy.taken+5)
-                            }
-                            llRowRow.addView(btnPlus5)
-                            // Display change
-                            llRowRow.addView(tvChangeDisplay)
-                            // Targeted checkbox
-                            val cbTargeted = CheckBox(this)
-                            cbTargeted.textSize = textSize
-                            cbTargeted.text = "Trgt"
-                            cbTargeted.isChecked = enemy.targeted
-                            cbTargeted.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                enemy.targeted = !enemy.targeted
-                            }
-                            llRow.addView(cbTargeted)
-                            // Ballista checkbox
+                            alert.show()
+                        }
+                        // Discard
+                        i++ -> {
+                            // Alert
+                            val alert = AlertDialog.Builder(this)
+                            alert.setTitle("Discard status?")
+                            // SV
+                            val scrollView = ScrollView(this)
+                            alert.setView(scrollView)
+                            // LL
+                            val linearLayout = LinearLayout(this)
+                            linearLayout.orientation = LinearLayout.VERTICAL
+                            scrollView.addView(linearLayout)
+                            // Make them, since they reference each other
+                            val npDiscarded = NumberPicker(this)
+                            val cbPipis = CheckBox(this)
                             val cbBallista = CheckBox(this)
-                            cbBallista.textSize = textSize
-                            cbBallista.text = "Blst"
-                            cbBallista.isChecked = enemy.inBallistaRange
-                            cbBallista.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                enemy.inBallistaRange = !enemy.inBallistaRange
+                            // Discard spinner
+                            npDiscarded.minValue = 0
+                            npDiscarded.maxValue = 9
+                            npDiscarded.value = controller.player!!.discardedCards
+                            npDiscarded.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
+                                controller.player!!.discardedCards = new
+                                cbBallista.isChecked = controller.player!!.discardedBallista
+                                cbPipis.isChecked = controller.player!!.discardedPipis
                             }
-                            llRow.addView(cbBallista)
-                            // Extra Target checkbox
-                            val cbExtraTarget = CheckBox(this)
-                            cbExtraTarget.textSize = textSize
-                            cbExtraTarget.text = "ExTr"
-                            cbExtraTarget.isChecked = enemy.extraTarget
-                            cbExtraTarget.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                enemy.extraTarget = !enemy.extraTarget
-                            }
-                            llRow.addView(cbExtraTarget)
-                            // Melee Range checkbox
-                            val cbMeleeRange = CheckBox(this)
-                            cbMeleeRange.textSize = textSize
-                            cbMeleeRange.text = "MlRn"
-                            cbMeleeRange.isChecked = enemy.inMeleeRange
-                            cbMeleeRange.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                enemy.inMeleeRange = !enemy.inMeleeRange
-                            }
-                            llRow.addView(cbMeleeRange)
-                            // Retaliate Range checkbox
-                            val cbRetaliateRange = CheckBox(this)
-                            cbRetaliateRange.textSize = textSize
-                            cbRetaliateRange.text = "RtRn"
-                            cbRetaliateRange.isChecked = enemy.inRetaliateRange
-                            cbRetaliateRange.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                enemy.inRetaliateRange = !enemy.inRetaliateRange
-                            }
-                            llRow.addView(cbRetaliateRange)
-                            // Poisoned checkbox
-                            val cbPoisoned = CheckBox(this)
-                            cbPoisoned.textSize = textSize
-                            cbPoisoned.text = "Poisn"
-                            cbPoisoned.isChecked = enemy.poisoned
-                            cbPoisoned.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                                enemy.poisoned = !enemy.poisoned
-                            }
-                            llRow.addView(cbPoisoned)
-                        }
-                        alert.setView(scrollView)
-                        alert.setOnDismissListener{
-                            controller.logger?.log("Updated controller.enemies via menu.")
-                            controller.undoManager?.addUndoPoint()
-                            endAction(btnPipis)
-                        }
-                        alert.show()
-                    }
-                    // Power Potion Threshold
-                    i++ -> {
-                        val alert = AlertDialog.Builder(this)
-                        alert.setTitle("New Power Potion Threshold?")
-                        val input = EditText(this)
-                        input.inputType = InputType.TYPE_CLASS_NUMBER
-                        input.setRawInputType(Configuration.KEYBOARD_12KEY)
-                        input.setText(controller.player!!.powerPotionThreshold.toString())
-                        alert.setView(input)
-                        alert.setPositiveButton("Set") { _, _ ->
-                            controller.player!!.powerPotionThreshold = input.text.toString().toInt()
-                            controller.logger?.log("Updated power pot threshold.")
-                            controller.undoManager?.addUndoPoint()
-                            endAction(btnPipis)
-                        }
-                        alert.show()
-                    }
-                    // HP Danger Threshold
-                    i++ -> {
-                        val alert = AlertDialog.Builder(this)
-                        alert.setTitle("New HP Danger Threshold?")
-                        val input = EditText(this)
-                        input.inputType = InputType.TYPE_CLASS_NUMBER
-                        input.setRawInputType(Configuration.KEYBOARD_12KEY)
-                        input.setText(controller.player!!.hpDangerThreshold.toString())
-                        alert.setView(input)
-                        alert.setPositiveButton("Set") { _, _ ->
-                            controller.player!!.hpDangerThreshold = input.text.toString().toInt()
-                            controller.logger?.log("Updated HP danger threshold.")
-                            controller.undoManager?.addUndoPoint()
-                            endAction(btnPipis)
-                        }
-                        alert.show()
-                    }
-                    // Pierce
-                    i++ -> {
-                        val alert = AlertDialog.Builder(this)
-                        alert.setTitle("New Pierce?")
-                        val input = EditText(this)
-                        input.inputType = InputType.TYPE_CLASS_NUMBER
-                        input.setRawInputType(Configuration.KEYBOARD_12KEY)
-                        input.setText(controller.player!!.pierce.toString())
-                        alert.setView(input)
-                        alert.setPositiveButton("Set") { _, _ ->
-                            controller.player!!.pierce = input.text.toString().toInt()
-                            controller.logger?.log("Updated pierce.")
-                            controller.undoManager?.addUndoPoint()
-                            endAction(btnPipis)
-                        }
-                        alert.show()
-                    }
-                    // Scenario Level
-                    i++ -> {
-                        val alert = AlertDialog.Builder(this)
-                        alert.setTitle("New Scenario Level?")
-                        val input = EditText(this)
-                        input.inputType = InputType.TYPE_CLASS_NUMBER
-                        input.setRawInputType(Configuration.KEYBOARD_12KEY)
-                        input.setText(controller.player!!.scenarioLevel.toString())
-                        alert.setView(input)
-                        alert.setPositiveButton("Set") { _, _ ->
-                            controller.player!!.scenarioLevel = input.text.toString().toInt()
-                            controller.logger?.log("Updated scenario level.")
-                            controller.undoManager?.addUndoPoint()
-                            endAction(btnPipis)
-                        }
-                        alert.show()
-                    }
-                    // Discard
-                    i++ -> {
-                        // Alert
-                        val alert = AlertDialog.Builder(this)
-                        alert.setTitle("Discard status?")
-                        // SV
-                        val scrollView = ScrollView(this)
-                        alert.setView(scrollView)
-                        // LL
-                        val linearLayout = LinearLayout(this)
-                        linearLayout.orientation = LinearLayout.VERTICAL
-                        scrollView.addView(linearLayout)
-                        // Make them, since they reference each other
-                        val npDiscarded = NumberPicker(this)
-                        val cbPipis = CheckBox(this)
-                        val cbBallista = CheckBox(this)
-                        // Discard spinner
-                        npDiscarded.minValue = 0
-                        npDiscarded.maxValue = 9
-                        npDiscarded.value = controller.player!!.discardedCards
-                        npDiscarded.setOnValueChangedListener { numberPicker: NumberPicker, old: Int, new: Int ->
-                            controller.player!!.discardedCards = new
-                            cbBallista.isChecked = controller.player!!.discardedBallista
+                            linearLayout.addView(npDiscarded)
+                            // Targeted checkbox
+                            cbPipis.text = "Discarded Pipis"
                             cbPipis.isChecked = controller.player!!.discardedPipis
+                            cbPipis.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                controller.player!!.discardedPipis = on
+                                npDiscarded.value = controller.player!!.discardedCards
+                            }
+                            linearLayout.addView(cbPipis)
+                            // Ballista checkbox
+                            cbBallista.text = "Discarded Ballista"
+                            cbBallista.isChecked = controller.player!!.discardedBallista
+                            cbBallista.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
+                                controller.player!!.discardedBallista = on
+                                npDiscarded.value = controller.player!!.discardedCards
+                            }
+                            linearLayout.addView(cbBallista)
+                            alert.setOnDismissListener{
+                                controller.logger?.log("Updated discard status.")
+                                controller.undoManager?.addUndoPoint()
+                                endAction(btnPipis)
+                            }
+                            alert.show()
                         }
-                        linearLayout.addView(npDiscarded)
-                        // Targeted checkbox
-                        cbPipis.text = "Discarded Pipis"
-                        cbPipis.isChecked = controller.player!!.discardedPipis
-                        cbPipis.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                            controller.player!!.discardedPipis = on
-                            npDiscarded.value = controller.player!!.discardedCards
-                        }
-                        linearLayout.addView(cbPipis)
-                        // Ballista checkbox
-                        cbBallista.text = "Discarded Ballista"
-                        cbBallista.isChecked = controller.player!!.discardedBallista
-                        cbBallista.setOnCheckedChangeListener { _: CompoundButton, on: Boolean ->
-                            controller.player!!.discardedBallista = on
-                            npDiscarded.value = controller.player!!.discardedCards
-                        }
-                        linearLayout.addView(cbBallista)
-                        alert.setOnDismissListener{
-                            controller.logger?.log("Updated discard status.")
-                            controller.undoManager?.addUndoPoint()
+                        // Go
+                        i++ -> {
+                            controller.activityConnector?.effectQueue?.add(Effect(controller, showItemRow=true))
+                            controller.inventory?.displayChangedInventory()
+                            controller.activityConnector?.effectSpeed = 1_000/4L
+                            controller.deck!!.pipis(controller.player!!, controller.enemies)
+                            controller.activityConnector?.effectSpeed = controller.activityConnector!!.baseEffectSpeed
+                            simplifyTheGamestate()
                             endAction(btnPipis)
                         }
-                        alert.show()
-                    }
-                    // Go
-                    i++ -> {
-                        controller.activityConnector?.effectQueue?.add(Effect(controller, showItemRow=true))
-                        controller.inventory?.displayChangedInventory()
-                        controller.activityConnector?.effectSpeed = 1_000/4L
-                        controller.deck!!.pipis(controller.player!!, controller.enemies)
-                        controller.activityConnector?.effectSpeed = controller.activityConnector!!.baseEffectSpeed
-                        simplifyTheGamestate()
-                        endAction(btnPipis)
                     }
                 }
-            }
 
-            val alert = dialogBuilder.create()
-            alert.setTitle("Pipis Menu")
-            alert.show()
+                val alert = dialogBuilder.create()
+                alert.setTitle("Pipis Menu")
+                alert.show()
+            }
         }
 
         // Card movement
