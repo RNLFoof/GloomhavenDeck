@@ -4,22 +4,32 @@
       "level": [
         {
           "level": 0,
-          "normal": {},
-          "elite": {}
+          "normal": {
+            "health":1
+          },
+          "elite": {
+            "health":1}
         },
         {
           "level": 1,
-          "normal": {},
-          "elite": {}
+          "normal": {
+            "health":1},
+          "elite": {
+            "health":1}
         },
         {
           "level": 2,
-          "normal": {}
+          "normal": {
+            "health":1},
+          "elite": {
+            "health":1}
         },
         {
           "level": 3,
-          "normal": {},
-          "elite": {}
+          "normal": {
+            "health":1},
+          "elite": {
+            "health":1}
         },
         {
           "level": 4,
