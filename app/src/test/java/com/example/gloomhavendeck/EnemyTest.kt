@@ -21,6 +21,13 @@ internal class EnemyTest {
     }
 
     @Test
+    fun oneOfEachInterestingGuy() {
+        val enemies = Enemy.oneOfEachInterestingGuy().toMutableList()
+        Assert.assertNotEquals(enemies.count(), 0)
+        println(enemies)
+    }
+
+    @Test
     fun createOne() {
         Assert.assertThrows(Exception::class.java) { Enemy.createOne("", 7) }
         Assert.assertThrows(Exception::class.java) { Enemy.createOne("verm sc: 1\nverm sc: 2", 7) }

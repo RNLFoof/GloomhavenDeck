@@ -230,6 +230,28 @@ data class Enemy(var creationString: String) {
             return createMany(template, 7)
         }
 
+        fun oneOfEachInterestingGuy() = sequence {
+            val interestingTests: MutableList<(Enemy) -> Boolean> = mutableListOf(
+                { _ -> true },
+                { enemy -> enemy.shield != 0 },
+                { enemy -> enemy.retaliate != 0 },
+                { enemy -> enemy.attackersGainDisadvantage },
+                { enemy -> enemy.maxHp >= 5 },
+                { enemy -> enemy.maxHp >= 10 },
+                { enemy -> enemy.maxHp >= 20 },
+            )
+
+            for (enemy in oneOfEach()) {
+                for ((n, test) in interestingTests.withIndex()) {
+                    if (test(enemy)) {
+                        yield(enemy)
+                        interestingTests.removeAt(n)
+                        break
+                    }
+                }
+            }
+        }
+
         fun teamsOfThisGuy(enemy: Enemy, dudeExponent: Int = 4, dudeMultiplier: Int = 4) = sequence {
             // This number, in binary, has maxEnemies*2 digits
             // Which we want because each enemy can be in one of four states(max hp, 1 hp, dead, removed)
