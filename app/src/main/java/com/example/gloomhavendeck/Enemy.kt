@@ -3,6 +3,7 @@ package com.example.gloomhavendeck
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import com.example.gloomhavendeck.meta.Crap.Companion.getResourceAsText
 import org.intellij.lang.annotations.RegExp
 import kotlin.reflect.KMutableProperty
 import kotlin.reflect.KMutableProperty1
@@ -10,6 +11,8 @@ import kotlin.reflect.full.createType
 import kotlin.reflect.full.memberProperties
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
+import java.io.File
+import java.nio.file.Paths
 
 @RequiresApi(Build.VERSION_CODES.N)
 @Serializable
@@ -105,8 +108,9 @@ data class Enemy(var creationString: String) {
         fun createMany(block: String, scenarioLevel: Int) = sequence {
             // The format "name: numbers" lets you pull from monster stats to quickly establish
             // Ex: vermling scout 7: 1 2 3 e5 6
-            val monsterStatsString = this::class.java.classLoader.getResource("res/raw/monster_stats.json").readText()
-            val monsterStatsJson: Map<String, JsonElement> = Json.parseToJsonElement(monsterStatsString).jsonObject
+
+            val monsterStatsString = getResourceAsText("res/raw/monster_stats.json")
+            val monsterStatsJson: Map<String, JsonElement> = Json.parseToJsonElement(monsterStatsString!!).jsonObject
             var jsonExpandedBlock = ""
 
             val fromJsonRegex = Regex("^([a-zA-Z ]+)(\\d)?[:;]([0-9 ]+)?([nN][0-9 ]+)?$")
@@ -200,6 +204,19 @@ data class Enemy(var creationString: String) {
                     yield(Enemy(line))
                 }
             }
+        }
+
+        fun oneOfEach(): Sequence<Enemy> {
+            // Mainly for testing
+            var template = ""
+
+            val monsterStatsString = getResourceAsText("res/raw/monster_stats.json")
+            val monsterStatsJson: Map<String, JsonElement> = Json.parseToJsonElement(monsterStatsString!!).jsonObject
+            for (monsterKV in monsterStatsJson["monsters"]!!.jsonObject) {
+                template += "${monsterKV.key}:1n2\n"
+            }
+
+            return createMany(template, 7)
         }
     }
 
