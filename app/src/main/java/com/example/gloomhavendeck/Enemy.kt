@@ -1,18 +1,14 @@
 package com.example.gloomhavendeck
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.gloomhavendeck.meta.Crap.Companion.getResourceAsText
-import org.intellij.lang.annotations.RegExp
 import kotlin.reflect.KMutableProperty
-import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.memberProperties
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
-import java.io.File
-import java.nio.file.Paths
+import kotlin.math.pow
 
 @RequiresApi(Build.VERSION_CODES.N)
 @Serializable
@@ -204,6 +200,16 @@ data class Enemy(var creationString: String) {
                     yield(Enemy(line))
                 }
             }
+        }
+
+        fun createOne(line: String, scenarioLevel: Int): Enemy {
+            if ("\n" in line){
+                throw Exception("ONE!!!!!!")
+            }
+            for (enemy in createMany(line, scenarioLevel)) {
+                return enemy
+            }
+            throw Exception("I guess that wasn't valid.")
         }
 
         fun oneOfEach(): Sequence<Enemy> {
