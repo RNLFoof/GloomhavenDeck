@@ -26,6 +26,9 @@ open class Controller(
     var enemies: MutableList<Enemy> = mutableListOf()
 
     @Transient var activityConnector: ActivityConnector? = null
+    init {
+        Thread.dumpStack()
+    }
 
     companion object {
         fun newFullyStocked(): Controller {

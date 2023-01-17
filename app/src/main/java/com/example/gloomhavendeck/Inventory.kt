@@ -293,7 +293,7 @@ class Inventory(@Transient override var controller: Controller = Controller()): 
                 for (item in (controller.inventory!!.usableItems + controller.inventory!!.unusableItems).sortedBy { it.name }) {
                     newItemRowDisplay.add(item in controller.inventory!!.usableItems)
                 }
-                it.effectQueue.add(Effect(newItemRowDisplay = newItemRowDisplay))
+                it.effectQueue.add(Effect(controller, newItemRowDisplay = newItemRowDisplay))
             }
         }
     }

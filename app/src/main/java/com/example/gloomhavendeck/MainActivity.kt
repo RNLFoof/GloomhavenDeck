@@ -164,11 +164,11 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
             dialogBuilder.setMessage("Are you sure you want to view all card states?")
                 .setPositiveButton("Yeah lol") { _, _ ->
                     run {
-                        val dialogBuilder = AlertDialog.Builder(this)
-                        if (controller.deck!! != null) {
-                            dialogBuilder.setMessage("Draw pile:\n${controller.deck!!.drawPile}\n\nActive cards:\n${controller.deck!!.activeCards}\n\nDiscard pile:\n${controller.deck!!.discardPile}")
+                        val innerDialogBuilder = AlertDialog.Builder(this)
+                        if (controller.deck != null) {
+                            innerDialogBuilder.setMessage("Draw pile:\n${controller.deck!!.drawPile}\n\nActive cards:\n${controller.deck!!.activeCards}\n\nDiscard pile:\n${controller.deck!!.discardPile}")
                         }
-                        val alert = dialogBuilder.create()
+                        val alert = innerDialogBuilder.create()
                         alert.setTitle("Cheat!")
                         alert.show()
                     }
@@ -181,8 +181,8 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
 
         btnViewCards.setOnClickListener {
             val dialogBuilder = AlertDialog.Builder(this)
-            if (controller.deck!! != null) {
-                dialogBuilder.setMessage("Active cards:\n${controller.deck!!?.activeCards}\n\nDiscard pile:\n${controller.deck!!?.discardPile}")
+            if (controller.deck != null) {
+                dialogBuilder.setMessage("Active cards:\n${controller.deck!!.activeCards}\n\nDiscard pile:\n${controller.deck!!.discardPile}")
             }
             val alert = dialogBuilder.create()
             alert.setTitle("Cards")
@@ -203,21 +203,21 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
         // Attacks
         btnAttack.setOnClickListener {
             buttonBehavior(btnAttack) {
-                controller.activityConnector?.effectQueue?.add(Effect(hideItemRow=true))
+                controller.activityConnector?.effectQueue?.add(Effect(controller, hideItemRow=true))
                 controller.deck!!.attack(userDirectlyRequested = true)
             }
         }
 
         btnAdvantage.setOnClickListener {
             buttonBehavior(btnAdvantage) {
-                controller.activityConnector?.effectQueue?.add(Effect(hideItemRow=true))
+                controller.activityConnector?.effectQueue?.add(Effect(controller, hideItemRow=true))
                 controller.deck!!.advantage(userDirectlyRequested = true)
             }
         }
 
         btnDisadvantage.setOnClickListener {
             buttonBehavior(btnDisadvantage) {
-                controller.activityConnector?.effectQueue?.add(Effect(hideItemRow=true))
+                controller.activityConnector?.effectQueue?.add(Effect(controller, hideItemRow=true))
                 controller.deck!!.disadvantage(userDirectlyRequested = true)
             }
         }
@@ -564,7 +564,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                     }
                     // Go
                     i++ -> {
-                        controller.activityConnector?.effectQueue?.add(Effect(showItemRow=true))
+                        controller.activityConnector?.effectQueue?.add(Effect(controller, showItemRow=true))
                         controller.inventory?.displayChangedInventory()
                         controller.activityConnector?.effectSpeed = 1_000/4L
                         controller.deck!!.pipis(controller.player!!, controller.enemies)
@@ -793,7 +793,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
     fun startAction(button: Button) {
         controller.logger?.log("")
         controller.logger?.log("[${button.text.toString().uppercase()}]")
-        controller.activityConnector?.effectQueue?.add(Effect(wipe = true))
+        controller.activityConnector?.effectQueue?.add(Effect(controller, wipe = true))
     }
 
     fun endAction(button: Button) {

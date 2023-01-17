@@ -11,7 +11,7 @@ import kotlinx.serialization.Transient
 import java.util.*
 
 @RequiresApi(Build.VERSION_CODES.O)
-class Effect(@Transient override var controller: Controller = Controller(),
+class Effect(@Transient override var controller: Controller,
              var sound: SoundBundle? = null, var card: Int? = null, var wipe: Boolean = false,
              var selectTopRow: Boolean = false, var selectBottomRow: Boolean = false,
              var showBottomRow: Boolean = false, var hideBottomRow: Boolean = false,
