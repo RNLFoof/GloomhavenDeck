@@ -252,15 +252,10 @@ data class Enemy(var creationString: String) {
             }
         }
 
-        fun teamsOfThisGuy(enemy: Enemy, dudeExponent: Int = 4, dudeMultiplier: Int = 4) = sequence {
-            // This number, in binary, has maxEnemies*2 digits
-            // Which we want because each enemy can be in one of four states(max hp, 1 hp, dead, removed)
-            // This is exponential so don't be stupid
-            // val states = 2.toDouble().pow(maxClones*2-1).toInt()
-            val states = 4f.pow(dudeExponent).toInt()
+        fun teamsOfThisGuy(enemy: Enemy, uniqueDudeCount: Int = 4, dudeMultiplier: Int = 4) = sequence {
+            val states = 4f.pow(uniqueDudeCount).toInt()
             for (code in 0 until states) { // Last state is skipped because it has an extra digit. 10000 or whatever
-                val codeString = code.toString(4).padStart(dudeExponent, '0')
-                println(codeString)
+                val codeString = code.toString(4).padStart(uniqueDudeCount, '0')
                 var template = ""
                 for (n in codeString) {
                     template += (
@@ -281,6 +276,98 @@ data class Enemy(var creationString: String) {
                 yield(createMany(template.repeat(dudeMultiplier), 7))
             }
         }
+
+        // TODO make the names in this more clear
+        @RequiresApi(Build.VERSION_CODES.O)
+        fun interestingPipisTeams(uniqueDudeCount: Int = 2, dudeMultiplier: Int = 5) = sequence {
+            val teamWideVariablesToCheckCount = 4
+
+            val teamStateCount = 2f.pow(teamWideVariablesToCheckCount).toInt() // Each digit contains 2 possibilities, and there's 4 variables
+
+            for (interestingGuy in oneOfEachInterestingGuy()) {
+                for (teamStateInt in 0 until teamStateCount) {
+                    for (teamSequence in teamsOfThisGuy(interestingGuy, uniqueDudeCount, dudeMultiplier)) {
+                        // Team states
+                        val team = teamSequence.toList()
+                        val teamStateString = teamStateInt.toString(2).padStart(teamWideVariablesToCheckCount, '0')
+                        for (member in team) {
+                            member.attackersGainDisadvantage = teamStateString[0] == '1'
+                            member.poisoned = teamStateString[1] == '1'
+                            member.inRetaliateRange = teamStateString[2] == '1'
+                            member.inMeleeRange = teamStateString[3] == '1'
+                        }
+                        println(teamStateString)
+                        yield(team)
+                    }
+                }
+            }
+        }
+
+        fun interestingTeamTargeting(team: List<Enemy>, antiRedundancy: Int = 4)
+        {
+            val memberVariablesToCheckCount = 2
+            // Member states
+            val singleMemberStateCount = 2f.pow(memberVariablesToCheckCount).toInt() // Each digit contains 2 possibilities, and there's 4 variables, for 8
+            val allMembersStateCount = (singleMemberStateCount).toDouble().pow(team.count() / antiRedundancy).toInt() // Each digit contains 8 possibilities, and there's (team) digits
+
+            for (allMemberStatesInt in 0 until allMembersStateCount) {
+                val allMemberStatesBase = memberVariablesToCheckCount
+                val allMemberStatesString = allMemberStatesInt.toString(allMemberStatesBase)
+                    .padStart(team.count() * memberVariablesToCheckCount, '0') // base 8 number
+
+                if ((allMembersStateCount - 1).toString(memberVariablesToCheckCount).length != team.count() * memberVariablesToCheckCount) {
+                    throw Exception("Fuck")
+                }
+
+                for (memberStateChar in allMemberStatesString) {  // Single base 8 character
+                    val memberStateBinaryString =
+                        memberStateChar.toString().toInt(allMemberStatesBase)
+                            .toString(2) // The values for every nth member, n being memberStateIndex
+
+                    for ((teamMemberIndex, teamMember) in team.withIndex()) {
+                        if (teamMemberIndex % antiRedundancy != 0) {
+                            continue
+                        }
+                        teamMember.targeted = memberStateBinaryString[0] == '1'
+                        teamMember.extraTarget = memberStateBinaryString[1] == '1'
+                    }
+                }
+            }
+        }
+
+        // TODO make the names in this more clear
+//        @RequiresApi(Build.VERSION_CODES.O)
+//        fun interestingPipisTeams(dudeExponent: Int = 2, dudeMultiplier: Int = 5) = sequence {
+//            val encoder: java.util.Base64.Encoder = java.util.Base64.getEncoder()
+//            val variablesToCheckCount = 6
+//            for (interestingGuy in oneOfEachInterestingGuy()) {
+//                for (teamSequence in teamsOfThisGuy(interestingGuy, dudeExponent, dudeMultiplier)) {
+//                    val team = teamSequence.toList()
+//                    // States are boolean values for targeted, extraTarget,
+//                    // attackersGainDisadvantage, poisoned, inRetaliateRange, inMeleeRange
+//                    val singleMemberStateCombinationCount = 2f.pow(variablesToCheckCount).toInt()
+//                    val teamStateCombinationCount = singleMemberStateCombinationCount.toDouble().pow(team.count() / dudeMultiplier).toInt()
+//                    for (state in 0 until teamStateCombinationCount) {
+//                        val teamCodeString = encoder.encodeToString(state.toString().encodeToByteArray()).padStart(dudeExponent, '0')
+//                        for ((memberStateIndex, memberState) in teamCodeString.withIndex()) {  // This state is given to every dudeMultiplierth dude
+//                            val memberCodeString = memberState.toInt().toString(2)
+//                            for ((teamMemberIndex, teamMember) in team.withIndex()) {
+//                                if ((memberStateIndex + teamMemberIndex) % dudeMultiplier != 0) {
+//                                    continue
+//                                }
+//                                teamMember.targeted = memberCodeString[0] == '1'
+//                                teamMember.extraTarget = memberCodeString[1] == '1'
+//                                teamMember.attackersGainDisadvantage = memberCodeString[2] == '1'
+//                                teamMember.poisoned = memberCodeString[3] == '1'
+//                                teamMember.inRetaliateRange = memberCodeString[4] == '1'
+//                                teamMember.inMeleeRange = memberCodeString[5] == '1'
+//                            }
+//                        }
+//                        yield(team)
+//                    }
+//                }
+//            }
+//        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

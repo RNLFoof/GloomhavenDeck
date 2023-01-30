@@ -57,7 +57,7 @@ open class Crap() {
 
 
         fun getResourceAsText(path: String): String {
-            var output = {}.javaClass.getResource(path)?.readText()
+            var output = this::class.java.classLoader.getResource(path)?.readText()
             if (output == null) {
                 val file = File("src/main/" + path)
                 output = file.readText()

@@ -58,6 +58,18 @@ internal class EnemyTest {
         Assert.assertEquals(setOf(0*dudeMultiplier, 1*dudeMultiplier, 2*dudeMultiplier, 3*dudeMultiplier, 4*dudeMultiplier), teamSizes)
     }
 
+    @Test
+    fun interestingPipisTeams() {
+        for ((n, team) in Enemy.interestingPipisTeams().withIndex()) {
+
+            println(team)
+
+            if (n > 1000) {
+                break
+            }
+        }
+    }
+
     @Before
     fun setUp() {
     }

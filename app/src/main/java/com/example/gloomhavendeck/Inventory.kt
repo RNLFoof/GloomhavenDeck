@@ -84,22 +84,28 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
     }
 
     fun useItem(item: Item, fullAutoBehavior: Boolean) {
-        controller.activityConnector?.effectQueue?.add(Effect(controller, card = item.graphic, sound = item.sound, selectTopRow = true))
         controller.logger?.log("Using a $item...")
         controller.logger?.let {it.logIndent += 1}
 
         if (!usableItems.contains(item)) {
             throw Exception("You don't HAVE a $item, dumbass")
         }
-        item.getUsed(controller, fullAutoBehavior)
-        if (item.getsActivated) {
-            activateItem(item)
-        }
-        else {
-            loseItem(item)
-        }
-        displayChangedInventory()
 
+        try {
+            item.getUsed(controller, fullAutoBehavior)
+            controller.activityConnector?.effectQueue?.add(Effect(controller, card = item.graphic, sound = item.sound, selectTopRow = true))
+
+            if (item.getsActivated) {
+                activateItem(item)
+            }
+            else {
+                loseItem(item)
+            }
+            displayChangedInventory()
+
+        } catch (e: ItemUnusableException) {
+            controller.activityConnector?.effectQueue?.add(Effect(controller, sound = SoundBundle.ITEMUNUSABLE))
+        }
         controller.logger?.let {it.logIndent -= 1}
     }
 
@@ -182,7 +188,7 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
             yield(RecoveryCandidate(Item.SPIKED_SHIELD, false))
         }
         if (unusableItems.contains(Item.WALL_SHIELD)) {
-            yield(RecoveryCandidate(Item.SPIKED_SHIELD, false))
+            yield(RecoveryCandidate(Item.WALL_SHIELD, false))
         }
     }
 

@@ -566,13 +566,20 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                         }
                         // Go
                         i++ -> {
-                            controller.activityConnector?.effectQueue?.add(Effect(controller, showItemRow=true))
-                            controller.inventory?.displayChangedInventory()
-                            controller.activityConnector?.effectSpeed = 1_000/4L
-                            controller.deck!!.pipis(controller.player!!, controller.enemies)
-                            controller.activityConnector?.effectSpeed = controller.activityConnector!!.baseEffectSpeed
-                            simplifyTheGamestate()
-                            endAction(btnPipis)
+                            crashProtector {
+                                controller.activityConnector?.effectQueue?.add(
+                                    Effect(
+                                        controller,
+                                        showItemRow = true
+                                    )
+                                )
+                                controller.inventory?.displayChangedInventory()
+                                controller.activityConnector?.effectSpeed = 1_000 / 4L
+                                controller.deck!!.pipis(controller.player!!, controller.enemies)
+                                controller.activityConnector?.effectSpeed =
+                                    controller.activityConnector!!.baseEffectSpeed
+                                simplifyTheGamestate()
+                            }
                         }
                     }
                 }
