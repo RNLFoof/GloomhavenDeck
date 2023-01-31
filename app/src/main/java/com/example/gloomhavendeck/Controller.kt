@@ -1,17 +1,12 @@
 package com.example.gloomhavendeck
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.gloomhavendeck.meta.Logger
 import com.example.gloomhavendeck.meta.Saver
 import com.example.gloomhavendeck.meta.UndoManager
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import java.io.File
-import java.util.concurrent.Callable
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
@@ -67,7 +62,7 @@ open class Controller(var destroyTheUniverseUponInitiation: Boolean = false
         // But those defaults shouldn't ever actually be used
         // Unless it's just to immediately replace
         if (destroyTheUniverseUponInitiation and !suppressUniverseDestruction) {
-            throw destroyTheUniverseUponInitiationException()
+            throw DestroyTheUniverseUponInitiationException()
         }
     }
 
@@ -125,6 +120,4 @@ open class Controller(var destroyTheUniverseUponInitiation: Boolean = false
     }
 }
 
-class destroyTheUniverseUponInitiationException: Exception() {
-
-}
+class DestroyTheUniverseUponInitiationException: Exception()

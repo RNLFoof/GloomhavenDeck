@@ -12,7 +12,7 @@ import kotlinx.serialization.json.Json
 
 @Serializable
 @RequiresApi(Build.VERSION_CODES.O)
-class UndoPoint(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)) : Controllable(){
+class UndoPoint(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)) : Controllable() {
     private var heldStateJson = Json.encodeToString(controller)
 
     fun use() {

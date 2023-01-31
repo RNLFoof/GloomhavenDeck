@@ -25,10 +25,9 @@ data class Card(
 ) {
     @RequiresApi(Build.VERSION_CODES.O)
     fun effect(controller: Controller, doingDisadvantage: Boolean = false): Effect {
-        val effectToAdd : Effect
 
         // Named
-        effectToAdd = if ("null" in toString())
+        val effectToAdd : Effect = if ("null" in toString())
             Effect(controller, sound=SoundBundle.NULL, card=R.drawable.card_null)
         else if ("curse" in toString())
             Effect(controller, sound=SoundBundle.CURSE, card=R.drawable.card_curse)
@@ -128,7 +127,7 @@ data class Card(
         return ret
     }
 
-    // Uhhhh
+    // Operators and such
     fun toInt(): Int {
         if (nullOrCurse) {
             return -99

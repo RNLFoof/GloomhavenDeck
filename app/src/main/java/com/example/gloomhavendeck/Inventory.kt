@@ -7,7 +7,9 @@ import kotlinx.serialization.Transient
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-class Inventory(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(controller) {
+class Inventory(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(
+    controller
+) {
     init {
         controller.inventory = this
     }
@@ -16,7 +18,7 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
     var activeItems = mutableListOf<Item>()
     var unusableItems = mutableListOf<Item>()
 
-    // Starutup
+    // Startup
     fun initializeThreeSpears() {
         usableItems = mutableListOf(
             Item.CLOAK_OF_POCKETS,
@@ -196,7 +198,7 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
         while (true) {
             // Just gonna assume this all exists since you only use this in pipis
             if (usableItems.contains(Item.LUCKY_EYE)
-                && !controller.player!!.statuses.contains(Status.STRENGTHEN) ?: true
+                && !controller.player!!.statuses.contains(Status.STRENGTHEN)
             ) {
                 yield(Item.LUCKY_EYE)
                 continue

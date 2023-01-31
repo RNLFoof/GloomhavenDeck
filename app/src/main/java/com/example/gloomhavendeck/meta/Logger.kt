@@ -1,7 +1,6 @@
 package com.example.gloomhavendeck.meta
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.gloomhavendeck.Controllable
 import com.example.gloomhavendeck.Controller
@@ -10,7 +9,9 @@ import kotlinx.serialization.Transient
 
 @Serializable
 @RequiresApi(Build.VERSION_CODES.O)
-class Logger(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(controller) {
+class Logger(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(
+    controller
+) {
 
     init {
         controller.logger = this

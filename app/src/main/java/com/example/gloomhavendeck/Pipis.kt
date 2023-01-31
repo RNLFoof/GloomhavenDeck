@@ -7,7 +7,9 @@ import kotlinx.serialization.Transient
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-class Pipis(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(controller) {
+class Pipis(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(
+    controller
+) {
     init {
         controller.pipis = this
     }

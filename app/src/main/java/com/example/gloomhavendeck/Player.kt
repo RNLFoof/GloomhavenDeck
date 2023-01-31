@@ -7,7 +7,9 @@ import kotlinx.serialization.Transient
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-class Player(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true), var maxHp: Int): Controllable(controller) {
+class Player(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true), var maxHp: Int): Controllable(
+    controller
+) {
     init {
         controller.player = this
     }

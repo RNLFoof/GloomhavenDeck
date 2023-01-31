@@ -10,11 +10,7 @@ import kotlinx.serialization.Transient
  */
 @Serializable
 @RequiresApi(Build.VERSION_CODES.O)
-open class Controllable constructor(
+open class Controllable(
     @Transient/* If it could back to the controller, this would loop forever */
-    open var controller: Controller = Controller(),
-
-    val undoOnly: Iterable<String>? = null /* If present, only the fields listed are updated during an undo */
-    ) {
-
-}
+    open var controller: Controller = Controller()
+)

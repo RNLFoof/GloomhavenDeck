@@ -106,7 +106,9 @@ data class Enemy(var creationString: String) {
             // Ex: vermling scout 7: 1 2 3 e5 6
 
             val monsterStatsString = getResourceAsText("res/raw/monster_stats.json")
-            val monsterStatsJson: Map<String, JsonElement> = Json.parseToJsonElement(monsterStatsString!!).jsonObject
+            val monsterStatsJson: Map<String, JsonElement> = Json.parseToJsonElement(
+                monsterStatsString
+            ).jsonObject
             var jsonExpandedBlock = ""
 
             val fromJsonRegex = Regex("^([a-zA-Z ]+)(\\d)?[:;]([0-9 ]+)?([nN][0-9 ]+)?$")
@@ -192,7 +194,7 @@ data class Enemy(var creationString: String) {
             // instead of
             // "Dog 1\nDog 2\nDog 3"
             val nameRegex = Regex("^[a-zA-Z]+")
-            var previousNameMatch = nameRegex.find(jsonExpandedBlock)
+            val previousNameMatch = nameRegex.find(jsonExpandedBlock)
             if (previousNameMatch != null) {
                 var previousName = previousNameMatch.value
                 for (line in jsonExpandedBlock.split("\n")) {
@@ -222,7 +224,9 @@ data class Enemy(var creationString: String) {
             var template = ""
 
             val monsterStatsString = getResourceAsText("res/raw/monster_stats.json")
-            val monsterStatsJson: Map<String, JsonElement> = Json.parseToJsonElement(monsterStatsString!!).jsonObject
+            val monsterStatsJson: Map<String, JsonElement> = Json.parseToJsonElement(
+                monsterStatsString
+            ).jsonObject
             for (monsterKV in monsterStatsJson["monsters"]!!.jsonObject) {
                 template += "${monsterKV.key}:1n2\n"
             }
@@ -232,7 +236,7 @@ data class Enemy(var creationString: String) {
 
         fun oneOfEachInterestingGuy() = sequence {
             val interestingTests: MutableList<(Enemy) -> Boolean> = mutableListOf(
-                { _ -> true },
+                { true },
                 { enemy -> enemy.shield != 0 },
                 { enemy -> enemy.retaliate != 0 },
                 { enemy -> enemy.attackersGainDisadvantage },
@@ -259,18 +263,20 @@ data class Enemy(var creationString: String) {
                 var template = ""
                 for (n in codeString) {
                     template += (
-                        if (n == '0') {
-                            "${enemy.name} ${enemy.maxHp} 0"
-                        }
-                        else if (n == '1') {
-                            "${enemy.name} ${enemy.maxHp} ${enemy.maxHp-1}"
-                        }
-                        else if (n == '2') {
-                            "${enemy.name} ${enemy.maxHp} ${enemy.maxHp}"
-                        }
-                        else {
-                            ""
-                        }
+                            when (n) {
+                                '0' -> {
+                                    "${enemy.name} ${enemy.maxHp} 0"
+                                }
+                                '1' -> {
+                                    "${enemy.name} ${enemy.maxHp} ${enemy.maxHp-1}"
+                                }
+                                '2' -> {
+                                    "${enemy.name} ${enemy.maxHp} ${enemy.maxHp}"
+                                }
+                                else -> {
+                                    ""
+                                }
+                            }
                     ) + "\n"
                 }
                 yield(createMany(template.repeat(dudeMultiplier), 7))

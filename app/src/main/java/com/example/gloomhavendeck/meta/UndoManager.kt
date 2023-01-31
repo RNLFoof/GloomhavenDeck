@@ -10,7 +10,7 @@ import kotlinx.serialization.Transient
 
 @Serializable
 @RequiresApi(Build.VERSION_CODES.O)
-class UndoManager(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(){
+class UndoManager(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable() {
 
     init {
         controller.undoManager = this

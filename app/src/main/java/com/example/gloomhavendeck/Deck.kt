@@ -11,7 +11,9 @@ import kotlin.reflect.full.memberProperties
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-open class Deck(@Transient final override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(controller) {
+class Deck(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(
+    controller
+) {
     init {
         controller.deck = this
     }
@@ -22,7 +24,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
     var remainingCurses = 10
 
     // Adding cards
-    open fun addBaseDeckThreeSpears() {
+    fun addBaseDeckThreeSpears() {
         addMultipleToDrawPile(listOf(
             Card(0, nullOrCurse = true, spinny = true),
             Card(2, multiplier = true, spinny = true),
@@ -60,7 +62,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
         controller.undoManager?.addUndoPoint()
     }
 
-    open fun addBaseDeckEye() {
+    fun addBaseDeckEye() {
         addMultipleToDrawPile(listOf(
             Card(0, nullOrCurse = true, spinny = true),
             Card(2, multiplier = true, spinny = true),
@@ -90,13 +92,13 @@ open class Deck(@Transient final override var controller: Controller = Controlle
         controller.activityConnector?.effectQueue?.add(Effect(controller, sound=SoundBundle.SHUFFLE))
     }
 
-    open fun addToDrawPile(card: Card) {
+    fun addToDrawPile(card: Card) {
         drawPile.add(card)
         shuffle()
         controller.logger?.log("Shuffled this card into the draw pile: $card")
     }
 
-    open fun addMultipleToDrawPile(cards: Iterable<Card>) {
+    fun addMultipleToDrawPile(cards: Iterable<Card>) {
         for (card in cards) {
             drawPile.add(card)
         }
@@ -129,7 +131,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
 
 
     // Moving cards
-    open fun drawSingleCard(forcedCard: Card? = null, doingDisadvantage: Boolean = false): Card {
+    fun drawSingleCard(forcedCard: Card? = null, doingDisadvantage: Boolean = false): Card {
         if (drawPile.size == 0){
             controller.logger?.log("Out of cards, have to dominion it...")
             controller.logger?.let {it.logIndent += 1}
@@ -186,7 +188,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
         return drawnRow
     }
 
-    open fun activeCardsToDiscardPile(userDirectlyRequested: Boolean = false) {
+    fun activeCardsToDiscardPile(userDirectlyRequested: Boolean = false) {
         discardPile.addAll(activeCards)
         activeCards.clear()
         controller.logger?.log("Moved the active cards to the discard pile.")
@@ -209,7 +211,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
             controller.undoManager?.addUndoPoint()
     }
 
-    open fun attack(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
+    fun attack(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
         controller.logger?.let {it.logIndent += 1}
         controller.activityConnector?.effectQueue?.add(Effect(controller, selectTopRow = true, hideBottomRow = true, wipe=true))
         val drawnRow = drawRow(nerf = nerf)
@@ -219,7 +221,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
         if (basePower == 0 && drawnRow.any{it.multiplier && it.value == 2}) {
             controller.logger?.log("Can't infer the result without a base value, nerd.")
         } else {
-            controller.logger?.log("Effectively drew a ${combinedCard}")
+            controller.logger?.log("Effectively drew a $combinedCard")
         }
         controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
@@ -227,7 +229,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
         return combinedCard
     }
 
-    open fun advantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
+    fun advantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
         controller.activityConnector?.effectQueue?.add(Effect(controller, selectTopRow = true, showBottomRow = true, wipe=true))
         controller.logger?.let {it.logIndent += 1}
         val drawnRow1 = drawRow(nerf = nerf)
@@ -235,17 +237,15 @@ open class Deck(@Transient final override var controller: Controller = Controlle
         val baseCard = Card(basePower)
         drawnRow1.add(0, baseCard) // Doesn't matter which row it goes into
 
-        val winner : Card
         // Prioritize refreshes
-        if (drawnRow1.last().refresh) {
-            winner = drawnRow1.last()
-        }
-        else if (drawnRow2.last().refresh) {
-            winner = drawnRow2.last()
+        val winner : Card = if (drawnRow1.last().refresh) {
+            drawnRow1.last()
+        } else if (drawnRow2.last().refresh) {
+            drawnRow2.last()
         }
         // Otherwise..
         else {
-            winner = if (drawnRow1.last() > drawnRow2.last()) drawnRow1.last() else drawnRow2.last()
+            if (drawnRow1.last() > drawnRow2.last()) drawnRow1.last() else drawnRow2.last()
         }
         val combinedCard = (
                 drawnRow1.slice(0 until drawnRow1.size-1)
@@ -256,7 +256,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
         if (basePower == 0 && (drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
             controller.logger?.log("Can't infer the result without a base value, nerd.")
         } else {
-            controller.logger?.log("Effectively drew a ${combinedCard}")
+            controller.logger?.log("Effectively drew a $combinedCard")
         }
         controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
@@ -264,7 +264,7 @@ open class Deck(@Transient final override var controller: Controller = Controlle
         return combinedCard
     }
 
-    open fun disadvantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
+    fun disadvantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
         controller.activityConnector?.effectQueue?.add(Effect(controller, selectTopRow = true, showBottomRow = true, wipe=true))
         controller.logger?.let {it.logIndent += 1}
         val drawnRow1 = drawRow(nerf = nerf)
@@ -562,13 +562,13 @@ open class Deck(@Transient final override var controller: Controller = Controlle
                 if (startKv.value is Int && endV is Int) {
                     val dif = endV - (startKv.value as Int)
                     if (dif >= 0) {
-                        controller.logger?.log("${startKv.key}: ${startKv.value} -> ${endV} (+${dif})")
+                        controller.logger?.log("${startKv.key}: ${startKv.value} -> $endV (+${dif})")
                     } else {
-                        controller.logger?.log("${startKv.key}: ${startKv.value} -> ${endV} (${dif})")
+                        controller.logger?.log("${startKv.key}: ${startKv.value} -> $endV (${dif})")
                     }
                 }
                 else {
-                    controller.logger?.log("${startKv.key}: ${startKv.value} -> ${endV}")
+                    controller.logger?.log("${startKv.key}: ${startKv.value} -> $endV")
                 }
             }
         }
