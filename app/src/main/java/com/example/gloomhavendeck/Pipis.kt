@@ -22,7 +22,7 @@ class Pipis(@Transient override var controller: Controller = Controller(destroyT
 
             return HashMap(enemies.associateBy(
                 keySelector = {e -> e.name},
-                valueTransform  = {e -> Enemy.createOne(e.creationString, scenarioLevel)}
+                valueTransform  = {e -> e.deepCopy()}
             ))
         }
     }

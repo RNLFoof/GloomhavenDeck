@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class Card(
     var value: Int = 0,
     var multiplier: Boolean = false,
-    var nullOrCurse: Boolean = false,
+    var nullOrCurse: Boolean = false, // TODO replace with curse, bless, null, and properties for lose and cancelsDamage
     var flippy: Boolean = false,
     var spinny: Boolean = false,
     var lose: Boolean = false,
@@ -91,11 +91,11 @@ data class Card(
         return effectToAdd
     }
 
-    fun withoutAllButValue(): Card {
+    fun withoutSpecialBenefits(): Card {
         if (multiplier) {
             throw Exception("Can't extract value from multiplier!")
         }
-        return Card(value=value)
+        return Card(value=value, )
     }
 
     override fun toString(): String {

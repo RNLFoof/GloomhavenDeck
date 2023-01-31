@@ -9,7 +9,7 @@ internal class EnemyTest {
 
     @Test
     fun createMany() {
-        Enemy.createMany("Verm Scout:1 2 3", 7)
+        Enemy.createMany("Verm Scout:1 2 3\nDog1 1 0", 7)
     }
 
     @Test
@@ -68,6 +68,37 @@ internal class EnemyTest {
                 break
             }
         }
+    }
+
+    @Test
+    fun getAttacked() {
+        val player = Player(Controller(), 44)
+        val enemy = Enemy.createOne("Dog 2 0", 7)
+        Assert.assertEquals(0, enemy.taken)
+        enemy.getAttacked(Card(value=0), player)
+        Assert.assertEquals(0, enemy.taken)
+        enemy.getAttacked(Card(value=2), player)
+        Assert.assertEquals(2, enemy.taken)
+    }
+
+    @Test
+    fun deepCopy() {
+        val enemy = Enemy.createOne("verm sc: 1", 7)
+        Assert.assertEquals(
+            enemy,
+            enemy.deepCopy()
+        )
+        Assert.assertNotEquals(
+            System.identityHashCode(enemy),
+            System.identityHashCode(enemy.deepCopy())
+        )
+    }
+
+    @Test
+    fun equals() {
+        Assert.assertEquals(Enemy("Dog 1 2"), Enemy("Dog 1 2"))
+        Assert.assertNotEquals(Enemy("Dog 1 2"), Enemy("Dog 1 3"))
+        Assert.assertNotEquals(Enemy("Dog 1 2"), null)
     }
 
     @Before

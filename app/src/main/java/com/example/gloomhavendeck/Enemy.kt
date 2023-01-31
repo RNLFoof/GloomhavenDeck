@@ -425,6 +425,33 @@ data class Enemy(var creationString: String) {
         }
         return ret
     }
+
+    fun deepCopy(): Enemy {
+        return createOne(creationString, -1)
+    }
+
+    override operator fun equals(other: Any?): Boolean {
+        return toString() == other.toString() && other != null && Enemy::class.java == other::class.java
+    }
+
+    override fun hashCode(): Int {
+        var result = creationString.hashCode()
+        result = 31 * result + taken
+        result = 31 * result + maxHp
+        result = 31 * result + name.hashCode()
+        result = 31 * result + shield
+        result = 31 * result + retaliate
+        result = 31 * result + attackersGainDisadvantage.hashCode()
+        result = 31 * result + inRetaliateRange.hashCode()
+        result = 31 * result + inMeleeRange.hashCode()
+        result = 31 * result + inBallistaRange.hashCode()
+        result = 31 * result + targeted.hashCode()
+        result = 31 * result + extraTarget.hashCode()
+        result = 31 * result + poisoned.hashCode()
+        result = 31 * result + stunned.hashCode()
+        result = 31 * result + muddled.hashCode()
+        return result
+    }
 }
 
 fun compactedString(string: String, maxLength: Int = 4): String {

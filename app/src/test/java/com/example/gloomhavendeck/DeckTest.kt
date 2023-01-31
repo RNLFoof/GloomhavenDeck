@@ -13,6 +13,20 @@ internal class DeckTest {
     lateinit var deck: Deck
 
     @Test
+    fun drawRow() {
+        deck.drawPile = mutableListOf(Card(value=2, stun = true))
+        var combinedCard = deck.drawRow().sum()
+        Assert.assertEquals(2, combinedCard.value)
+        Assert.assertTrue(combinedCard.stun)
+
+
+        deck.drawPile = mutableListOf(Card(value=2, stun = true))
+        combinedCard = deck.drawRow(withoutSpecialBenefits = true).sum()
+        Assert.assertEquals(2, combinedCard.value)
+        Assert.assertFalse(combinedCard.stun)
+    }
+
+    @Test
     fun Pipis() {
         val player = Player(controller, 26)
         fun pipisTheseEnemies(enemies: List<Enemy>) {

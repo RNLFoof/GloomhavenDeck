@@ -158,7 +158,7 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
         return drewCard
     }
 
-    fun drawRow(nerf: Int = 0): MutableList<Card> {
+    fun drawRow(nerf: Int = 0, withoutSpecialBenefits: Boolean = false): MutableList<Card> {
         controller.logger?.log("Drawing a row of cards...")
         controller.logger?.let {it.logIndent += 1}
         val drawnRow = mutableListOf<Card>()
@@ -174,11 +174,13 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
                 drawSingleCard(Card(-1, lose=true, flippy=true))
             }
             continueDrawing = latestCard.flippy
-            drawnRow.add(latestCard)
+            drawnRow.add(if (withoutSpecialBenefits) latestCard.withoutSpecialBenefits() else latestCard)
+
             if (!latestCard.lose) {
                 activeCards.add(latestCard)
             }
             // Should do this a different way but too bad
+            // TODO replace with curse attribute. Actually it shouldn't be tracked like this at all
             if ("curse" in latestCard.toString()) {
                 remainingCurses += 1
             }
@@ -211,10 +213,10 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
             controller.undoManager?.addUndoPoint()
     }
 
-    fun attack(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
+    fun attack(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0, withoutSpecialBenefits: Boolean = false) : Card {
         controller.logger?.let {it.logIndent += 1}
         controller.activityConnector?.effectQueue?.add(Effect(controller, selectTopRow = true, hideBottomRow = true, wipe=true))
-        val drawnRow = drawRow(nerf = nerf)
+        val drawnRow = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
         val baseCard = Card(basePower)
         drawnRow.add(0, baseCard)
         val combinedCard = drawnRow.sum()
@@ -229,11 +231,11 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
         return combinedCard
     }
 
-    fun advantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
+    fun advantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0, withoutSpecialBenefits: Boolean = false) : Card {
         controller.activityConnector?.effectQueue?.add(Effect(controller, selectTopRow = true, showBottomRow = true, wipe=true))
         controller.logger?.let {it.logIndent += 1}
-        val drawnRow1 = drawRow(nerf = nerf)
-        val drawnRow2 = drawRow(nerf = nerf)
+        val drawnRow1 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
+        val drawnRow2 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
         val baseCard = Card(basePower)
         drawnRow1.add(0, baseCard) // Doesn't matter which row it goes into
 
@@ -264,11 +266,11 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
         return combinedCard
     }
 
-    fun disadvantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
+    fun disadvantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0, withoutSpecialBenefits: Boolean = false) : Card {
         controller.activityConnector?.effectQueue?.add(Effect(controller, selectTopRow = true, showBottomRow = true, wipe=true))
         controller.logger?.let {it.logIndent += 1}
-        val drawnRow1 = drawRow(nerf = nerf)
-        val drawnRow2 = drawRow(nerf = nerf)
+        val drawnRow1 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
+        val drawnRow2 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
         val baseCard = Card(basePower)
 
         val loser = if (drawnRow1.last() < drawnRow2.last()) drawnRow1.last() else drawnRow2.last()
@@ -290,7 +292,8 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
         return combinedCard
     }
 
-    fun pipis(player : Player, enemies : Iterable<Enemy>) {
+    fun pipis(player : Player, enemies : List<Enemy>) {
+        val nerflessCounterparts = controller.pipis!!.generateNerflessCounterparts(enemies)
         if (controller.inventory == null) {
             throw Exception("Can't pipis without an inventory")
         }
@@ -409,13 +412,11 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
             // Attacks
             var gotExtraTarget = false
             fun attackEnemy(enemy: Enemy) {
-                // Probably a reasonable limit
-                if (!(this.activeCards.filter { it.refresh }.size < 3
-                    && this.drawPile.size >= 5)
-                ) {
-                    tryToDitchPendant()
-                }
-                // ok anyway
+                val counterpart = nerflessCounterparts[enemy.name]!!
+
+                tryToDitchPendant()
+
+                // TODO this can be a player method and a pipis method
                 var advantage = 0
                 if (player.statuses.contains(Status.STRENGTHEN)) {
                     advantage += 1
@@ -431,16 +432,20 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
                 }
 
                 controller.logger?.let {it.logMuted = true}
-                val combinedCard = if (advantage > 0) advantage(basePower)
-                else if (advantage < 0) disadvantage(basePower)
-                else attack(basePower)
-
-                val nerf = loops-1
-                combinedCard.value = max(0, combinedCard.value-nerf)
+                val combinedCard = if (advantage > 0) advantage(basePower, withoutSpecialBenefits = counterpart.dead)
+                else if (advantage < 0) disadvantage(basePower, withoutSpecialBenefits = counterpart.dead)
+                else attack(basePower, withoutSpecialBenefits = counterpart.dead)
 
                 controller.logger?.let {it.logMuted = false}
 
+                if (!counterpart.dead) {
+                    counterpart.getAttacked(combinedCard, player)
+                }
+
+                val nerf = loops-1
+                combinedCard.value = max(0, combinedCard.value-nerf)
                 enemy.getAttacked(combinedCard, player)
+
                 controller.logger?.log("Hit ${enemy.name} with $combinedCard${if (enemy.dead) ", dies!" else ""}")
                 if (combinedCard.refresh) {
                     controller.inventory!!.recover()

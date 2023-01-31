@@ -78,6 +78,7 @@ open class Controller(var destroyTheUniverseUponInitiation: Boolean = false
             Player(controller, 26).statusDict[Status.POISON] = 2
             Inventory(controller).usableItems.add(Item.LUCKY_EYE)
             Deck(controller)
+            Pipis(controller)
             controller.enemies.add(Enemy("dog 300 300"))
 
             return controller

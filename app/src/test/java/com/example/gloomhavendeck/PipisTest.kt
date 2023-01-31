@@ -27,6 +27,10 @@ internal class PipisTest {
                 counterparts[e.name].toString()
             )
             Assert.assertEquals(
+                e,
+                counterparts[e.name]
+            )
+            Assert.assertEquals(
                 System.identityHashCode(e),
                 System.identityHashCode(e)
             )
@@ -35,6 +39,43 @@ internal class PipisTest {
                 System.identityHashCode(counterparts[e.name])
             )
         }
+    }
+
+    @Test
+    fun attackEnemy() {
+        // TODO Split attackEnemy from being a submethod, and make this test more direct
+        val enemy = Enemy.createOne("Dog1 6 4", 1)
+        val counterpart = enemy.deepCopy()
+
+        fun attackMaybe() {
+            val card = controller.deck!!.attack(0, withoutSpecialBenefits = counterpart.dead)
+            Assert.assertFalse(card.stun)
+            if (!counterpart.dead) {
+                counterpart.getAttacked(card, controller.player!!)
+            }
+            val oldValue = card.value
+            card.value = Integer.max(0, card.value - 2)
+            Assert.assertNotEquals(card.value, oldValue)
+            enemy.getAttacked(card, controller.player!!)
+        }
+
+        pipis.controller.deck!!.drawPile = mutableListOf(
+            Card(value=2, muddle = true),
+            Card(value=2, stun = true)
+        )
+
+        Assert.assertEquals(enemy, counterpart)
+        attackMaybe()
+        Assert.assertEquals(4, enemy.taken)
+        Assert.assertEquals(6, counterpart.taken)
+        Assert.assertNotEquals(enemy, counterpart)
+        Assert.assertTrue(counterpart.dead)
+        Assert.assertFalse(enemy.dead)
+        Assert.assertTrue(enemy.muddled)
+
+        attackMaybe()
+        Assert.assertNotEquals(enemy, counterpart)
+        Assert.assertFalse(enemy.stunned)
     }
 
     @Before
