@@ -43,6 +43,11 @@ open class Controller(var destroyTheUniverseUponInitiation: Boolean = false
             if (value != null && value.controller != this) {value.controller = this}
             field = value
         }
+    var pipis: Pipis? = null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
     @Transient var undoManager: UndoManager?= null
         set(value) {
             if (value != null && value.controller != this) {value.controller = this}
