@@ -91,6 +91,13 @@ data class Card(
         return effectToAdd
     }
 
+    fun withoutAllButValue(): Card {
+        if (multiplier) {
+            throw Exception("Can't extract value from multiplier!")
+        }
+        return Card(value=value)
+    }
+
     override fun toString(): String {
         Card(healAlly = 2) + Card(healAlly = 2)
         // Named stuff
