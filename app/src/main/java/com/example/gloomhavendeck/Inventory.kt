@@ -50,6 +50,16 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
         )
     }
 
+    fun initializeThreeKnives() {
+        usableItems = mutableListOf(
+            Item.MINOR_STAMINA_POTION,
+            Item.MAJOR_STAMINA_POTION,
+            Item.PENDANT_OF_DARK_PACTS,
+            Item.ROCKET_BOOTS,
+            Item.RING_OF_SKULLS,
+        )
+    }
+
     fun allItemsSorted(): List<Item> {
         return (usableItems + unusableItems + activeItems).sortedBy { it.name }
     }
@@ -95,7 +105,7 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
 
         try {
             item.getUsed(controller, fullAutoBehavior)
-            controller.activityConnector?.effectQueue?.add(Effect(controller, card = item.graphic, sound = item.sound, selectTopRow = true))
+            controller.activityConnector?.effectQueue?.addLast(Effect(controller, card = item.graphic, sound = item.sound, selectTopRow = true))
 
             if (item.getsActivated) {
                 activateItem(item)
@@ -106,13 +116,13 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
             displayChangedInventory()
 
         } catch (e: ItemUnusableException) {
-            controller.activityConnector?.effectQueue?.add(Effect(controller, sound = SoundBundle.ITEMUNUSABLE))
+            controller.activityConnector?.effectQueue?.addLast(Effect(controller, sound = SoundBundle.ITEMUNUSABLE))
         }
         controller.logger?.let {it.logIndent -= 1}
     }
 
     fun deactivateItem(item: Item, fullAutoBehavior: Boolean) {
-        controller.activityConnector?.effectQueue?.add(Effect(controller, card = item.graphic, sound = item.sound, selectTopRow = true))
+        controller.activityConnector?.effectQueue?.addLast(Effect(controller, card = item.graphic, sound = item.sound, selectTopRow = true))
         controller.logger?.log("Deactivating $item...")
         controller.logger?.let {it.logIndent += 1}
 

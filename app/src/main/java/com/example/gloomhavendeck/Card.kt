@@ -12,8 +12,10 @@ data class Card(
     var flippy: Boolean = false,
     var spinny: Boolean = false,
     var lose: Boolean = false,
+
     var stun: Boolean = false,
     var muddle: Boolean = false,
+    var invisible: Boolean = false,
     var refresh: Boolean = false,
     var pierce: Int = 0,
     var extraTarget: Boolean = false,
@@ -24,7 +26,7 @@ data class Card(
     val curses: Boolean = false,
 ) {
     @RequiresApi(Build.VERSION_CODES.O)
-    fun effect(controller: Controller, doingDisadvantage: Boolean = false): Effect {
+    fun effect(controller: Controller, doingDisadvantage: Boolean = false, displayBenefitsAsRemoved: Boolean = false): Effect {
 
         // Named
         val effectToAdd : Effect = if ("null" in toString())
@@ -44,6 +46,8 @@ data class Card(
             Effect(controller, sound=SoundBundle.MUDDLE, card=R.drawable.card_muddle)
         else if (stun)
             Effect(controller, sound=SoundBundle.STUN, card=R.drawable.card_stun)
+        else if (invisible)
+            Effect(controller, sound=SoundBundle.DEFAULT, card=R.drawable.card_invisible)
         else if (extraTarget)
             Effect(controller, sound=SoundBundle.EXTRATARGET, card=R.drawable.card_extra_target)
         else if (refresh)
@@ -74,28 +78,30 @@ data class Card(
             Effect(controller, sound=SoundBundle.PLUS1, card=R.drawable.card_plus1)
         else if ("+2" in toString())
             Effect(controller, sound=SoundBundle.PLUS2, card=R.drawable.card_plus2)
-        else// if ("x2" in toString())
+        else if ("x2" in toString())
             Effect(controller, sound=SoundBundle.X2, card=R.drawable.card_x2)
-
+        else
+            Effect(controller, sound=SoundBundle.ITEMUNUSABLE, card=R.drawable.card_what)
         // Replace sound if it's in disadvantage
         if (flippy && doingDisadvantage) {
             effectToAdd.sound = SoundBundle.DISADVANTAGE
         }
 
-        // Move to bottom row if this is an end
-        // If there's only one row, it'll get reset before the next draw anyway
-//        if (!flippy) {
-//            effectToAdd.selectBottomRow = true
-//        }
+        if (displayBenefitsAsRemoved && hasSpecialBenefits()) {
+            effectToAdd.cardForeground = R.drawable.card_nerf_fg
+            effectToAdd.sound = SoundBundle.DISADVANTAGE
+        }
 
         return effectToAdd
     }
 
     fun withoutSpecialBenefits(): Card {
-        if (multiplier) {
-            throw Exception("Can't extract value from multiplier!")
-        }
-        return Card(value=value, )
+        //TODO find a way to mark the properties directly
+        return Card(value=value, multiplier=multiplier, lose=lose, flippy = flippy, nullOrCurse=nullOrCurse, spinny = spinny)
+    }
+
+    fun hasSpecialBenefits(): Boolean {
+        return this != withoutSpecialBenefits()
     }
 
     override fun toString(): String {

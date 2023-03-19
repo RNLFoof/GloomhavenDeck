@@ -296,7 +296,8 @@ data class Enemy(var creationString: String) {
                         // Team states
                         val team = teamSequence.toList()
                         val teamStateString = teamStateInt.toString(2).padStart(teamWideVariablesToCheckCount, '0')
-                        for (member in team) {
+                        for ((n, member) in team.withIndex()) {
+                            member.name += n.toString()
                             member.attackersGainDisadvantage = teamStateString[0] == '1'
                             member.poisoned = teamStateString[1] == '1'
                             member.inRetaliateRange = teamStateString[2] == '1'

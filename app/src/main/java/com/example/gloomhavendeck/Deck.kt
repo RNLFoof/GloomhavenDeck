@@ -87,9 +87,71 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
         controller.undoManager?.addUndoPoint()
     }
 
+    fun addBaseDeckStandard() {
+        addMultipleToDrawPile(listOf(
+            Card(0, nullOrCurse = true, spinny = true),
+            Card(2, multiplier = true, spinny = true),
+
+            Card(-2),
+
+            Card(-1),
+            Card(-1),
+            Card(-1),
+            Card(-1),
+            Card(-1),
+
+            Card(0),
+            Card(0),
+            Card(0),
+            Card(0),
+            Card(0),
+            Card(0),
+
+            Card(1),
+            Card(1),
+            Card(1),
+            Card(1),
+            Card(1),
+
+            Card(2),
+        ))
+        controller.undoManager?.addUndoPoint()
+    }
+
+    fun addBaseDeckThreeKnives() {
+        addMultipleToDrawPile(listOf(
+            Card(0, nullOrCurse = true, spinny = true),
+            Card(2, multiplier = true, spinny = true),
+
+            Card(0),
+
+            Card(1),
+            Card(1),
+            Card(1),
+            Card(1),
+            Card(1),
+            Card(1),
+
+            Card(1, flippy = true),
+            Card(1, flippy = true),
+            Card(1, flippy = true),
+            Card(1, flippy = true),
+
+            Card(2),
+            Card(2),
+            Card(2),
+
+            Card(flippy = true, pierce = 3),
+            Card(flippy = true, pierce = 3),
+
+            Card(flippy = true, invisible = true),
+        ))
+        controller.undoManager?.addUndoPoint()
+    }
+
     fun shuffle() {
         drawPile.shuffle()
-        controller.activityConnector?.effectQueue?.add(Effect(controller, sound=SoundBundle.SHUFFLE))
+        controller.activityConnector?.effectQueue?.addLast(Effect(controller, sound=SoundBundle.SHUFFLE))
     }
 
     fun addToDrawPile(card: Card) {
@@ -131,7 +193,7 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
 
 
     // Moving cards
-    fun drawSingleCard(forcedCard: Card? = null, doingDisadvantage: Boolean = false): Card {
+    fun drawSingleCard(forcedCard: Card? = null, doingDisadvantage: Boolean = false, displayBenefitsAsRemoved: Boolean = false): Card {
         if (drawPile.size == 0){
             controller.logger?.log("Out of cards, have to dominion it...")
             controller.logger?.let {it.logIndent += 1}
@@ -153,12 +215,12 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
         controller.logger?.log("Drew this card: $drewCard")
 
         // Add effect
-        controller.activityConnector?.effectQueue?.add(drewCard.effect(controller, doingDisadvantage = doingDisadvantage))
+        controller.activityConnector?.effectQueue?.addLast(drewCard.effect(controller, doingDisadvantage = doingDisadvantage, displayBenefitsAsRemoved = displayBenefitsAsRemoved))
 
         return drewCard
     }
 
-    fun drawRow(nerf: Int = 0, withoutSpecialBenefits: Boolean = false): MutableList<Card> {
+    fun drawRow(nerf: Int = 0, withoutSpecialBenefits: Boolean = false, doingDisadvantage: Boolean = false): MutableList<Card> {
         controller.logger?.log("Drawing a row of cards...")
         controller.logger?.let {it.logIndent += 1}
         val drawnRow = mutableListOf<Card>()
@@ -168,16 +230,20 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
         var nerfsLeft = nerf
         while (continueDrawing) {
             val latestCard = if (nerfsLeft <= 0) {
-                drawSingleCard()
+                drawSingleCard(displayBenefitsAsRemoved = withoutSpecialBenefits, doingDisadvantage=doingDisadvantage)
             } else {
                 nerfsLeft -= 1
                 drawSingleCard(Card(-1, lose=true, flippy=true))
             }
             continueDrawing = latestCard.flippy
-            drawnRow.add(if (withoutSpecialBenefits) latestCard.withoutSpecialBenefits() else latestCard)
 
             if (!latestCard.lose) {
                 activeCards.add(latestCard)
+            }
+            if (withoutSpecialBenefits) {
+                drawnRow.add(latestCard.withoutSpecialBenefits())
+            } else {
+                drawnRow.add(latestCard)
             }
             // Should do this a different way but too bad
             // TODO replace with curse attribute. Actually it shouldn't be tracked like this at all
@@ -186,7 +252,9 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
             }
         }
         controller.logger?.let {it.logIndent -= 1}
-        controller.activityConnector?.effectQueue?.add(Effect(controller, selectBottomRow = true))
+
+        controller.activityConnector?.effectQueue?.addLast(Effect(controller, selectBottomRow = true))
+
         return drawnRow
     }
 
@@ -198,9 +266,9 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
             controller.undoManager?.addUndoPoint()
         }
         if (activeCards.size != 0) {
-            controller.activityConnector?.effectQueue?.add(Effect(controller, sound=SoundBundle.DISCARD))
+            controller.activityConnector?.effectQueue?.addLast(Effect(controller, sound=SoundBundle.DISCARD))
         }
-        controller.activityConnector?.effectQueue?.add(Effect(controller, sound=SoundBundle.DISCARD))
+        controller.activityConnector?.effectQueue?.addLast(Effect(controller, sound=SoundBundle.DISCARD))
     }
 
     fun discardPileToDrawPile(userDirectlyRequested: Boolean = false) {
@@ -215,10 +283,11 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
 
     fun attack(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0, withoutSpecialBenefits: Boolean = false) : Card {
         controller.logger?.let {it.logIndent += 1}
-        controller.activityConnector?.effectQueue?.add(Effect(controller, selectTopRow = true, hideBottomRow = true, wipe=true))
+        controller.activityConnector?.effectQueue?.addLast(Effect(controller, selectTopRow = true, hideBottomRow = true, wipe=true))
         val drawnRow = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
         val baseCard = Card(basePower)
         drawnRow.add(0, baseCard)
+
         val combinedCard = drawnRow.sum()
         if (basePower == 0 && drawnRow.any{it.multiplier && it.value == 2}) {
             controller.logger?.log("Can't infer the result without a base value, nerd.")
@@ -232,7 +301,7 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
     }
 
     fun advantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0, withoutSpecialBenefits: Boolean = false) : Card {
-        controller.activityConnector?.effectQueue?.add(Effect(controller, selectTopRow = true, showBottomRow = true, wipe=true))
+        controller.activityConnector?.effectQueue?.addLast(Effect(controller, selectTopRow = true, showBottomRow = true, wipe=true))
         controller.logger?.let {it.logIndent += 1}
         val drawnRow1 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
         val drawnRow2 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
@@ -267,10 +336,10 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
     }
 
     fun disadvantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0, withoutSpecialBenefits: Boolean = false) : Card {
-        controller.activityConnector?.effectQueue?.add(Effect(controller, selectTopRow = true, showBottomRow = true, wipe=true))
+        controller.activityConnector?.effectQueue?.addLast(Effect(controller, selectTopRow = true, showBottomRow = true, wipe=true))
         controller.logger?.let {it.logIndent += 1}
-        val drawnRow1 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
-        val drawnRow2 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
+        val drawnRow1 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits, doingDisadvantage=true)
+        val drawnRow2 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits, doingDisadvantage=true)
         val baseCard = Card(basePower)
 
         val loser = if (drawnRow1.last() < drawnRow2.last()) drawnRow1.last() else drawnRow2.last()

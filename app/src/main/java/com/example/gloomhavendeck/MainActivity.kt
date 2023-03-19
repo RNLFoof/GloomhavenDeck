@@ -59,6 +59,7 @@ class MainActivity : AppCompatActivity() {
         Deck(controller)
         Logger(controller)
         UndoManager(controller)
+        Pipis(controller)
 
         ActivityConnector(controller,
             activity = this,
@@ -86,6 +87,11 @@ class MainActivity : AppCompatActivity() {
                     Player(controller,14)
                     controller.deck!!.addBaseDeckEye()
                     controller.inventory?.initializeEye()
+                }
+                deckBuilder.setNeutralButton("Three Knives") { _, _ ->
+                    Player(controller,20)
+                    controller.deck!!.addBaseDeckThreeKnives()
+                    controller.inventory?.initializeThreeKnives()
                 }
                 deckBuilder.setTitle("Class?")
                 deckBuilder.show()
@@ -192,21 +198,21 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
         // Attacks
         btnAttack.setOnClickListener {
             buttonBehavior(btnAttack) {
-                controller.activityConnector?.effectQueue?.add(Effect(controller, hideItemRow=true))
+                controller.activityConnector?.effectQueue?.addLast(Effect(controller, hideItemRow=true))
                 controller.deck!!.attack(userDirectlyRequested = true)
             }
         }
 
         btnAdvantage.setOnClickListener {
             buttonBehavior(btnAdvantage) {
-                controller.activityConnector?.effectQueue?.add(Effect(controller, hideItemRow=true))
+                controller.activityConnector?.effectQueue?.addLast(Effect(controller, hideItemRow=true))
                 controller.deck!!.advantage(userDirectlyRequested = true)
             }
         }
 
         btnDisadvantage.setOnClickListener {
             buttonBehavior(btnDisadvantage) {
-                controller.activityConnector?.effectQueue?.add(Effect(controller, hideItemRow=true))
+                controller.activityConnector?.effectQueue?.addLast(Effect(controller, hideItemRow=true))
                 controller.deck!!.disadvantage(userDirectlyRequested = true)
             }
         }
@@ -567,7 +573,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                         // Go
                         i++ -> {
                             crashProtector {
-                                controller.activityConnector?.effectQueue?.add(
+                                controller.activityConnector?.effectQueue?.addLast(
                                     Effect(
                                         controller,
                                         showItemRow = true
@@ -625,7 +631,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                         val llItemContainer = findViewById<LinearLayout>(R.id.llItemContainer)!!
                         llItemContainer.removeAllViews()
                         var row = LinearLayout(context)
-                        for ((n, item) in (controller.inventory!!.usableItems + controller.inventory!!.unusableItems + controller.inventory!!.activeItems).sorted().withIndex()) {
+                        for ((n, item) in controller.inventory!!.allItemsSorted().withIndex()) {
                             if (n % 3 == 0) {
                                 llItemContainer.addView(row)
                                 row = LinearLayout(context)
@@ -667,7 +673,9 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
 
                             row.addView(imageView)
                         }
-                        llItemContainer.addView(row)
+                        if (row.parent == null) {
+                            llItemContainer.addView(row)
+                        }
                     }
 
                     fun setUpEverything() {
@@ -795,7 +803,7 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
     fun startAction(button: Button) {
         controller.logger?.log("")
         controller.logger?.log("[${button.text.toString().uppercase()}]")
-        controller.activityConnector?.effectQueue?.add(Effect(controller, wipe = true))
+        controller.activityConnector?.effectQueue?.addLast(Effect(controller, wipe = true))
     }
 
     fun endAction(button: Button) {

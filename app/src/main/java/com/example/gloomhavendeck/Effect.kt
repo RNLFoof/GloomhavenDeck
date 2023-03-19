@@ -1,6 +1,7 @@
 package com.example.gloomhavendeck
 
 import android.annotation.SuppressLint
+import android.graphics.ColorFilter
 import android.media.MediaPlayer
 import android.os.Build
 import android.view.View
@@ -16,7 +17,7 @@ class Effect(@Transient override var controller: Controller,
              var selectTopRow: Boolean = false, var selectBottomRow: Boolean = false,
              var showBottomRow: Boolean = false, var hideBottomRow: Boolean = false,
              var showItemRow: Boolean = false, var hideItemRow: Boolean = false,
-             var newItemRowDisplay: List<Boolean>? = null): Controllable(controller)
+             var newItemRowDisplay: List<Boolean>? = null, var cardForeground: Int? = null): Controllable(controller)
 {
     var speed = controller.activityConnector?.effectSpeed ?: 1
     @SuppressLint("UseCompatLoadingForDrawables")
@@ -31,6 +32,13 @@ class Effect(@Transient override var controller: Controller,
                 imageView.setImageResource(card!!)
                 imageView.rotation = (Random().nextFloat()*1-0.5).toFloat() // This masks bad scanning lol
                 imageView.adjustViewBounds = true
+
+                if (cardForeground != null) {
+                    imageView.foreground = controller.activityConnector!!.activity.getDrawable(
+                        cardForeground!!
+                    )
+                }
+
                 // Show the bottom row if there's already three cards
                 // If it's already visible then whatever
                 if (controller.activityConnector!!.llTopCardRow.size == 3) {
@@ -74,6 +82,7 @@ class Effect(@Transient override var controller: Controller,
                     controller.activityConnector!!.llItemRow.visibility = View.GONE
                 }
             }
+            // TODO move this logic to the inventory
             if (newItemRowDisplay != null) {
                 controller.activityConnector!!.activity.runOnUiThread {
                     controller.activityConnector!!.llItemRow.removeAllViews()

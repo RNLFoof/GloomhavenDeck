@@ -9,10 +9,15 @@ internal class CardTest {
     fun withoutSpecialBenefits() {
         val interestingCard = Card(value=2, pierce = 3, stun = true)
         val boringCard = Card(value=2)
-        val multiplierCard = Card(multiplier = true)
         Assert.assertEquals(boringCard, boringCard.withoutSpecialBenefits())
         Assert.assertNotEquals(interestingCard, interestingCard.withoutSpecialBenefits())
-        Assert.assertThrows(Exception::class.java) {multiplierCard.withoutSpecialBenefits()}
+    }
+
+    @Test
+    fun hasSpecialBenefits() {
+        Assert.assertTrue(Card(stun=true).hasSpecialBenefits())
+        Assert.assertFalse(Card(lose=true).hasSpecialBenefits())
+        Assert.assertFalse(Card().hasSpecialBenefits())
     }
 
     @Test

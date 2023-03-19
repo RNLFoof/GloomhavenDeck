@@ -33,7 +33,7 @@ class ActivityConnector(
             while (true) {
                 Crap.crashProtector(activity) {
                     if (effectQueue.size > 0) {
-                        val effect = effectQueue.remove()
+                        val effect = effectQueue.removeFirst()
                         effect.run()
                         if (effect.sound != null) {
                             Thread.sleep(effect.speed)
