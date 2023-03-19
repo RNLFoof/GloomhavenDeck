@@ -1,90 +1,124 @@
 package com.example.gloomhavendeck
 
-import android.content.Context
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
+import com.example.gloomhavendeck.meta.Logger
+import com.example.gloomhavendeck.meta.Saver
+import com.example.gloomhavendeck.meta.UndoManager
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import java.io.File
-import java.nio.file.Paths
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-open class Controller(private val filesDir: String) {
-    var player = Player(26) // Like I guess I'll put 26 here?? fuck I should have structured this better
-    var deck = Deck(this)
+open class Controller(var destroyTheUniverseUponInitiation: Boolean = false
+) {
+    // I wonder if there's a way to do all these setters in a way that isn't ugly and redundant
+    var saver: Saver? = null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
+    var logger: Logger? = null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
+    var player: Player? = null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
+    var inventory: Inventory? = null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
+    var deck: Deck? = null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
+    var pipis: Pipis? = null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
+    @Transient var undoManager: UndoManager?= null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
+    @Transient var activityConnector: ActivityConnector? = null
+        set(value) {
+            if (value != null && value.controller != this) {value.controller = this}
+            field = value
+        }
+
     var enemies: MutableList<Enemy> = mutableListOf()
 
-    // Undoing
-    @Transient
-    val undoPoints = mutableListOf<UndoPoint>()
-    var undosBack = 0
-
-    // Logging
-    var logList = mutableListOf<String>()
-    @Transient var logIndent = 0 // How many spaces to insert before a log, used to indicate that one action is part of another
-    @Transient var logMuted = false // So you can make it shut up
-    var logCount = 0 // How many logs have been made in general, used instead of index so old stuff can be removed
-    var logsToHide = 0 // Used to go back and forth while undoing without like, making entire separate copies of the logs
-    private val currentStateSavedAt = Paths.get(filesDir, "current_state.json").toString()
-
-    fun log(text: String) {
-        Log.d("heyyyy", text)
-        if (!logMuted) {
-            // Override any "future" logs
-            while (logsToHide > 0 && logList.size > 0) {
-                logsToHide -= 1
-                logList.removeLast()
-            }
-            logsToHide = 0 // So that if there's more to hide than there is it still resets
-            logList.add("----".repeat(logIndent) + text)
-            while (logList.size > 100) {
-                logList.removeFirst()
-            }
-            logCount += 1
+    init {
+        // This is true on all the default of all the controlables.
+        // It needs a default value, because it's transient, so it doesn't loop forever when saving
+        // But those defaults shouldn't ever actually be used
+        // Unless it's just to immediately replace
+        if (destroyTheUniverseUponInitiation and !suppressUniverseDestruction) {
+            throw DestroyTheUniverseUponInitiationException()
         }
     }
 
-    fun getShownLogs(): MutableList<String> {
-        Log.d("undos", "Hiding $logsToHide logs. Final log is ${logList.last()}")
-        return logList.subList(0, Integer.max(0, logList.size - logsToHide))
-    }
+    companion object {
+        var suppressUniverseDestruction = false
 
-    fun addUndoPoint() {
-        log("State saved.")
-        // Override any "future" undos
-        while (undosBack > 0) {
-            undosBack -= 1
-            undoPoints.removeLast()
+        fun newFullyStocked(): Controller {
+            // Only for testing, really
+            val controller = Controller()
+            Saver(controller, "")
+            Logger(controller)
+            UndoManager(controller)
+            Player(controller, 26).statusDict[Status.POISON] = 2
+            Inventory(controller).usableItems.add(Item.LUCKY_EYE)
+            Deck(controller)
+            Pipis(controller)
+            controller.enemies.add(Enemy("dog 300 300"))
+
+            return controller
         }
-        // Add a new one
-        undoPoints.add(getUndoPoint())
-        // Save
-        val currentStateJson = Json.encodeToString(this)
-        File(currentStateSavedAt).writeText(currentStateJson)
+
+        fun doWithoutDestroyingTheUniverse(function: () -> Unit) {
+            // dw I think this method of doing it is stupid too
+            // I worry about thread safety but the point of universe destruction is just to prevent
+            // me from coding something dumb so it should be fine
+            // This will, most of the time, warn me of a bug, which is what it needs to do
+            suppressUniverseDestruction = true
+            val output = function()
+            suppressUniverseDestruction = false
+            return output
+        }
+
+        inline fun <reified T>doWithoutDestroyingTheUniverse(function: () -> T): T {
+            // dw I think this method of doing it is stupid too
+            // I worry about thread safety but the point of universe destruction is just to prevent
+            // me from coding something dumb so it should be fine
+            // This will, most of the time, warn me of a bug, which is what it needs to do
+            suppressUniverseDestruction = true
+            val output = function()
+            suppressUniverseDestruction = false
+            return output
+        }
     }
 
-    // Done like this so the object can be replaced with an expanded one.
-    open fun getUndoPoint(): UndoPoint {
-        return UndoPoint(this)
-    }
-
-    fun Undo() {
-        undosBack += 1
-        Log.d("undos", "Loading state ${undoPoints.size-undosBack-1+1}/${undoPoints.size}")
-        undoPoints[undoPoints.size-undosBack-1].use(this)
-    }
-
-    fun Redo() {
-        undosBack -= 1
-        Log.d("undos", "Loading state ${undoPoints.size-undosBack+1}/${undoPoints.size}")
-        undoPoints[undoPoints.size-undosBack-1].use(this)
-    }
-
-    fun InsertSelfIntoAllChildren() {
-        deck.controller = this
+    fun sortEnemies(enemyOrder: List<String>) {
+        val nameRegex = Regex("[a-z]+", RegexOption.IGNORE_CASE)
+        enemies = enemies.sortedBy { it.name }.toMutableList()
+        enemies = enemies.sortedBy {
+            val name = nameRegex.find(it.name)!!.value
+            if (name in enemyOrder) {
+                enemyOrder.indexOf(name)
+            } else {
+                -1
+            }
+        }.toMutableList()
     }
 }
+
+class DestroyTheUniverseUponInitiationException: Exception()

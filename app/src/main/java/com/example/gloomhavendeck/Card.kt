@@ -1,17 +1,21 @@
 package com.example.gloomhavendeck
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Card(
     var value: Int = 0,
     var multiplier: Boolean = false,
-    var nullOrCurse: Boolean = false, // Would be null but that's reserved
+    var nullOrCurse: Boolean = false, // TODO replace with curse, bless, null, and properties for lose and cancelsDamage
     var flippy: Boolean = false,
     var spinny: Boolean = false,
     var lose: Boolean = false,
+
     var stun: Boolean = false,
     var muddle: Boolean = false,
+    var invisible: Boolean = false,
     var refresh: Boolean = false,
     var pierce: Int = 0,
     var extraTarget: Boolean = false,
@@ -21,7 +25,84 @@ data class Card(
     val regenerate: Boolean = false,
     val curses: Boolean = false,
 ) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun effect(controller: Controller, doingDisadvantage: Boolean = false, displayBenefitsAsRemoved: Boolean = false): Effect {
 
+        // Named
+        val effectToAdd : Effect = if ("null" in toString())
+            Effect(controller, sound=SoundBundle.NULL, card=R.drawable.card_null)
+        else if ("curse" in toString())
+            Effect(controller, sound=SoundBundle.CURSE, card=R.drawable.card_curse)
+        else if ("bless" in toString())
+            Effect(controller, sound=SoundBundle.BLESS, card=R.drawable.card_bless)
+
+
+        // Effects
+        else if (pierce > 0)
+            Effect(controller, sound=SoundBundle.PIERCE, card=R.drawable.card_pierce)
+        else if ("+3" in toString() && muddle)
+            Effect(controller, sound=SoundBundle.MUDDLE, card=R.drawable.card_plus3muddle)
+        else if (muddle)
+            Effect(controller, sound=SoundBundle.MUDDLE, card=R.drawable.card_muddle)
+        else if (stun)
+            Effect(controller, sound=SoundBundle.STUN, card=R.drawable.card_stun)
+        else if (invisible)
+            Effect(controller, sound=SoundBundle.DEFAULT, card=R.drawable.card_invisible)
+        else if (extraTarget)
+            Effect(controller, sound=SoundBundle.EXTRATARGET, card=R.drawable.card_extra_target)
+        else if (refresh)
+            Effect(controller, sound=SoundBundle.REFRESH, card=R.drawable.card_refresh)
+        else if (healAlly > 0)
+            Effect(controller, sound=SoundBundle.HEAL, card=R.drawable.card_plus1healally)
+        else if (shieldSelf > 0)
+            Effect(controller, sound=SoundBundle.SHIELD, card=R.drawable.card_plus3shield)
+        else if (element == Element.DARK)
+            Effect(controller, sound=SoundBundle.DARK, card=R.drawable.card_plus2dark)
+        else if (regenerate)
+            Effect(controller, sound=SoundBundle.REGENERATE, card=R.drawable.card_plus2regenerate)
+        else if (curses)
+            Effect(controller, sound=SoundBundle.CURSEADDED, card=R.drawable.card_plus2curse)
+
+        // Numbers
+        else if ("-2" in toString())
+            Effect(controller, sound=SoundBundle.MINUS2, card=R.drawable.card_minus2)
+        else if (flippy && "-1" in toString())
+            Effect(controller, sound=SoundBundle.MINUS1, card=R.drawable.card_minus1_flippy)
+        else if ("-1" in toString())
+            Effect(controller, sound=SoundBundle.MINUS1, card=R.drawable.card_minus1)
+        else if ("+0" in toString())
+            Effect(controller, sound=SoundBundle.DEFAULT, card=R.drawable.card_plus0)
+        else if (flippy && "+1" in toString())
+            Effect(controller, sound=SoundBundle.PLUS1, card=R.drawable.card_plus1_flippy)
+        else if ("+1" in toString())
+            Effect(controller, sound=SoundBundle.PLUS1, card=R.drawable.card_plus1)
+        else if ("+2" in toString())
+            Effect(controller, sound=SoundBundle.PLUS2, card=R.drawable.card_plus2)
+        else if ("x2" in toString())
+            Effect(controller, sound=SoundBundle.X2, card=R.drawable.card_x2)
+        else
+            Effect(controller, sound=SoundBundle.ITEMUNUSABLE, card=R.drawable.card_what)
+        // Replace sound if it's in disadvantage
+        if (flippy && doingDisadvantage) {
+            effectToAdd.sound = SoundBundle.DISADVANTAGE
+        }
+
+        if (displayBenefitsAsRemoved && hasSpecialBenefits()) {
+            effectToAdd.cardForeground = R.drawable.card_nerf_fg
+            effectToAdd.sound = SoundBundle.DISADVANTAGE
+        }
+
+        return effectToAdd
+    }
+
+    fun withoutSpecialBenefits(): Card {
+        //TODO find a way to mark the properties directly
+        return Card(value=value, multiplier=multiplier, lose=lose, flippy = flippy, nullOrCurse=nullOrCurse, spinny = spinny)
+    }
+
+    fun hasSpecialBenefits(): Boolean {
+        return this != withoutSpecialBenefits()
+    }
 
     override fun toString(): String {
         Card(healAlly = 2) + Card(healAlly = 2)
@@ -59,7 +140,7 @@ data class Card(
         return ret
     }
 
-    // Uhhhh
+    // Operators and such
     fun toInt(): Int {
         if (nullOrCurse) {
             return -99
@@ -105,11 +186,11 @@ data class Card(
 
 fun List<Card>.sum(): Card {
     if (this.size == 1) {
-        return this[0];
+        return this[0]
     }
-    var retCard = this[0];
+    var retCard = this[0]
     for (card in this.subList(1, this.size)) {
-        retCard += card;
+        retCard += card
     }
-    return retCard;
+    return retCard
 }

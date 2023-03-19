@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+.idea/
+app/test.json
+app/current_state.json

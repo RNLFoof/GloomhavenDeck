@@ -3,13 +3,19 @@ package com.example.gloomhavendeck
 import android.os.Build
 import androidx.annotation.RequiresApi
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-open class Player(val maxHp: Int) {
+class Player(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true), var maxHp: Int): Controllable(
+    controller
+) {
+    init {
+        controller.player = this
+    }
+
     var hp = maxHp
     var dings = 0
-    open var inventory = Inventory()
 
     var statusDict = HashMap<Status, Int>()
     init {
@@ -60,13 +66,21 @@ open class Player(val maxHp: Int) {
             }
         }
 
-    open fun useItem(item: Item, deck: Deck, fullAutoBehavior: Boolean) {
-        inventory.useItem(this, deck, item, fullAutoBehavior)
+    fun heal(amount: Int, viaItem: Boolean) {
+        if (statuses.contains(Status.WOUND)) {
+            statusDict[Status.WOUND] = 0
+        }
+        if (statuses.contains(Status.POISON)) {
+            statusDict[Status.POISON] = 0
+        } else {
+            if (hp >= maxHp) {
+                if (viaItem) {
+                    throw ItemUnusableException("Already at max HP!")
+                } else {
+                    throw kotlin.Exception("Already at max HP!")
+                }
+            }
+            hp = Integer.min(hp + amount, maxHp)
+        }
     }
-
-    open fun deactivateItem(item: Item, deck: Deck, fullAutoBehavior: Boolean) {
-        inventory.deactivateItem(this, deck, item, fullAutoBehavior)
-    }
-
-
 }

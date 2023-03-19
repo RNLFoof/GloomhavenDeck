@@ -1,15 +1,14 @@
 package com.example.gloomhavendeck
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
-import org.intellij.lang.annotations.RegExp
+import com.example.gloomhavendeck.meta.Crap.Companion.getResourceAsText
 import kotlin.reflect.KMutableProperty
-import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.full.createType
 import kotlin.reflect.full.memberProperties
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
+import kotlin.math.pow
 
 @RequiresApi(Build.VERSION_CODES.N)
 @Serializable
@@ -99,15 +98,17 @@ data class Enemy(var creationString: String) {
                 }
             }
         }
-        Log.d("hey", this.toString())
     }
 
     companion object {
         fun createMany(block: String, scenarioLevel: Int) = sequence {
             // The format "name: numbers" lets you pull from monster stats to quickly establish
             // Ex: vermling scout 7: 1 2 3 e5 6
-            val monsterStatsString = this::class.java.classLoader.getResource("res/raw/monster_stats.json").readText()
-            val monsterStatsJson: Map<String, JsonElement> = Json.parseToJsonElement(monsterStatsString).jsonObject
+
+            val monsterStatsString = getResourceAsText("res/raw/monster_stats.json")
+            val monsterStatsJson: Map<String, JsonElement> = Json.parseToJsonElement(
+                monsterStatsString
+            ).jsonObject
             var jsonExpandedBlock = ""
 
             val fromJsonRegex = Regex("^([a-zA-Z ]+)(\\d)?[:;]([0-9 ]+)?([nN][0-9 ]+)?$")
@@ -116,6 +117,9 @@ data class Enemy(var creationString: String) {
             val retaliateRegex = Regex("Retaliate (\\d+)")
 
             for (line in block.split("\n")) {
+                if (line.strip().isEmpty()) {
+                    continue
+                }
                 // Does this line contain a DB shorthand?
                 val fromJsonMatch = fromJsonRegex.find(line)
                 if (fromJsonMatch != null) {
@@ -190,18 +194,187 @@ data class Enemy(var creationString: String) {
             // instead of
             // "Dog 1\nDog 2\nDog 3"
             val nameRegex = Regex("^[a-zA-Z]+")
-            var previousName = nameRegex.find(jsonExpandedBlock)!!.value
-            for (line in jsonExpandedBlock.split("\n")) {
-                val currentName = nameRegex.find(line)
-                if (currentName == null) {
-                    yield(Enemy(previousName + line))
-                }
-                else {
-                    previousName = currentName.value
-                    yield(Enemy(line))
+            val previousNameMatch = nameRegex.find(jsonExpandedBlock)
+            if (previousNameMatch != null) {
+                var previousName = previousNameMatch.value
+                for (line in jsonExpandedBlock.split("\n")) {
+                    val currentName = nameRegex.find(line)
+                    if (currentName == null) {
+                        yield(Enemy(previousName + line))
+                    } else {
+                        previousName = currentName.value
+                        yield(Enemy(line))
+                    }
                 }
             }
         }
+
+        fun createOne(line: String, scenarioLevel: Int): Enemy {
+            if ("\n" in line){
+                throw Exception("ONE!!!!!!")
+            }
+            for (enemy in createMany(line, scenarioLevel)) {
+                return enemy
+            }
+            throw Exception("I guess that wasn't valid.")
+        }
+
+        fun oneOfEach(): Sequence<Enemy> {
+            // Mainly for testing
+            var template = ""
+
+            val monsterStatsString = getResourceAsText("res/raw/monster_stats.json")
+            val monsterStatsJson: Map<String, JsonElement> = Json.parseToJsonElement(
+                monsterStatsString
+            ).jsonObject
+            for (monsterKV in monsterStatsJson["monsters"]!!.jsonObject) {
+                template += "${monsterKV.key}:1n2\n"
+            }
+
+            return createMany(template, 7)
+        }
+
+        fun oneOfEachInterestingGuy() = sequence {
+            val interestingTests: MutableList<(Enemy) -> Boolean> = mutableListOf(
+                { true },
+                { enemy -> enemy.shield != 0 },
+                { enemy -> enemy.retaliate != 0 },
+                { enemy -> enemy.attackersGainDisadvantage },
+                { enemy -> enemy.maxHp >= 5 },
+                { enemy -> enemy.maxHp >= 10 },
+                { enemy -> enemy.maxHp >= 20 },
+            )
+
+            for (enemy in oneOfEach()) {
+                for ((n, test) in interestingTests.withIndex()) {
+                    if (test(enemy)) {
+                        yield(enemy)
+                        interestingTests.removeAt(n)
+                        break
+                    }
+                }
+            }
+        }
+
+        fun teamsOfThisGuy(enemy: Enemy, uniqueDudeCount: Int = 4, dudeMultiplier: Int = 4) = sequence {
+            val states = 4f.pow(uniqueDudeCount).toInt()
+            for (code in 0 until states) { // Last state is skipped because it has an extra digit. 10000 or whatever
+                val codeString = code.toString(4).padStart(uniqueDudeCount, '0')
+                var template = ""
+                for (n in codeString) {
+                    template += (
+                            when (n) {
+                                '0' -> {
+                                    "${enemy.name} ${enemy.maxHp} 0"
+                                }
+                                '1' -> {
+                                    "${enemy.name} ${enemy.maxHp} ${enemy.maxHp-1}"
+                                }
+                                '2' -> {
+                                    "${enemy.name} ${enemy.maxHp} ${enemy.maxHp}"
+                                }
+                                else -> {
+                                    ""
+                                }
+                            }
+                    ) + "\n"
+                }
+                yield(createMany(template.repeat(dudeMultiplier), 7))
+            }
+        }
+
+        // TODO make the names in this more clear
+        @RequiresApi(Build.VERSION_CODES.O)
+        fun interestingPipisTeams(uniqueDudeCount: Int = 2, dudeMultiplier: Int = 5) = sequence {
+            val teamWideVariablesToCheckCount = 4
+
+            val teamStateCount = 2f.pow(teamWideVariablesToCheckCount).toInt() // Each digit contains 2 possibilities, and there's 4 variables
+
+            for (interestingGuy in oneOfEachInterestingGuy()) {
+                for (teamStateInt in 0 until teamStateCount) {
+                    for (teamSequence in teamsOfThisGuy(interestingGuy, uniqueDudeCount, dudeMultiplier)) {
+                        // Team states
+                        val team = teamSequence.toList()
+                        val teamStateString = teamStateInt.toString(2).padStart(teamWideVariablesToCheckCount, '0')
+                        for ((n, member) in team.withIndex()) {
+                            member.name += n.toString()
+                            member.attackersGainDisadvantage = teamStateString[0] == '1'
+                            member.poisoned = teamStateString[1] == '1'
+                            member.inRetaliateRange = teamStateString[2] == '1'
+                            member.inMeleeRange = teamStateString[3] == '1'
+                        }
+                        println(teamStateString)
+                        yield(team)
+                    }
+                }
+            }
+        }
+
+        fun interestingTeamTargeting(team: List<Enemy>, antiRedundancy: Int = 4)
+        {
+            val memberVariablesToCheckCount = 2
+            // Member states
+            val singleMemberStateCount = 2f.pow(memberVariablesToCheckCount).toInt() // Each digit contains 2 possibilities, and there's 4 variables, for 8
+            val allMembersStateCount = (singleMemberStateCount).toDouble().pow(team.count() / antiRedundancy).toInt() // Each digit contains 8 possibilities, and there's (team) digits
+
+            for (allMemberStatesInt in 0 until allMembersStateCount) {
+                val allMemberStatesBase = memberVariablesToCheckCount
+                val allMemberStatesString = allMemberStatesInt.toString(allMemberStatesBase)
+                    .padStart(team.count() * memberVariablesToCheckCount, '0') // base 8 number
+
+                if ((allMembersStateCount - 1).toString(memberVariablesToCheckCount).length != team.count() * memberVariablesToCheckCount) {
+                    throw Exception("Fuck")
+                }
+
+                for (memberStateChar in allMemberStatesString) {  // Single base 8 character
+                    val memberStateBinaryString =
+                        memberStateChar.toString().toInt(allMemberStatesBase)
+                            .toString(2) // The values for every nth member, n being memberStateIndex
+
+                    for ((teamMemberIndex, teamMember) in team.withIndex()) {
+                        if (teamMemberIndex % antiRedundancy != 0) {
+                            continue
+                        }
+                        teamMember.targeted = memberStateBinaryString[0] == '1'
+                        teamMember.extraTarget = memberStateBinaryString[1] == '1'
+                    }
+                }
+            }
+        }
+
+        // TODO make the names in this more clear
+//        @RequiresApi(Build.VERSION_CODES.O)
+//        fun interestingPipisTeams(dudeExponent: Int = 2, dudeMultiplier: Int = 5) = sequence {
+//            val encoder: java.util.Base64.Encoder = java.util.Base64.getEncoder()
+//            val variablesToCheckCount = 6
+//            for (interestingGuy in oneOfEachInterestingGuy()) {
+//                for (teamSequence in teamsOfThisGuy(interestingGuy, dudeExponent, dudeMultiplier)) {
+//                    val team = teamSequence.toList()
+//                    // States are boolean values for targeted, extraTarget,
+//                    // attackersGainDisadvantage, poisoned, inRetaliateRange, inMeleeRange
+//                    val singleMemberStateCombinationCount = 2f.pow(variablesToCheckCount).toInt()
+//                    val teamStateCombinationCount = singleMemberStateCombinationCount.toDouble().pow(team.count() / dudeMultiplier).toInt()
+//                    for (state in 0 until teamStateCombinationCount) {
+//                        val teamCodeString = encoder.encodeToString(state.toString().encodeToByteArray()).padStart(dudeExponent, '0')
+//                        for ((memberStateIndex, memberState) in teamCodeString.withIndex()) {  // This state is given to every dudeMultiplierth dude
+//                            val memberCodeString = memberState.toInt().toString(2)
+//                            for ((teamMemberIndex, teamMember) in team.withIndex()) {
+//                                if ((memberStateIndex + teamMemberIndex) % dudeMultiplier != 0) {
+//                                    continue
+//                                }
+//                                teamMember.targeted = memberCodeString[0] == '1'
+//                                teamMember.extraTarget = memberCodeString[1] == '1'
+//                                teamMember.attackersGainDisadvantage = memberCodeString[2] == '1'
+//                                teamMember.poisoned = memberCodeString[3] == '1'
+//                                teamMember.inRetaliateRange = memberCodeString[4] == '1'
+//                                teamMember.inMeleeRange = memberCodeString[5] == '1'
+//                            }
+//                        }
+//                        yield(team)
+//                    }
+//                }
+//            }
+//        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -252,6 +425,33 @@ data class Enemy(var creationString: String) {
             }
         }
         return ret
+    }
+
+    fun deepCopy(): Enemy {
+        return createOne(creationString, -1)
+    }
+
+    override operator fun equals(other: Any?): Boolean {
+        return toString() == other.toString() && other != null && Enemy::class.java == other::class.java
+    }
+
+    override fun hashCode(): Int {
+        var result = creationString.hashCode()
+        result = 31 * result + taken
+        result = 31 * result + maxHp
+        result = 31 * result + name.hashCode()
+        result = 31 * result + shield
+        result = 31 * result + retaliate
+        result = 31 * result + attackersGainDisadvantage.hashCode()
+        result = 31 * result + inRetaliateRange.hashCode()
+        result = 31 * result + inMeleeRange.hashCode()
+        result = 31 * result + inBallistaRange.hashCode()
+        result = 31 * result + targeted.hashCode()
+        result = 31 * result + extraTarget.hashCode()
+        result = 31 * result + poisoned.hashCode()
+        result = 31 * result + stunned.hashCode()
+        result = 31 * result + muddled.hashCode()
+        return result
     }
 }
 

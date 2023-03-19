@@ -1,11 +1,9 @@
 package com.example.gloomhavendeck
 
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import java.lang.Exception
 import java.lang.Integer.max
 import java.lang.Integer.min
 import kotlin.reflect.full.createType
@@ -13,7 +11,12 @@ import kotlin.reflect.full.memberProperties
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-open class Deck(@Transient var controller: Controller? = null) {
+class Deck(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(
+    controller
+) {
+    init {
+        controller.deck = this
+    }
     // Cards
     var drawPile = mutableListOf<Card>()
     var activeCards = mutableListOf<Card>()
@@ -21,7 +24,7 @@ open class Deck(@Transient var controller: Controller? = null) {
     var remainingCurses = 10
 
     // Adding cards
-    open fun addBaseDeckThreeSpears() {
+    fun addBaseDeckThreeSpears() {
         addMultipleToDrawPile(listOf(
             Card(0, nullOrCurse = true, spinny = true),
             Card(2, multiplier = true, spinny = true),
@@ -56,10 +59,10 @@ open class Deck(@Transient var controller: Controller? = null) {
             Card(refresh = true),
             Card(refresh = true),
         ))
-        controller!!.addUndoPoint()
+        controller.undoManager?.addUndoPoint()
     }
 
-    open fun addBaseDeckEye() {
+    fun addBaseDeckEye() {
         addMultipleToDrawPile(listOf(
             Card(0, nullOrCurse = true, spinny = true),
             Card(2, multiplier = true, spinny = true),
@@ -81,160 +84,239 @@ open class Deck(@Transient var controller: Controller? = null) {
             Card(3, shieldSelf = 1),
             Card(3, muddle = true),
         ))
-        controller!!.addUndoPoint()
+        controller.undoManager?.addUndoPoint()
     }
 
-    open fun addToDrawPile(card: Card) {
-        drawPile.add(card)
+    fun addBaseDeckStandard() {
+        addMultipleToDrawPile(listOf(
+            Card(0, nullOrCurse = true, spinny = true),
+            Card(2, multiplier = true, spinny = true),
+
+            Card(-2),
+
+            Card(-1),
+            Card(-1),
+            Card(-1),
+            Card(-1),
+            Card(-1),
+
+            Card(0),
+            Card(0),
+            Card(0),
+            Card(0),
+            Card(0),
+            Card(0),
+
+            Card(1),
+            Card(1),
+            Card(1),
+            Card(1),
+            Card(1),
+
+            Card(2),
+        ))
+        controller.undoManager?.addUndoPoint()
+    }
+
+    fun addBaseDeckThreeKnives() {
+        addMultipleToDrawPile(listOf(
+            Card(0, nullOrCurse = true, spinny = true),
+            Card(2, multiplier = true, spinny = true),
+
+            Card(0),
+
+            Card(1),
+            Card(1),
+            Card(1),
+            Card(1),
+            Card(1),
+            Card(1),
+
+            Card(1, flippy = true),
+            Card(1, flippy = true),
+            Card(1, flippy = true),
+            Card(1, flippy = true),
+
+            Card(2),
+            Card(2),
+            Card(2),
+
+            Card(flippy = true, pierce = 3),
+            Card(flippy = true, pierce = 3),
+
+            Card(flippy = true, invisible = true),
+        ))
+        controller.undoManager?.addUndoPoint()
+    }
+
+    fun shuffle() {
         drawPile.shuffle()
-        controller!!.log("Shuffled this card into the draw pile: $card")
+        controller.activityConnector?.effectQueue?.addLast(Effect(controller, sound=SoundBundle.SHUFFLE))
     }
 
-    open fun addMultipleToDrawPile(cards: Iterable<Card>) {
+    fun addToDrawPile(card: Card) {
+        drawPile.add(card)
+        shuffle()
+        controller.logger?.log("Shuffled this card into the draw pile: $card")
+    }
+
+    fun addMultipleToDrawPile(cards: Iterable<Card>) {
         for (card in cards) {
             drawPile.add(card)
         }
-        drawPile.shuffle()
-        controller!!.log("Shuffled these cards into the draw pile: $cards")
+        shuffle()
+        controller.logger?.log("Shuffled these cards into the draw pile: $cards")
     }
 
     fun curse(userDirectlyRequested: Boolean = false) {
-        controller!!.log("Adding a curse...")
-        controller!!.logIndent += 1
+        controller.logger?.log("Adding a curse...")
+        controller.logger?.let {it.logIndent += 1}
         if (remainingCurses > 0) {
             addToDrawPile(Card(0, nullOrCurse = true, lose = true))
             remainingCurses -= 1
         } else {
-            controller!!.log("JK none left")
+            controller.logger?.log("JK none left")
         }
-        controller!!.logIndent -= 1
+        controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller!!.addUndoPoint()
+            controller.undoManager?.addUndoPoint()
     }
 
     fun bless(userDirectlyRequested: Boolean = false) {
-        controller!!.log("Adding a bless...")
-        controller!!.logIndent += 1
+        controller.logger?.log("Adding a bless...")
+        controller.logger?.let {it.logIndent += 1}
         addToDrawPile(Card(2, multiplier = true, lose = true))
-        controller!!.logIndent -= 1
+        controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller!!.addUndoPoint()
+            controller.undoManager?.addUndoPoint()
     }
 
 
     // Moving cards
-    open fun drawSingleCard(forcedCard: Card? = null): Card {
+    fun drawSingleCard(forcedCard: Card? = null, doingDisadvantage: Boolean = false, displayBenefitsAsRemoved: Boolean = false): Card {
         if (drawPile.size == 0){
-            controller!!.log("Out of cards, have to dominion it...")
-            controller!!.logIndent += 1
+            controller.logger?.log("Out of cards, have to dominion it...")
+            controller.logger?.let {it.logIndent += 1}
             discardPileToDrawPile()
-            controller!!.logIndent -= 1
+            controller.logger?.let {it.logIndent -= 1}
         }
         if (drawPile.size == 0){
-            controller!!.log("!!! Absorbing the active cards just to avoid crashing. Yikes!")
-            controller!!.logIndent += 1
+            controller.logger?.log("!!! Absorbing the active cards just to avoid crashing. Yikes!")
+            controller.logger?.let {it.logIndent += 1}
             activeCardsToDiscardPile()
             discardPileToDrawPile()
-            controller!!.logIndent -= 1
+            controller.logger?.let {it.logIndent -= 1}
         }
         val drewCard = if (forcedCard !== null) {
             forcedCard
         } else {
             drawPile.removeFirst()
         }
-        controller!!.log("Drew this card: $drewCard")
+        controller.logger?.log("Drew this card: $drewCard")
+
+        // Add effect
+        controller.activityConnector?.effectQueue?.addLast(drewCard.effect(controller, doingDisadvantage = doingDisadvantage, displayBenefitsAsRemoved = displayBenefitsAsRemoved))
+
         return drewCard
     }
 
-    fun drawRow(nerf: Int = 0): MutableList<Card> {
-        controller!!.log("Drawing a row of cards...")
-        controller!!.logIndent += 1
+    fun drawRow(nerf: Int = 0, withoutSpecialBenefits: Boolean = false, doingDisadvantage: Boolean = false): MutableList<Card> {
+        controller.logger?.log("Drawing a row of cards...")
+        controller.logger?.let {it.logIndent += 1}
         val drawnRow = mutableListOf<Card>()
-        // Nerf
-        Log.d("haaaaaaaaaaaaa", "Nerf of $nerf")
-        for (i in 1..nerf) {
-            Log.d("haaaaaaaaaaaaa", "#$i")
-        }
+
         // Actual drawing
         var continueDrawing = true
-        Log.d("haaaaaaaaaaaaa", "Nerf of $nerf")
         var nerfsLeft = nerf
         while (continueDrawing) {
             val latestCard = if (nerfsLeft <= 0) {
-                drawSingleCard()
+                drawSingleCard(displayBenefitsAsRemoved = withoutSpecialBenefits, doingDisadvantage=doingDisadvantage)
             } else {
                 nerfsLeft -= 1
                 drawSingleCard(Card(-1, lose=true, flippy=true))
             }
             continueDrawing = latestCard.flippy
-            drawnRow.add(latestCard)
+
             if (!latestCard.lose) {
                 activeCards.add(latestCard)
             }
+            if (withoutSpecialBenefits) {
+                drawnRow.add(latestCard.withoutSpecialBenefits())
+            } else {
+                drawnRow.add(latestCard)
+            }
             // Should do this a different way but too bad
+            // TODO replace with curse attribute. Actually it shouldn't be tracked like this at all
             if ("curse" in latestCard.toString()) {
                 remainingCurses += 1
             }
         }
-        // log("Overall, drew this row of cards: $drawnRow")
-        controller!!.logIndent -= 1
-        Log.d("haaaaaaaaaaaaa", drawnRow.toString())
+        controller.logger?.let {it.logIndent -= 1}
+
+        controller.activityConnector?.effectQueue?.addLast(Effect(controller, selectBottomRow = true))
+
         return drawnRow
     }
 
-    open fun activeCardsToDiscardPile(userDirectlyRequested: Boolean = false) {
-        discardPile.addAll(activeCards);
+    fun activeCardsToDiscardPile(userDirectlyRequested: Boolean = false) {
+        discardPile.addAll(activeCards)
         activeCards.clear()
-        controller!!.log("Moved the active cards to the discard pile.")
-        if (userDirectlyRequested)
-            controller!!.addUndoPoint()
+        controller.logger?.log("Moved the active cards to the discard pile.")
+        if (userDirectlyRequested) {
+            controller.undoManager?.addUndoPoint()
+        }
+        if (activeCards.size != 0) {
+            controller.activityConnector?.effectQueue?.addLast(Effect(controller, sound=SoundBundle.DISCARD))
+        }
+        controller.activityConnector?.effectQueue?.addLast(Effect(controller, sound=SoundBundle.DISCARD))
     }
 
     fun discardPileToDrawPile(userDirectlyRequested: Boolean = false) {
-        controller!!.log("Shuffling the discard pile into the draw pile...")
-        controller!!.logIndent += 1
-        addMultipleToDrawPile(discardPile);
+        controller.logger?.log("Shuffling the discard pile into the draw pile...")
+        controller.logger?.let {it.logIndent += 1}
+        addMultipleToDrawPile(discardPile)
         discardPile.clear()
-        controller!!.logIndent -= 1
+        controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller!!.addUndoPoint()
+            controller.undoManager?.addUndoPoint()
     }
 
-    open fun attack(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
-        controller!!.logIndent += 1
-        val drawnRow = drawRow(nerf = nerf)
+    fun attack(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0, withoutSpecialBenefits: Boolean = false) : Card {
+        controller.logger?.let {it.logIndent += 1}
+        controller.activityConnector?.effectQueue?.addLast(Effect(controller, selectTopRow = true, hideBottomRow = true, wipe=true))
+        val drawnRow = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
         val baseCard = Card(basePower)
         drawnRow.add(0, baseCard)
+
         val combinedCard = drawnRow.sum()
         if (basePower == 0 && drawnRow.any{it.multiplier && it.value == 2}) {
-            controller!!.log("Can't infer the result without a base value, nerd.")
+            controller.logger?.log("Can't infer the result without a base value, nerd.")
         } else {
-            controller!!.log("Effectively drew a ${combinedCard}");
+            controller.logger?.log("Effectively drew a $combinedCard")
         }
-        controller!!.logIndent -= 1;
+        controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller!!.addUndoPoint()
+            controller.undoManager?.addUndoPoint()
         return combinedCard
     }
 
-    open fun advantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
-        controller!!.logIndent += 1
-        val drawnRow1 = drawRow(nerf = nerf)
-        val drawnRow2 = drawRow(nerf = nerf)
+    fun advantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0, withoutSpecialBenefits: Boolean = false) : Card {
+        controller.activityConnector?.effectQueue?.addLast(Effect(controller, selectTopRow = true, showBottomRow = true, wipe=true))
+        controller.logger?.let {it.logIndent += 1}
+        val drawnRow1 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
+        val drawnRow2 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
         val baseCard = Card(basePower)
         drawnRow1.add(0, baseCard) // Doesn't matter which row it goes into
 
-        val winner : Card
         // Prioritize refreshes
-        if (drawnRow1.last().refresh) {
-            winner = drawnRow1.last()
-        }
-        else if (drawnRow2.last().refresh) {
-            winner = drawnRow2.last()
+        val winner : Card = if (drawnRow1.last().refresh) {
+            drawnRow1.last()
+        } else if (drawnRow2.last().refresh) {
+            drawnRow2.last()
         }
         // Otherwise..
         else {
-            winner = if (drawnRow1.last() > drawnRow2.last()) drawnRow1.last() else drawnRow2.last()
+            if (drawnRow1.last() > drawnRow2.last()) drawnRow1.last() else drawnRow2.last()
         }
         val combinedCard = (
                 drawnRow1.slice(0 until drawnRow1.size-1)
@@ -243,20 +325,21 @@ open class Deck(@Transient var controller: Controller? = null) {
                 ).sum()
 
         if (basePower == 0 && (drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
-            controller!!.log("Can't infer the result without a base value, nerd.");
+            controller.logger?.log("Can't infer the result without a base value, nerd.")
         } else {
-            controller!!.log("Effectively drew a ${combinedCard}");
+            controller.logger?.log("Effectively drew a $combinedCard")
         }
-        controller!!.logIndent -= 1
+        controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller!!.addUndoPoint()
+            controller.undoManager?.addUndoPoint()
         return combinedCard
     }
 
-    open fun disadvantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0) : Card {
-        controller!!.logIndent += 1
-        val drawnRow1 = drawRow(nerf = nerf)
-        val drawnRow2 = drawRow(nerf = nerf)
+    fun disadvantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0, withoutSpecialBenefits: Boolean = false) : Card {
+        controller.activityConnector?.effectQueue?.addLast(Effect(controller, selectTopRow = true, showBottomRow = true, wipe=true))
+        controller.logger?.let {it.logIndent += 1}
+        val drawnRow1 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits, doingDisadvantage=true)
+        val drawnRow2 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits, doingDisadvantage=true)
         val baseCard = Card(basePower)
 
         val loser = if (drawnRow1.last() < drawnRow2.last()) drawnRow1.last() else drawnRow2.last()
@@ -268,17 +351,21 @@ open class Deck(@Transient var controller: Controller? = null) {
         }
 
         if (basePower == 0 && (drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
-            controller!!.log("Can't infer the result without a base value, nerd.");
+            controller.logger?.log("Can't infer the result without a base value, nerd.")
         } else {
-            controller!!.log("Effectively drew a $loser")
+            controller.logger?.log("Effectively drew a $loser")
         }
-        controller!!.logIndent -= 1;
+        controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller!!.addUndoPoint()
+            controller.undoManager?.addUndoPoint()
         return combinedCard
     }
 
-    fun pipis(player : Player, enemies : Iterable<Enemy>, mainactivity: MainActivity? = null) {
+    fun pipis(player : Player, enemies : List<Enemy>) {
+        val nerflessCounterparts = controller.pipis!!.generateNerflessCounterparts(enemies)
+        if (controller.inventory == null) {
+            throw Exception("Can't pipis without an inventory")
+        }
         var enemyIndex = 0
         fun powerPotAggregatedPower() : Int {
             var aggregatedPower = 0
@@ -316,7 +403,9 @@ open class Deck(@Transient var controller: Controller? = null) {
             }
             // Player Items
             for (item in Item.values()) {
-                vars["Inventory has $item"] = player.inventory.usableItems.contains(item)
+                if (controller.inventory != null) {
+                    vars["Inventory has $item"] = controller.inventory!!.usableItems.contains(item)
+                }
             }
             // Enemy
             for (enemy in enemies) {
@@ -333,30 +422,30 @@ open class Deck(@Transient var controller: Controller? = null) {
             return enemies.filter { it.getTargetable() }.all { it.inBallistaRange }
         }
 
-        controller!!.log("Pipis...")
+        controller.logger?.log("Pipis...")
         val startSummary = getSummary()
-        controller!!.logIndent += 1
+        controller.logger?.let {it.logIndent += 1}
         var allowedToContinue = true
         var loops = 0
         var bonusItems = 0
         var gotASpinny = false
         while (allowedToContinue) {
-            controller!!.log("")
+            controller.logger?.log("")
             enemyIndex = 0
             allowedToContinue = false
             // Init power up here instead so that pendant can use it
             var basePower = 1
             fun tryToDitchPendant() {
-                if (player.inventory.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
+                if (controller.inventory!!.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
                     return
                 }
-                val roomMade = player.inventory.makeRoom(player, this,2, powerPotThresholdReached(),
+                val roomMade = controller.inventory!!.makeRoom(2, powerPotThresholdReached(),
                     powerPotAggregatedPower() > 0)
                 if (roomMade.contains(Item.MAJOR_POWER_POTION)) {
                     basePower += 2
                 }
-                if (player.inventory.unusableItems.size >= 2) {
-                    player.useItem(Item.PENDANT_OF_DARK_PACTS, this, true)
+                if (controller.inventory!!.unusableItems.size >= 2) {
+                    controller.inventory!!.useItem(Item.PENDANT_OF_DARK_PACTS,  true)
                 }
             }
 
@@ -371,34 +460,32 @@ open class Deck(@Transient var controller: Controller? = null) {
             }
             // Power?
             if (usingBallistaInstead) {basePower += 3}
-            if (powerPotThresholdReached() && player.inventory.usableItems.contains(Item.MAJOR_POWER_POTION)) {
+            if (powerPotThresholdReached() && controller.inventory!!.usableItems.contains(Item.MAJOR_POWER_POTION)) {
                 basePower += 2
-                player.useItem(Item.MAJOR_POWER_POTION, this, true)
+                controller.inventory!!.useItem(Item.MAJOR_POWER_POTION, true)
             }
             // Eye?
-            if (player.inventory.usableItems.contains(Item.LUCKY_EYE) && !player.statuses.contains(Status.STRENGTHEN)) {
-                player.useItem(Item.LUCKY_EYE, this, true)
+            if (controller.inventory!!.usableItems.contains(Item.LUCKY_EYE) && !player.statuses.contains(Status.STRENGTHEN)) {
+                controller.inventory!!.useItem(Item.LUCKY_EYE, true)
             }
             // Room?
             tryToDitchPendant()
             // Another potion?
-            if (powerPotThresholdReached() && player.inventory.usableItems.contains(Item.MAJOR_POWER_POTION)) {
+            if (powerPotThresholdReached() && controller.inventory!!.usableItems.contains(Item.MAJOR_POWER_POTION)) {
                 basePower += 2
-                player.useItem(Item.MAJOR_POWER_POTION, this, true)
+                controller.inventory!!.useItem(Item.MAJOR_POWER_POTION, true)
             }
             // Display
-            controller!!.log("")
-            controller!!.log("Loop ${++loops}, for ${basePower}+-${if (usingBallistaInstead) ", using ballista" else ""}...")
+            controller.logger?.log("")
+            controller.logger?.log("Loop ${++loops}, for ${basePower}+-${if (usingBallistaInstead) ", using ballista" else ""}...")
             // Attacks
             var gotExtraTarget = false
             fun attackEnemy(enemy: Enemy) {
-                // Probably a reasonable limit
-                if (!(this.activeCards.filter { it.refresh }.size < 3
-                    && this.drawPile.size >= 5)
-                ) {
-                    tryToDitchPendant()
-                }
-                // ok anyway
+                val counterpart = nerflessCounterparts[enemy.name]!!
+
+                tryToDitchPendant()
+
+                // TODO this can be a player method and a pipis method
                 var advantage = 0
                 if (player.statuses.contains(Status.STRENGTHEN)) {
                     advantage += 1
@@ -413,22 +500,26 @@ open class Deck(@Transient var controller: Controller? = null) {
                     advantage -= 1
                 }
 
-                controller!!.logMuted = true
-                val combinedCard = if (advantage > 0) advantage(basePower)
-                else if (advantage < 0) disadvantage(basePower)
-                else attack(basePower)
+                controller.logger?.let {it.logMuted = true}
+                val combinedCard = if (advantage > 0) advantage(basePower, withoutSpecialBenefits = counterpart.dead)
+                else if (advantage < 0) disadvantage(basePower, withoutSpecialBenefits = counterpart.dead)
+                else attack(basePower, withoutSpecialBenefits = counterpart.dead)
+
+                controller.logger?.let {it.logMuted = false}
+
+                if (!counterpart.dead) {
+                    counterpart.getAttacked(combinedCard, player)
+                }
 
                 val nerf = loops-1
                 combinedCard.value = max(0, combinedCard.value-nerf)
-
-                controller!!.logMuted = false
-
                 enemy.getAttacked(combinedCard, player)
-                controller!!.log("Hit ${enemy.name} with $combinedCard${if (enemy.dead) ", dies!" else ""}")
+
+                controller.logger?.log("Hit ${enemy.name} with $combinedCard${if (enemy.dead) ", dies!" else ""}")
                 if (combinedCard.refresh) {
-                    player.inventory.recover(player, this)
-                    if (mainactivity!=null) {
-                        mainactivity.effectSpeed = mainactivity.effectSpeed*7/10
+                    controller.inventory!!.recover()
+                    if (controller.activityConnector != null) {
+                        controller.activityConnector!!.effectSpeed = controller.activityConnector!!.effectSpeed*7/10
                     }
                 }
                 if (combinedCard.extraTarget) {
@@ -448,7 +539,7 @@ open class Deck(@Transient var controller: Controller? = null) {
             }
             // Extra
             if (gotExtraTarget) {
-                controller!!.log("Extra target!")
+                controller.logger?.log("Extra target!")
                 var foundExtraTarget = false
                 for (enemy in enemies) {
                     if (enemy.getTargetable(ignoreTargeted = true) && enemy.extraTarget &&
@@ -460,7 +551,7 @@ open class Deck(@Transient var controller: Controller? = null) {
                     }
                 }
                 if (!foundExtraTarget) {
-                    controller!!.log("But couldn't find an extra target.")
+                    controller.logger?.log("But couldn't find an extra target.")
                 }
             }
             // One more time?
@@ -473,60 +564,60 @@ open class Deck(@Transient var controller: Controller? = null) {
                             || (player.statuses.contains(Status.STRENGTHEN) &&enemies.sumOf { if (!it.getTargetable()) 0 else "1".toInt() } >= 2)
                         )
                         && loops <= 10
-                canGoAgain = player.inventory.usableItems.contains(Item.RING_OF_BRUTALITY)
-                        && (player.inventory.usableItems.contains(Item.MINOR_STAMINA_POTION) || player.inventory.usableItems.contains(Item.MAJOR_STAMINA_POTION))
+                canGoAgain = controller.inventory!!.usableItems.contains(Item.RING_OF_BRUTALITY)
+                        && (controller.inventory!!.usableItems.contains(Item.MINOR_STAMINA_POTION) || controller.inventory!!.usableItems.contains(Item.MAJOR_STAMINA_POTION))
             }
             setWantAndCan()
             // Maybe use belt
             if (wantToGoAgain && !canGoAgain ) {
-                if (player.inventory.usableItems.contains(Item.UTILITY_BELT)) {
+                if (controller.inventory!!.usableItems.contains(Item.UTILITY_BELT)) {
                     // Belt will recover pendant, pendant will automatically recover major and ring
-                    player.useItem(Item.UTILITY_BELT, this, true)
+                    controller.inventory!!.useItem(Item.UTILITY_BELT, true)
                     setWantAndCan()
                 }
             }
             // Maybe get a bonus ball
-            if (player.inventory.unusableItems.size == 0 && player.inventory.usableItems.contains(Item.UTILITY_BELT)) {
-                player.useItem(Item.UTILITY_BELT, this, false)
+            if (controller.inventory!!.unusableItems.size == 0 && controller.inventory!!.usableItems.contains(Item.UTILITY_BELT)) {
+                controller.inventory!!.useItem(Item.UTILITY_BELT, false)
                 bonusItems += 1
             }
             // Ok go
             if (wantToGoAgain && canGoAgain) {
                 // Can I?
-                if (player.inventory.usableItems.contains(Item.MINOR_STAMINA_POTION)) {
+                if (controller.inventory!!.usableItems.contains(Item.MINOR_STAMINA_POTION)) {
                         if (shouldUseBallista() && player.discardedBallista) {
                             player.discardedBallista = false
                         }
                         if (!shouldUseBallista() && player.discardedPipis) {
                             player.discardedPipis = false
                         }
-                        player.useItem(Item.MINOR_STAMINA_POTION, this, true)
-                        player.useItem(Item.RING_OF_BRUTALITY, this, true)
+                        controller.inventory!!.useItem(Item.MINOR_STAMINA_POTION, true)
+                        controller.inventory!!.useItem(Item.RING_OF_BRUTALITY, true)
                         allowedToContinue = true
                 }
-                else if (player.inventory.usableItems.contains(Item.MAJOR_STAMINA_POTION)) {
+                else if (controller.inventory!!.usableItems.contains(Item.MAJOR_STAMINA_POTION)) {
                         if (shouldUseBallista() && player.discardedBallista) {
                             player.discardedBallista = false
                         }
                         if (!shouldUseBallista() && player.discardedPipis) {
                             player.discardedPipis = false
                         }
-                        player.useItem(Item.MAJOR_STAMINA_POTION, this, true)
-                        player.useItem(Item.RING_OF_BRUTALITY, this, true)
+                        controller.inventory!!.useItem(Item.MAJOR_STAMINA_POTION, true)
+                        controller.inventory!!.useItem(Item.RING_OF_BRUTALITY, true)
                         allowedToContinue = true
                 }
                 else {
-                    controller!!.log("How the fuck did you get here")
+                    controller.logger?.log("How the fuck did you get here")
                 }
             }
             else if (wantToGoAgain && !canGoAgain) {
-                controller!!.log("Want to go again, but can't.")
+                controller.logger?.log("Want to go again, but can't.")
             }
             else if (!wantToGoAgain && canGoAgain) {
-                controller!!.log("Can go again, but don't wanna.")
+                controller.logger?.log("Can go again, but don't wanna.")
             }
             else {
-                controller!!.log("GET ME OUT OF THIS THING")
+                controller.logger?.log("GET ME OUT OF THIS THING")
             }
             activeCardsToDiscardPile()
         }
@@ -534,9 +625,9 @@ open class Deck(@Transient var controller: Controller? = null) {
             discardPileToDrawPile()
         }
 
-        controller!!.log("End summary:")
-        controller!!.logIndent += 1
-        controller!!.log("Bonus items for your allies: $bonusItems")
+        controller.logger?.log("End summary:")
+        controller.logger?.let {it.logIndent += 1}
+        controller.logger?.log("Bonus items for your allies: $bonusItems")
         player.dings += loops
         val endSummary = getSummary()
         for (startKv in startSummary) {
@@ -545,18 +636,18 @@ open class Deck(@Transient var controller: Controller? = null) {
                 if (startKv.value is Int && endV is Int) {
                     val dif = endV - (startKv.value as Int)
                     if (dif >= 0) {
-                        controller!!.log("${startKv.key}: ${startKv.value} -> ${endV} (+${dif})")
+                        controller.logger?.log("${startKv.key}: ${startKv.value} -> $endV (+${dif})")
                     } else {
-                        controller!!.log("${startKv.key}: ${startKv.value} -> ${endV} (${dif})")
+                        controller.logger?.log("${startKv.key}: ${startKv.value} -> $endV (${dif})")
                     }
                 }
                 else {
-                    controller!!.log("${startKv.key}: ${startKv.value} -> ${endV}")
+                    controller.logger?.log("${startKv.key}: ${startKv.value} -> $endV")
                 }
             }
         }
-        controller!!.logIndent -= 1
-        controller!!.logIndent -= 1
-        controller!!.addUndoPoint()
+        controller.logger?.let {it.logIndent -= 1}
+        controller.logger?.let {it.logIndent -= 1}
+        controller.undoManager?.addUndoPoint()
     }
 }
