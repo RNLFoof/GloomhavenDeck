@@ -632,17 +632,19 @@ vermling scout 7: 1 2 3 n5 6""", controller.player?.scenarioLevel ?: 7).toMutabl
                         llItemContainer.removeAllViews()
                         var row = LinearLayout(context)
                         for ((n, item) in controller.inventory!!.allItemsSorted().withIndex()) {
+                            val params = LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                1.0f
+                            )
                             if (n % 3 == 0) {
                                 llItemContainer.addView(row)
                                 row = LinearLayout(context)
-                                val params = LinearLayout.LayoutParams(
-                                    LinearLayout.LayoutParams.MATCH_PARENT,
-                                    LinearLayout.LayoutParams.MATCH_PARENT,
-                                    1.0f
-                                )
+
                                 row.layoutParams = params
                             }
                             val imageView = item.getImageView(context, controller.inventory!!.usableItems.contains(item), controller.inventory!!.activeItems.contains(item))
+                            imageView.layoutParams = params
 
                             if (!item.permanent) {
                                 // Click
