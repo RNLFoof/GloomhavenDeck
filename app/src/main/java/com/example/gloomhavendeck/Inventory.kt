@@ -53,7 +53,10 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
     fun initializeThreeKnives() {
         usableItems = mutableListOf(
             Item.MINOR_STAMINA_POTION,
+            Item.MAJOR_CURE_POTION,
             Item.MAJOR_STAMINA_POTION,
+            Item.SUPER_HEALING_POTION,
+            Item.POWER_CORE,
             Item.PENDANT_OF_DARK_PACTS,
             Item.ROCKET_BOOTS,
             Item.RING_OF_SKULLS,

@@ -48,6 +48,7 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT,
         }
         controller.deck?.curse()
     }),
+    POWER_CORE(R.drawable.card_power_core, getsActivated = true, sound=SoundBundle.DEFAULT, deactivationSound=SoundBundle.DEATH),
     RING_OF_BRUTALITY(R.drawable.card_brutality, sound=SoundBundle.RINGOFBRUTALITY),
     RING_OF_DUALITY(R.drawable.card_duality, sound=SoundBundle.RINGOFDUALITY),
     RING_OF_SKULLS(R.drawable.card_skulls, getsActivated = true, sound=SoundBundle.JOHNSON, deactivationSound=SoundBundle.DEATH),
