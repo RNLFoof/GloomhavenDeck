@@ -38,9 +38,27 @@ class StatusBarFragment : Fragment() {
         // Inflate the layout for this fragment
         val output = inflater.inflate(R.layout.fragment_status_bar, container, false)
         val llStatusBar = output.findViewById<LinearLayout>(R.id.llStatusBar)
-        val imageView = ImageView(activity)
-        imageView.setImageResource(R.drawable.bless)
-        llStatusBar.addView(imageView)
+        val params = LinearLayout.LayoutParams(
+            llStatusBar.layoutParams.height,
+            llStatusBar.layoutParams.height,
+            1.0f
+        )
+        for (icon in arrayOf(
+            R.drawable.disarm,
+            R.drawable.stun,
+            R.drawable.invisible,
+            R.drawable.wound,
+            R.drawable.regenerate,
+            R.drawable.immobile,
+            R.drawable.poison,
+            R.drawable.muddle,
+            R.drawable.strengthen,
+        )) {
+            val imageView = ImageView(activity)
+            imageView.setImageResource(icon)
+            imageView.layoutParams = params
+            llStatusBar.addView(imageView)
+        }
         return output
     }
 
