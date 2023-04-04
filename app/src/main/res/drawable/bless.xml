@@ -39,14 +39,14 @@
     <path
         android:pathData="m55.4324,37.1994c0,10.0198 -8.1226,18.1424 -18.1424,18.1424 -10.0198,-0 -18.1424,-8.1226 -18.1424,-18.1424 0,-10.0198 8.1226,-18.1424 18.1424,-18.1424C47.3098,19.057 55.4324,27.1796 55.4324,37.1994Z"
         android:strokeLineJoin="miter"
-        android:strokeWidth="16"
+        android:strokeWidth="2"
         android:fillColor="#00000000"
         android:strokeColor="#ffffff"
         android:strokeLineCap="butt"/>
     <path
         android:pathData="m47.1934,37.1994c0,5.4694 -4.4339,9.9034 -9.9034,9.9034 -5.4695,-0 -9.9034,-4.434 -9.9034,-9.9034 0,-5.4696 4.4339,-9.9034 9.9034,-9.9034C42.7596,27.2959 47.1934,31.7298 47.1934,37.1994Z"
         android:strokeLineJoin="miter"
-        android:strokeWidth="16"
+        android:strokeWidth="2"
         android:fillColor="#00000000"
         android:strokeColor="#ffffff"
         android:strokeLineCap="butt"/>
