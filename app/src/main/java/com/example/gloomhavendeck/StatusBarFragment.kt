@@ -39,7 +39,7 @@ class StatusBarFragment : Fragment() {
         val output = inflater.inflate(R.layout.fragment_status_bar, container, false)
         val llStatusBar = output.findViewById<LinearLayout>(R.id.llStatusBar)
         val imageView = ImageView(activity)
-        imageView.setImageResource(R.drawable.ic_bless)
+        imageView.setImageResource(R.drawable.bless)
         llStatusBar.addView(imageView)
         return output
     }
