@@ -23,7 +23,7 @@
         android:strokeLineCap="round"
         android:strokeColor="#ffffff"
         android:fillColor="#00000000"
-        android:strokeWidth="10"
+        android:strokeWidth="2"
         android:strokeLineJoin="miter"
         android:strokeAlpha="1"/>
     <path
