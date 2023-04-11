@@ -17,15 +17,15 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT,
 ) {
     CLOAK_OF_PHASING(R.drawable.card_cloakofphasing, permanent = true),
     CLOAK_OF_POCKETS(R.drawable.card_cloak, permanent = true),
-    LUCKY_EYE(R.drawable.card_luckyeye, sound=SoundBundle.STRENGTHEN, getUsed=fun (Controller, _){
-        Controller.player?.let { it.statusDict[Status.STRENGTHEN] = 2 }
+    LUCKY_EYE(R.drawable.card_luckyeye, sound=SoundBundle.STRENGTHEN, getUsed=fun (controller, _){
+        controller.player?.updateStatus(Status.STRENGTHEN, 2)
     }),
     MAJOR_CURE_POTION(R.drawable.card_cure, sound=SoundBundle.DRINK, getUsed=fun (Controller, viaPipis){
         if (Controller.player != null) {
             if (!viaPipis && !Controller.player!!.statuses.any { it.negative }) {
                 throw ItemUnusableException("No negative statuses!")
             }
-            Controller.player!!.statusDict.filterKeys { it.negative }.forEach { Controller.player!!.statusDict[it.key] = 0 }
+            Controller.player!!.statuses.filter { it.negative }.forEach { Controller.player!!.updateStatus(it, 0 )}
         }
     }),
     MAJOR_POWER_POTION(R.drawable.card_power, sound=SoundBundle.DRINK),
