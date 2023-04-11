@@ -234,6 +234,15 @@
                 android:enabled="true"
                 android:text="Simplify" />
 
+            <Button
+                android:id="@+id/btnEndOfRound"
+                style="?android:attr/buttonBarButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:enabled="true"
+                android:text="End of Round" />
+
         </LinearLayout>
     </LinearLayout>
 

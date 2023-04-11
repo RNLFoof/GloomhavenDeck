@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity() {
         val btnViewCards = findViewById<Button>(R.id.btnViewCards)
         val btnSimplify = findViewById<Button>(R.id.btnSimplify)
         val btnManage = findViewById<Button>(R.id.btnManage)
+        val btnEndOfRound = findViewById<Button>(R.id.btnEndOfRound)
         val fragStatusBar: StatusBarFragment = fragmentManager.findFragmentById(R.id.fragStatusBar) as StatusBarFragment
 
         Saver(applicationContext.filesDir.canonicalPath)
