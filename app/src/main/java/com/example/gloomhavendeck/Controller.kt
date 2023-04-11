@@ -75,7 +75,7 @@ open class Controller(var destroyTheUniverseUponInitiation: Boolean = false
             Saver(controller, "")
             Logger(controller)
             UndoManager(controller)
-            Player(controller, 26).statusDict[Status.POISON] = 2
+            Player(controller, 26).updateStatus(Status.POISON, 2)
             Inventory(controller).usableItems.add(Item.LUCKY_EYE)
             Deck(controller)
             Pipis(controller)

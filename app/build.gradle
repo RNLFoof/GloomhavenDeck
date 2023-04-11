@@ -47,5 +47,5 @@ dependencies {
     implementation("androidx.fragment:fragment:1.5.5")
     // Kotlin
     implementation("androidx.fragment:fragment-ktx:1.5.5")
-
+    implementation 'com.github.gazman-sdk:signals:1.5'
 }
