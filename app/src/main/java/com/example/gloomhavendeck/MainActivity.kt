@@ -16,6 +16,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.children
+import androidx.fragment.app.FragmentManager
 import com.example.gloomhavendeck.meta.Crap
 import com.example.gloomhavendeck.meta.Logger
 import com.example.gloomhavendeck.meta.Saver
@@ -35,6 +36,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var discardAnim: ObjectAnimator
     lateinit var spinnyAnim: ObjectAnimator
 
+    val fragmentManager: FragmentManager = getSupportFragmentManager()
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +53,7 @@ class MainActivity : AppCompatActivity() {
         val btnViewCards = findViewById<Button>(R.id.btnViewCards)
         val btnSimplify = findViewById<Button>(R.id.btnSimplify)
         val btnManage = findViewById<Button>(R.id.btnManage)
+        val fragStatusBar: StatusBarFragment = fragmentManager.findFragmentById(R.id.fragStatusBar) as StatusBarFragment
 
         Saver(applicationContext.filesDir.canonicalPath)
         Inventory()
@@ -72,6 +75,7 @@ class MainActivity : AppCompatActivity() {
 
             loadBuilder.setPositiveButton("Yeah") { dialog, which ->
                 Controller.saver!!.updateControllerFrom(Controller.saver!!.currentStateSavedAt)
+                fragStatusBar.addListener()
             }
 
             loadBuilder.setNegativeButton("No") { _, _->
@@ -80,16 +84,19 @@ class MainActivity : AppCompatActivity() {
                     Player(26)
                     Controller.deck!!.addBaseDeckThreeSpears()
                     Controller.inventory?.initializeThreeSpears()
+                    fragStatusBar.addListener()
                 }
                 deckBuilder.setNegativeButton("Eye") { _, _ ->
                     Player(14)
                     Controller.deck!!.addBaseDeckEye()
                     Controller.inventory?.initializeEye()
+                    fragStatusBar.addListener()
                 }
                 deckBuilder.setNeutralButton("Three Knives") { _, _ ->
                     Player(20)
                     Controller.deck!!.addBaseDeckThreeKnives()
                     Controller.inventory?.initializeThreeKnives()
+                    fragStatusBar.addListener()
                 }
                 deckBuilder.setTitle("Class?")
                 deckBuilder.show()
@@ -688,14 +695,15 @@ vermling scout 7: 1 2 3 n5 6""", Controller.player?.scenarioLevel ?: 7).toMutabl
                         var row = TableRow(context)
                         for (status in Status.values()) {
                             val button = Button(context)
-                            button.text = "${status.icon.repeat(Controller.player!!.statusDict[status]!!)} ${status.name}"
+                            button.text = "${status.icon.repeat(Controller.player!!.checkStatus(status))} ${status.name}"
+
                             button.textSize = 5f
                             button.layoutParams = TableRow.LayoutParams(-2,-2, 1f)
                             if (Controller.player!!.statuses.contains(status)) {
                                 button.setTextColor(Color.parseColor("#9999ff"))
                             }
                             button.setOnClickListener() {
-                                Controller.player!!.statusDict[status] = status.getNextManualPosition(Controller.player!!.statusDict[status]!!)
+                                Controller.player!!.cycleStatus(status)
                                 setUpEverything()
                             }
                             row.addView(button)

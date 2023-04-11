@@ -2,8 +2,14 @@ package com.example.gloomhavendeck
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import com.gazman.signals.Signals
+import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+
+fun interface PlayerEvents{
+    fun onStatusUpdate(old:HashMap<Status, Int>, new:HashMap<Status, Int>)
+}
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
@@ -15,10 +21,16 @@ class Player(var maxHp: Int): Controllable() {
     var hp = maxHp
     var dings = 0
 
-    var statusDict = HashMap<Status, Int>()
+    @Contextual
+    val playerSignal = Signals.signal(PlayerEvents::class)
+
+    private var statusDict = HashMap<Status, Int>()
     init {
         for (status in Status.values()) {
-            statusDict.putIfAbsent(status, 0)  // putIfAbsent, and not just setting, because this happens after an undo point is loaded, so otherwise the values are overwritten
+            // checking, and not just setting, because this happens after an undo point is loaded, so otherwise the values are overwritten
+            if (!statuses.contains(status)) {
+                updateStatus(status, 0)
+            }
         }
     }
     val statuses: Set<Status>
@@ -66,10 +78,10 @@ class Player(var maxHp: Int): Controllable() {
 
     fun heal(amount: Int, viaItem: Boolean) {
         if (statuses.contains(Status.WOUND)) {
-            statusDict[Status.WOUND] = 0
+            updateStatus(Status.WOUND, 0)
         }
         if (statuses.contains(Status.POISON)) {
-            statusDict[Status.POISON] = 0
+            updateStatus(Status.POISON, 0)
         } else {
             if (hp >= maxHp) {
                 if (viaItem) {
@@ -80,5 +92,24 @@ class Player(var maxHp: Int): Controllable() {
             }
             hp = Integer.min(hp + amount, maxHp)
         }
+    }
+
+    fun checkStatus(status: Status): Int {
+        return statusDict[status]!!
+    }
+
+    fun updateStatus(status: Status, value: Int) {
+        val old: HashMap<Status, Int> = HashMap(statusDict)
+        statusDict[status] = value
+        val new: HashMap<Status, Int> = HashMap(statusDict)
+        playerSignal.dispatcher.onStatusUpdate(old, new)
+    }
+
+    fun cycleStatus(status: Status) {
+        updateStatus(status,
+            status.getNextManualPosition(
+                checkStatus(status)
+            )
+        )
     }
 }

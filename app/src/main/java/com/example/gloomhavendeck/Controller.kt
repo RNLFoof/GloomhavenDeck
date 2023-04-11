@@ -22,7 +22,7 @@ object Controller: SavableController() {
         Saver("")
         Logger()
         UndoManager()
-        Player(26).statusDict[Status.POISON] = 2
+        Player(26).updateStatus(Status.POISON, 2)
         Inventory().usableItems.add(Item.LUCKY_EYE)
         Deck()
         Pipis()
