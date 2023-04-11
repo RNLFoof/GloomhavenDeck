@@ -9,50 +9,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @RequiresApi(Build.VERSION_CODES.O)
-@Serializable
-open class Controller(var destroyTheUniverseUponInitiation: Boolean = false
-) {
+object Controller: SavableController() {
     // I wonder if there's a way to do all these setters in a way that isn't ugly and redundant
-    var saver: Saver? = null
-        set(value) {
-            if (value != null && value.controller != this) {value.controller = this}
-            field = value
-        }
-    var logger: Logger? = null
-        set(value) {
-            if (value != null && value.controller != this) {value.controller = this}
-            field = value
-        }
-    var player: Player? = null
-        set(value) {
-            if (value != null && value.controller != this) {value.controller = this}
-            field = value
-        }
-    var inventory: Inventory? = null
-        set(value) {
-            if (value != null && value.controller != this) {value.controller = this}
-            field = value
-        }
-    var deck: Deck? = null
-        set(value) {
-            if (value != null && value.controller != this) {value.controller = this}
-            field = value
-        }
-    var pipis: Pipis? = null
-        set(value) {
-            if (value != null && value.controller != this) {value.controller = this}
-            field = value
-        }
-    @Transient var undoManager: UndoManager?= null
-        set(value) {
-            if (value != null && value.controller != this) {value.controller = this}
-            field = value
-        }
+    @Transient var undoManager: UndoManager? = null
     @Transient var activityConnector: ActivityConnector? = null
-        set(value) {
-            if (value != null && value.controller != this) {value.controller = this}
-            field = value
-        }
 
     var enemies: MutableList<Enemy> = mutableListOf()
 
@@ -71,6 +31,7 @@ open class Controller(var destroyTheUniverseUponInitiation: Boolean = false
 
         fun newFullyStocked(): Controller {
             // Only for testing, really
+			// TODO if it's only for testing freaking move it
             val controller = Controller()
             Saver(controller, "")
             Logger(controller)
@@ -120,5 +81,3 @@ open class Controller(var destroyTheUniverseUponInitiation: Boolean = false
         }.toMutableList()
     }
 }
-
-class DestroyTheUniverseUponInitiationException: Exception()

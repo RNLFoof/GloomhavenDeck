@@ -7,7 +7,6 @@ import org.junit.Before
 import com.example.gloomhavendeck.PlayerEvents
 
 internal class PlayerTest {
-    lateinit var controller: Controller
     lateinit var player: Player
 
     @Before
