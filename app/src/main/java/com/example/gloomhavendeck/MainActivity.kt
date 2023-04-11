@@ -688,7 +688,7 @@ vermling scout 7: 1 2 3 n5 6""", Controller.player?.scenarioLevel ?: 7).toMutabl
                         var row = TableRow(context)
                         for (status in Status.values()) {
                             val button = Button(context)
-                            button.text = "${status.icon.repeat(controller.player!!.checkStatus(status))} ${status.name}"
+                            button.text = "${status.icon.repeat(Controller.player!!.checkStatus(status))} ${status.name}"
 
                             button.textSize = 5f
                             button.layoutParams = TableRow.LayoutParams(-2,-2, 1f)
@@ -696,7 +696,7 @@ vermling scout 7: 1 2 3 n5 6""", Controller.player?.scenarioLevel ?: 7).toMutabl
                                 button.setTextColor(Color.parseColor("#9999ff"))
                             }
                             button.setOnClickListener() {
-                                controller.player!!.cycleStatus(status)
+                                Controller.player!!.cycleStatus(status)
                                 setUpEverything()
                             }
                             row.addView(button)

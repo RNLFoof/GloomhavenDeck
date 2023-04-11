@@ -25,7 +25,7 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT,
             if (!viaPipis && !Controller.player!!.statuses.any { it.negative }) {
                 throw ItemUnusableException("No negative statuses!")
             }
-            controller.player!!.statuses.filter { it.negative }.forEach { controller.player!!.updateStatus(it, 0 )}
+            Controller.player!!.statuses.filter { it.negative }.forEach { Controller.player!!.updateStatus(it, 0 )}
         }
     }),
     MAJOR_POWER_POTION(R.drawable.card_power, sound=SoundBundle.DRINK),
