@@ -11,12 +11,11 @@ import kotlin.reflect.full.memberProperties
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-class Deck(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(
-    controller
-) {
+class Deck(): Controllable() {
     init {
-        controller.deck = this
+        Controller.deck = this
     }
+
     // Cards
     var drawPile = mutableListOf<Card>()
     var activeCards = mutableListOf<Card>()
@@ -59,7 +58,7 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
             Card(refresh = true),
             Card(refresh = true),
         ))
-        controller.undoManager?.addUndoPoint()
+        Controller.undoManager?.addUndoPoint()
     }
 
     fun addBaseDeckEye() {
@@ -84,7 +83,7 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
             Card(3, shieldSelf = 1),
             Card(3, muddle = true),
         ))
-        controller.undoManager?.addUndoPoint()
+        Controller.undoManager?.addUndoPoint()
     }
 
     fun addBaseDeckStandard() {
@@ -115,7 +114,7 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
 
             Card(2),
         ))
-        controller.undoManager?.addUndoPoint()
+        Controller.undoManager?.addUndoPoint()
     }
 
     fun addBaseDeckThreeKnives() {
@@ -146,18 +145,18 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
 
             Card(flippy = true, invisible = true),
         ))
-        controller.undoManager?.addUndoPoint()
+        Controller.undoManager?.addUndoPoint()
     }
 
     fun shuffle() {
         drawPile.shuffle()
-        controller.activityConnector?.effectQueue?.addLast(Effect(controller, sound=SoundBundle.SHUFFLE))
+        Controller.activityConnector?.effectQueue?.addLast(Effect(sound=SoundBundle.SHUFFLE))
     }
 
     fun addToDrawPile(card: Card) {
         drawPile.add(card)
         shuffle()
-        controller.logger?.log("Shuffled this card into the draw pile: $card")
+        Controller.logger?.log("Shuffled this card into the draw pile: $card")
     }
 
     fun addMultipleToDrawPile(cards: Iterable<Card>) {
@@ -165,64 +164,64 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
             drawPile.add(card)
         }
         shuffle()
-        controller.logger?.log("Shuffled these cards into the draw pile: $cards")
+        Controller.logger?.log("Shuffled these cards into the draw pile: $cards")
     }
 
     fun curse(userDirectlyRequested: Boolean = false) {
-        controller.logger?.log("Adding a curse...")
-        controller.logger?.let {it.logIndent += 1}
+        Controller.logger?.log("Adding a curse...")
+        Controller.logger?.let {it.logIndent += 1}
         if (remainingCurses > 0) {
             addToDrawPile(Card(0, nullOrCurse = true, lose = true))
             remainingCurses -= 1
         } else {
-            controller.logger?.log("JK none left")
+            Controller.logger?.log("JK none left")
         }
-        controller.logger?.let {it.logIndent -= 1}
+        Controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller.undoManager?.addUndoPoint()
+            Controller.undoManager?.addUndoPoint()
     }
 
     fun bless(userDirectlyRequested: Boolean = false) {
-        controller.logger?.log("Adding a bless...")
-        controller.logger?.let {it.logIndent += 1}
+        Controller.logger?.log("Adding a bless...")
+        Controller.logger?.let {it.logIndent += 1}
         addToDrawPile(Card(2, multiplier = true, lose = true))
-        controller.logger?.let {it.logIndent -= 1}
+        Controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller.undoManager?.addUndoPoint()
+            Controller.undoManager?.addUndoPoint()
     }
 
 
     // Moving cards
     fun drawSingleCard(forcedCard: Card? = null, doingDisadvantage: Boolean = false, displayBenefitsAsRemoved: Boolean = false): Card {
         if (drawPile.size == 0){
-            controller.logger?.log("Out of cards, have to dominion it...")
-            controller.logger?.let {it.logIndent += 1}
+            Controller.logger?.log("Out of cards, have to dominion it...")
+            Controller.logger?.let {it.logIndent += 1}
             discardPileToDrawPile()
-            controller.logger?.let {it.logIndent -= 1}
+            Controller.logger?.let {it.logIndent -= 1}
         }
         if (drawPile.size == 0){
-            controller.logger?.log("!!! Absorbing the active cards just to avoid crashing. Yikes!")
-            controller.logger?.let {it.logIndent += 1}
+            Controller.logger?.log("!!! Absorbing the active cards just to avoid crashing. Yikes!")
+            Controller.logger?.let {it.logIndent += 1}
             activeCardsToDiscardPile()
             discardPileToDrawPile()
-            controller.logger?.let {it.logIndent -= 1}
+            Controller.logger?.let {it.logIndent -= 1}
         }
         val drewCard = if (forcedCard !== null) {
             forcedCard
         } else {
             drawPile.removeFirst()
         }
-        controller.logger?.log("Drew this card: $drewCard")
+        Controller.logger?.log("Drew this card: $drewCard")
 
         // Add effect
-        controller.activityConnector?.effectQueue?.addLast(drewCard.effect(controller, doingDisadvantage = doingDisadvantage, displayBenefitsAsRemoved = displayBenefitsAsRemoved))
+        Controller.activityConnector?.effectQueue?.addLast(drewCard.effect(Controller, doingDisadvantage = doingDisadvantage, displayBenefitsAsRemoved = displayBenefitsAsRemoved))
 
         return drewCard
     }
 
     fun drawRow(nerf: Int = 0, withoutSpecialBenefits: Boolean = false, doingDisadvantage: Boolean = false): MutableList<Card> {
-        controller.logger?.log("Drawing a row of cards...")
-        controller.logger?.let {it.logIndent += 1}
+        Controller.logger?.log("Drawing a row of cards...")
+        Controller.logger?.let {it.logIndent += 1}
         val drawnRow = mutableListOf<Card>()
 
         // Actual drawing
@@ -251,9 +250,9 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
                 remainingCurses += 1
             }
         }
-        controller.logger?.let {it.logIndent -= 1}
+        Controller.logger?.let {it.logIndent -= 1}
 
-        controller.activityConnector?.effectQueue?.addLast(Effect(controller, selectBottomRow = true))
+        Controller.activityConnector?.effectQueue?.addLast(Effect(selectBottomRow = true))
 
         return drawnRow
     }
@@ -261,48 +260,48 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
     fun activeCardsToDiscardPile(userDirectlyRequested: Boolean = false) {
         discardPile.addAll(activeCards)
         activeCards.clear()
-        controller.logger?.log("Moved the active cards to the discard pile.")
+        Controller.logger?.log("Moved the active cards to the discard pile.")
         if (userDirectlyRequested) {
-            controller.undoManager?.addUndoPoint()
+            Controller.undoManager?.addUndoPoint()
         }
         if (activeCards.size != 0) {
-            controller.activityConnector?.effectQueue?.addLast(Effect(controller, sound=SoundBundle.DISCARD))
+            Controller.activityConnector?.effectQueue?.addLast(Effect(sound=SoundBundle.DISCARD))
         }
-        controller.activityConnector?.effectQueue?.addLast(Effect(controller, sound=SoundBundle.DISCARD))
+        Controller.activityConnector?.effectQueue?.addLast(Effect(sound=SoundBundle.DISCARD))
     }
 
     fun discardPileToDrawPile(userDirectlyRequested: Boolean = false) {
-        controller.logger?.log("Shuffling the discard pile into the draw pile...")
-        controller.logger?.let {it.logIndent += 1}
+        Controller.logger?.log("Shuffling the discard pile into the draw pile...")
+        Controller.logger?.let {it.logIndent += 1}
         addMultipleToDrawPile(discardPile)
         discardPile.clear()
-        controller.logger?.let {it.logIndent -= 1}
+        Controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller.undoManager?.addUndoPoint()
+            Controller.undoManager?.addUndoPoint()
     }
 
     fun attack(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0, withoutSpecialBenefits: Boolean = false) : Card {
-        controller.logger?.let {it.logIndent += 1}
-        controller.activityConnector?.effectQueue?.addLast(Effect(controller, selectTopRow = true, hideBottomRow = true, wipe=true))
+        Controller.logger?.let {it.logIndent += 1}
+        Controller.activityConnector?.effectQueue?.addLast(Effect(selectTopRow = true, hideBottomRow = true, wipe=true))
         val drawnRow = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
         val baseCard = Card(basePower)
         drawnRow.add(0, baseCard)
 
         val combinedCard = drawnRow.sum()
         if (basePower == 0 && drawnRow.any{it.multiplier && it.value == 2}) {
-            controller.logger?.log("Can't infer the result without a base value, nerd.")
+            Controller.logger?.log("Can't infer the result without a base value, nerd.")
         } else {
-            controller.logger?.log("Effectively drew a $combinedCard")
+            Controller.logger?.log("Effectively drew a $combinedCard")
         }
-        controller.logger?.let {it.logIndent -= 1}
+        Controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller.undoManager?.addUndoPoint()
+            Controller.undoManager?.addUndoPoint()
         return combinedCard
     }
 
     fun advantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0, withoutSpecialBenefits: Boolean = false) : Card {
-        controller.activityConnector?.effectQueue?.addLast(Effect(controller, selectTopRow = true, showBottomRow = true, wipe=true))
-        controller.logger?.let {it.logIndent += 1}
+        Controller.activityConnector?.effectQueue?.addLast(Effect(selectTopRow = true, showBottomRow = true, wipe=true))
+        Controller.logger?.let {it.logIndent += 1}
         val drawnRow1 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
         val drawnRow2 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits)
         val baseCard = Card(basePower)
@@ -325,19 +324,19 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
                 ).sum()
 
         if (basePower == 0 && (drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
-            controller.logger?.log("Can't infer the result without a base value, nerd.")
+            Controller.logger?.log("Can't infer the result without a base value, nerd.")
         } else {
-            controller.logger?.log("Effectively drew a $combinedCard")
+            Controller.logger?.log("Effectively drew a $combinedCard")
         }
-        controller.logger?.let {it.logIndent -= 1}
+        Controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller.undoManager?.addUndoPoint()
+            Controller.undoManager?.addUndoPoint()
         return combinedCard
     }
 
     fun disadvantage(basePower: Int = 0, userDirectlyRequested: Boolean = false, nerf: Int = 0, withoutSpecialBenefits: Boolean = false) : Card {
-        controller.activityConnector?.effectQueue?.addLast(Effect(controller, selectTopRow = true, showBottomRow = true, wipe=true))
-        controller.logger?.let {it.logIndent += 1}
+        Controller.activityConnector?.effectQueue?.addLast(Effect(selectTopRow = true, showBottomRow = true, wipe=true))
+        Controller.logger?.let {it.logIndent += 1}
         val drawnRow1 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits, doingDisadvantage=true)
         val drawnRow2 = drawRow(nerf = nerf, withoutSpecialBenefits=withoutSpecialBenefits, doingDisadvantage=true)
         val baseCard = Card(basePower)
@@ -351,19 +350,19 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
         }
 
         if (basePower == 0 && (drawnRow1 + drawnRow2).any{it.multiplier && it.value == 2}) {
-            controller.logger?.log("Can't infer the result without a base value, nerd.")
+            Controller.logger?.log("Can't infer the result without a base value, nerd.")
         } else {
-            controller.logger?.log("Effectively drew a $loser")
+            Controller.logger?.log("Effectively drew a $loser")
         }
-        controller.logger?.let {it.logIndent -= 1}
+        Controller.logger?.let {it.logIndent -= 1}
         if (userDirectlyRequested)
-            controller.undoManager?.addUndoPoint()
+            Controller.undoManager?.addUndoPoint()
         return combinedCard
     }
 
     fun pipis(player : Player, enemies : List<Enemy>) {
-        val nerflessCounterparts = controller.pipis!!.generateNerflessCounterparts(enemies)
-        if (controller.inventory == null) {
+        val nerflessCounterparts = Controller.pipis!!.generateNerflessCounterparts(enemies)
+        if (Controller.inventory == null) {
             throw Exception("Can't pipis without an inventory")
         }
         var enemyIndex = 0
@@ -403,8 +402,8 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
             }
             // Player Items
             for (item in Item.values()) {
-                if (controller.inventory != null) {
-                    vars["Inventory has $item"] = controller.inventory!!.usableItems.contains(item)
+                if (Controller.inventory != null) {
+                    vars["Inventory has $item"] = Controller.inventory!!.usableItems.contains(item)
                 }
             }
             // Enemy
@@ -422,30 +421,30 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
             return enemies.filter { it.getTargetable() }.all { it.inBallistaRange }
         }
 
-        controller.logger?.log("Pipis...")
+        Controller.logger?.log("Pipis...")
         val startSummary = getSummary()
-        controller.logger?.let {it.logIndent += 1}
+        Controller.logger?.let {it.logIndent += 1}
         var allowedToContinue = true
         var loops = 0
         var bonusItems = 0
         var gotASpinny = false
         while (allowedToContinue) {
-            controller.logger?.log("")
+            Controller.logger?.log("")
             enemyIndex = 0
             allowedToContinue = false
             // Init power up here instead so that pendant can use it
             var basePower = 1
             fun tryToDitchPendant() {
-                if (controller.inventory!!.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
+                if (Controller.inventory!!.unusableItems.contains(Item.PENDANT_OF_DARK_PACTS)) {
                     return
                 }
-                val roomMade = controller.inventory!!.makeRoom(2, powerPotThresholdReached(),
+                val roomMade = Controller.inventory!!.makeRoom(2, powerPotThresholdReached(),
                     powerPotAggregatedPower() > 0)
                 if (roomMade.contains(Item.MAJOR_POWER_POTION)) {
                     basePower += 2
                 }
-                if (controller.inventory!!.unusableItems.size >= 2) {
-                    controller.inventory!!.useItem(Item.PENDANT_OF_DARK_PACTS,  true)
+                if (Controller.inventory!!.unusableItems.size >= 2) {
+                    Controller.inventory!!.useItem(Item.PENDANT_OF_DARK_PACTS,  true)
                 }
             }
 
@@ -460,24 +459,24 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
             }
             // Power?
             if (usingBallistaInstead) {basePower += 3}
-            if (powerPotThresholdReached() && controller.inventory!!.usableItems.contains(Item.MAJOR_POWER_POTION)) {
+            if (powerPotThresholdReached() && Controller.inventory!!.usableItems.contains(Item.MAJOR_POWER_POTION)) {
                 basePower += 2
-                controller.inventory!!.useItem(Item.MAJOR_POWER_POTION, true)
+                Controller.inventory!!.useItem(Item.MAJOR_POWER_POTION, true)
             }
             // Eye?
-            if (controller.inventory!!.usableItems.contains(Item.LUCKY_EYE) && !player.statuses.contains(Status.STRENGTHEN)) {
-                controller.inventory!!.useItem(Item.LUCKY_EYE, true)
+            if (Controller.inventory!!.usableItems.contains(Item.LUCKY_EYE) && !player.statuses.contains(Status.STRENGTHEN)) {
+                Controller.inventory!!.useItem(Item.LUCKY_EYE, true)
             }
             // Room?
             tryToDitchPendant()
             // Another potion?
-            if (powerPotThresholdReached() && controller.inventory!!.usableItems.contains(Item.MAJOR_POWER_POTION)) {
+            if (powerPotThresholdReached() && Controller.inventory!!.usableItems.contains(Item.MAJOR_POWER_POTION)) {
                 basePower += 2
-                controller.inventory!!.useItem(Item.MAJOR_POWER_POTION, true)
+                Controller.inventory!!.useItem(Item.MAJOR_POWER_POTION, true)
             }
             // Display
-            controller.logger?.log("")
-            controller.logger?.log("Loop ${++loops}, for ${basePower}+-${if (usingBallistaInstead) ", using ballista" else ""}...")
+            Controller.logger?.log("")
+            Controller.logger?.log("Loop ${++loops}, for ${basePower}+-${if (usingBallistaInstead) ", using ballista" else ""}...")
             // Attacks
             var gotExtraTarget = false
             fun attackEnemy(enemy: Enemy) {
@@ -500,12 +499,12 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
                     advantage -= 1
                 }
 
-                controller.logger?.let {it.logMuted = true}
+                Controller.logger?.let {it.logMuted = true}
                 val combinedCard = if (advantage > 0) advantage(basePower, withoutSpecialBenefits = counterpart.dead)
                 else if (advantage < 0) disadvantage(basePower, withoutSpecialBenefits = counterpart.dead)
                 else attack(basePower, withoutSpecialBenefits = counterpart.dead)
 
-                controller.logger?.let {it.logMuted = false}
+                Controller.logger?.let {it.logMuted = false}
 
                 if (!counterpart.dead) {
                     counterpart.getAttacked(combinedCard, player)
@@ -515,11 +514,11 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
                 combinedCard.value = max(0, combinedCard.value-nerf)
                 enemy.getAttacked(combinedCard, player)
 
-                controller.logger?.log("Hit ${enemy.name} with $combinedCard${if (enemy.dead) ", dies!" else ""}")
+                Controller.logger?.log("Hit ${enemy.name} with $combinedCard${if (enemy.dead) ", dies!" else ""}")
                 if (combinedCard.refresh) {
-                    controller.inventory!!.recover()
-                    if (controller.activityConnector != null) {
-                        controller.activityConnector!!.effectSpeed = controller.activityConnector!!.effectSpeed*7/10
+                    Controller.inventory!!.recover()
+                    if (Controller.activityConnector != null) {
+                        Controller.activityConnector!!.effectSpeed = Controller.activityConnector!!.effectSpeed*7/10
                     }
                 }
                 if (combinedCard.extraTarget) {
@@ -539,7 +538,7 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
             }
             // Extra
             if (gotExtraTarget) {
-                controller.logger?.log("Extra target!")
+                Controller.logger?.log("Extra target!")
                 var foundExtraTarget = false
                 for (enemy in enemies) {
                     if (enemy.getTargetable(ignoreTargeted = true) && enemy.extraTarget &&
@@ -551,7 +550,7 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
                     }
                 }
                 if (!foundExtraTarget) {
-                    controller.logger?.log("But couldn't find an extra target.")
+                    Controller.logger?.log("But couldn't find an extra target.")
                 }
             }
             // One more time?
@@ -564,60 +563,60 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
                             || (player.statuses.contains(Status.STRENGTHEN) &&enemies.sumOf { if (!it.getTargetable()) 0 else "1".toInt() } >= 2)
                         )
                         && loops <= 10
-                canGoAgain = controller.inventory!!.usableItems.contains(Item.RING_OF_BRUTALITY)
-                        && (controller.inventory!!.usableItems.contains(Item.MINOR_STAMINA_POTION) || controller.inventory!!.usableItems.contains(Item.MAJOR_STAMINA_POTION))
+                canGoAgain = Controller.inventory!!.usableItems.contains(Item.RING_OF_BRUTALITY)
+                        && (Controller.inventory!!.usableItems.contains(Item.MINOR_STAMINA_POTION) || Controller.inventory!!.usableItems.contains(Item.MAJOR_STAMINA_POTION))
             }
             setWantAndCan()
             // Maybe use belt
             if (wantToGoAgain && !canGoAgain ) {
-                if (controller.inventory!!.usableItems.contains(Item.UTILITY_BELT)) {
+                if (Controller.inventory!!.usableItems.contains(Item.UTILITY_BELT)) {
                     // Belt will recover pendant, pendant will automatically recover major and ring
-                    controller.inventory!!.useItem(Item.UTILITY_BELT, true)
+                    Controller.inventory!!.useItem(Item.UTILITY_BELT, true)
                     setWantAndCan()
                 }
             }
             // Maybe get a bonus ball
-            if (controller.inventory!!.unusableItems.size == 0 && controller.inventory!!.usableItems.contains(Item.UTILITY_BELT)) {
-                controller.inventory!!.useItem(Item.UTILITY_BELT, false)
+            if (Controller.inventory!!.unusableItems.size == 0 && Controller.inventory!!.usableItems.contains(Item.UTILITY_BELT)) {
+                Controller.inventory!!.useItem(Item.UTILITY_BELT, false)
                 bonusItems += 1
             }
             // Ok go
             if (wantToGoAgain && canGoAgain) {
                 // Can I?
-                if (controller.inventory!!.usableItems.contains(Item.MINOR_STAMINA_POTION)) {
+                if (Controller.inventory!!.usableItems.contains(Item.MINOR_STAMINA_POTION)) {
                         if (shouldUseBallista() && player.discardedBallista) {
                             player.discardedBallista = false
                         }
                         if (!shouldUseBallista() && player.discardedPipis) {
                             player.discardedPipis = false
                         }
-                        controller.inventory!!.useItem(Item.MINOR_STAMINA_POTION, true)
-                        controller.inventory!!.useItem(Item.RING_OF_BRUTALITY, true)
+                        Controller.inventory!!.useItem(Item.MINOR_STAMINA_POTION, true)
+                        Controller.inventory!!.useItem(Item.RING_OF_BRUTALITY, true)
                         allowedToContinue = true
                 }
-                else if (controller.inventory!!.usableItems.contains(Item.MAJOR_STAMINA_POTION)) {
+                else if (Controller.inventory!!.usableItems.contains(Item.MAJOR_STAMINA_POTION)) {
                         if (shouldUseBallista() && player.discardedBallista) {
                             player.discardedBallista = false
                         }
                         if (!shouldUseBallista() && player.discardedPipis) {
                             player.discardedPipis = false
                         }
-                        controller.inventory!!.useItem(Item.MAJOR_STAMINA_POTION, true)
-                        controller.inventory!!.useItem(Item.RING_OF_BRUTALITY, true)
+                        Controller.inventory!!.useItem(Item.MAJOR_STAMINA_POTION, true)
+                        Controller.inventory!!.useItem(Item.RING_OF_BRUTALITY, true)
                         allowedToContinue = true
                 }
                 else {
-                    controller.logger?.log("How the fuck did you get here")
+                    Controller.logger?.log("How the fuck did you get here")
                 }
             }
             else if (wantToGoAgain && !canGoAgain) {
-                controller.logger?.log("Want to go again, but can't.")
+                Controller.logger?.log("Want to go again, but can't.")
             }
             else if (!wantToGoAgain && canGoAgain) {
-                controller.logger?.log("Can go again, but don't wanna.")
+                Controller.logger?.log("Can go again, but don't wanna.")
             }
             else {
-                controller.logger?.log("GET ME OUT OF THIS THING")
+                Controller.logger?.log("GET ME OUT OF THIS THING")
             }
             activeCardsToDiscardPile()
         }
@@ -625,9 +624,9 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
             discardPileToDrawPile()
         }
 
-        controller.logger?.log("End summary:")
-        controller.logger?.let {it.logIndent += 1}
-        controller.logger?.log("Bonus items for your allies: $bonusItems")
+        Controller.logger?.log("End summary:")
+        Controller.logger?.let {it.logIndent += 1}
+        Controller.logger?.log("Bonus items for your allies: $bonusItems")
         player.dings += loops
         val endSummary = getSummary()
         for (startKv in startSummary) {
@@ -636,18 +635,18 @@ class Deck(@Transient override var controller: Controller = Controller(destroyTh
                 if (startKv.value is Int && endV is Int) {
                     val dif = endV - (startKv.value as Int)
                     if (dif >= 0) {
-                        controller.logger?.log("${startKv.key}: ${startKv.value} -> $endV (+${dif})")
+                        Controller.logger?.log("${startKv.key}: ${startKv.value} -> $endV (+${dif})")
                     } else {
-                        controller.logger?.log("${startKv.key}: ${startKv.value} -> $endV (${dif})")
+                        Controller.logger?.log("${startKv.key}: ${startKv.value} -> $endV (${dif})")
                     }
                 }
                 else {
-                    controller.logger?.log("${startKv.key}: ${startKv.value} -> $endV")
+                    Controller.logger?.log("${startKv.key}: ${startKv.value} -> $endV")
                 }
             }
         }
-        controller.logger?.let {it.logIndent -= 1}
-        controller.logger?.let {it.logIndent -= 1}
-        controller.undoManager?.addUndoPoint()
+        Controller.logger?.let {it.logIndent -= 1}
+        Controller.logger?.let {it.logIndent -= 1}
+        Controller.undoManager?.addUndoPoint()
     }
 }

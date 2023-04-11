@@ -17,36 +17,36 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT,
 ) {
     CLOAK_OF_PHASING(R.drawable.card_cloakofphasing, permanent = true),
     CLOAK_OF_POCKETS(R.drawable.card_cloak, permanent = true),
-    LUCKY_EYE(R.drawable.card_luckyeye, sound=SoundBundle.STRENGTHEN, getUsed=fun (controller, _){
-        controller.player?.let { it.statusDict[Status.STRENGTHEN] = 2 }
+    LUCKY_EYE(R.drawable.card_luckyeye, sound=SoundBundle.STRENGTHEN, getUsed=fun (Controller, _){
+        Controller.player?.let { it.statusDict[Status.STRENGTHEN] = 2 }
     }),
-    MAJOR_CURE_POTION(R.drawable.card_cure, sound=SoundBundle.DRINK, getUsed=fun (controller, viaPipis){
-        if (controller.player != null) {
-            if (!viaPipis && !controller.player!!.statuses.any { it.negative }) {
+    MAJOR_CURE_POTION(R.drawable.card_cure, sound=SoundBundle.DRINK, getUsed=fun (Controller, viaPipis){
+        if (Controller.player != null) {
+            if (!viaPipis && !Controller.player!!.statuses.any { it.negative }) {
                 throw ItemUnusableException("No negative statuses!")
             }
-            controller.player!!.statusDict.filterKeys { it.negative }.forEach { controller.player!!.statusDict[it.key] = 0 }
+            Controller.player!!.statusDict.filterKeys { it.negative }.forEach { Controller.player!!.statusDict[it.key] = 0 }
         }
     }),
     MAJOR_POWER_POTION(R.drawable.card_power, sound=SoundBundle.DRINK),
-    MAJOR_STAMINA_POTION(R.drawable.card_majorstamina, sound=SoundBundle.DRINK, getUsed=fun (controller, _) {
-        controller.player!!.discardedCards -= 3
+    MAJOR_STAMINA_POTION(R.drawable.card_majorstamina, sound=SoundBundle.DRINK, getUsed=fun (Controller, _) {
+        Controller.player!!.discardedCards -= 3
     }),
-    MINOR_STAMINA_POTION(R.drawable.card_minorstamina, sound=SoundBundle.DRINK, getUsed=fun (controller, _) {
-        controller.player!!.discardedCards -= 2
+    MINOR_STAMINA_POTION(R.drawable.card_minorstamina, sound=SoundBundle.DRINK, getUsed=fun (Controller, _) {
+        Controller.player!!.discardedCards -= 2
     }),
-    PENDANT_OF_DARK_PACTS(R.drawable.card_pendant, sound=SoundBundle.PENDANTOFDARKPACTS, getUsed=fun (controller, fullAutoBehavior) {
-        if (fullAutoBehavior && controller.inventory != null) {
-            if (controller.inventory!!.unusableItems.size <= 1
-                || (controller.inventory!!.unusableItems.size <= 2 && controller.inventory!!.unusableItems.contains(
+    PENDANT_OF_DARK_PACTS(R.drawable.card_pendant, sound=SoundBundle.PENDANTOFDARKPACTS, getUsed=fun (Controller, fullAutoBehavior) {
+        if (fullAutoBehavior && Controller.inventory != null) {
+            if (Controller.inventory!!.unusableItems.size <= 1
+                || (Controller.inventory!!.unusableItems.size <= 2 && Controller.inventory!!.unusableItems.contains(
                     UTILITY_BELT
                 ))
             ) {
                 throw ItemUnautomatableException("There aren't two items to recover!")
             }
-            controller.inventory!!.recover(howMany = 2, cantRecover = listOf(UTILITY_BELT))
+            Controller.inventory!!.recover(howMany = 2, cantRecover = listOf(UTILITY_BELT))
         }
-        controller.deck?.curse()
+        Controller.deck?.curse()
     }),
     POWER_CORE(R.drawable.card_power_core, getsActivated = true, sound=SoundBundle.DEFAULT, deactivationSound=SoundBundle.DEATH),
     RING_OF_BRUTALITY(R.drawable.card_brutality, sound=SoundBundle.RINGOFBRUTALITY),
@@ -55,12 +55,12 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT,
     ROCKET_BOOTS(R.drawable.card_boots, sound=SoundBundle.JUMP, spendOnly = true),
     SECOND_CHANCE_RING(R.drawable.card_secondchancering, sound=SoundBundle.SECONDCHANCERING),
     SPIKED_SHIELD(R.drawable.card_spiked, spendOnly = true),
-    SUPER_HEALING_POTION(R.drawable.card_healing, sound=SoundBundle.DRINK, getUsed=fun (controller, fullAutoBehavior) {
-        controller.player?.heal(7, true)
+    SUPER_HEALING_POTION(R.drawable.card_healing, sound=SoundBundle.DRINK, getUsed=fun (Controller, fullAutoBehavior) {
+        Controller.player?.heal(7, true)
     }),
     TOWER_SHIELD(R.drawable.card_tower, spendOnly = true),
-    UTILITY_BELT(R.drawable.card_belt, sound=SoundBundle.UTILITYBELT, getUsed=fun(controller, fullAutoBehavior) {
-        controller.inventory?.let {
+    UTILITY_BELT(R.drawable.card_belt, sound=SoundBundle.UTILITYBELT, getUsed=fun(Controller, fullAutoBehavior) {
+        Controller.inventory?.let {
             if (fullAutoBehavior) {
                 if (it.unusableItems.size <= 0) {
                     throw ItemUnautomatableException("There isn't an item to recover!")

@@ -72,7 +72,7 @@ internal class EnemyTest {
 
     @Test
     fun getAttacked() {
-        val player = Player(Controller(), 44)
+        val player = Player(44)
         val enemy = Enemy.createOne("Dog 2 0", 7)
         Assert.assertEquals(0, enemy.taken)
         enemy.getAttacked(Card(value=0), player)

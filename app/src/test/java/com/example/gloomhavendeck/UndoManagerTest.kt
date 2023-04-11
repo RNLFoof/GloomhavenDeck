@@ -14,7 +14,6 @@ import org.junit.Test
 import org.junit.Before
 
 internal class UndoManagerTest {
-    lateinit var controller: Controller
     lateinit var undoManager: UndoManager
 
 //    fun allExpectedToBeSaved(): Array<*> {
@@ -30,27 +29,17 @@ internal class UndoManagerTest {
 
     @Test
     fun encodeEach() {
-        Controller.doWithoutDestroyingTheUniverse {
+        Controller.let {
             for (o in allControllables()) {
                 Json.encodeToString(o)
             }
-            Json.encodeToString(Controller.newFullyStocked())
-        }
-    }
-
-    @Test
-    fun encodeDecodeController() {
-        Controller.doWithoutDestroyingTheUniverse {
-            val fullyStockedController = Controller.newFullyStocked()
-            val encoded = Json.encodeToString(fullyStockedController)
-            val decoded: Controller = Json.decodeFromString( encoded )
-            Assert.assertEquals(encoded, Json.encodeToString(decoded))
+            Json.encodeToString(Controller.fullyStock())
         }
     }
 
     @Before
     fun setUp() {
-        controller = Controller()
-        undoManager = UndoManager(controller)
+        Controller.fullyStock()
+        undoManager = UndoManager()
     }
 }
