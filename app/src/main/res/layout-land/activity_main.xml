@@ -17,7 +17,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/fragmentContainerView"
+            android:id="@+id/fragStatusBar"
             android:name="com.example.gloomhavendeck.StatusBarFragment"
             android:layout_width="wrap_content"
             android:layout_height="30dp" />

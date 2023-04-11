@@ -1,12 +1,14 @@
 package com.example.gloomhavendeck
 
+import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.LinearLayout
+import androidx.annotation.RequiresApi
+import androidx.core.view.children
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -18,7 +20,7 @@ private const val ARG_PARAM2 = "param2"
  * Use the [StatusBarFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class StatusBarFragment : Fragment() {
+class StatusBarFragment() : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -31,54 +33,44 @@ class StatusBarFragment : Fragment() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-        val output = inflater.inflate(R.layout.fragment_status_bar, container, false)
-        val llStatusBar = output.findViewById<LinearLayout>(R.id.llStatusBar)
+        addListener()
+        return inflater.inflate(R.layout.fragment_status_bar, container, false)
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun addListener() {
+        Controller.player?.playerSignal?.addListener { _, new ->
+            updateContents()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun updateContents() {
+        if (Controller.player == null) {
+            return
+        }
+        if (view == null) {
+            return
+        }
+        val llStatusBar = requireView().findViewById<LinearLayout>(R.id.llStatusBar)
+        llStatusBar.removeAllViews()
         val params = LinearLayout.LayoutParams(
             llStatusBar.layoutParams.height,
             llStatusBar.layoutParams.height,
             1.0f
         )
-        for (icon in arrayOf(
-            R.drawable.disarm,
-            R.drawable.stun,
-            R.drawable.invisible,
-            R.drawable.wound,
-            R.drawable.regenerate,
-            R.drawable.immobile,
-            R.drawable.poison,
-            R.drawable.muddle,
-            R.drawable.strengthen,
-        )) {
-            val imageView = ImageView(activity)
-            imageView.setImageResource(icon)
-            imageView.layoutParams = params
-            llStatusBar.addView(imageView)
-        }
-        return output
-    }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment StatusBarFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            StatusBarFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
+        for (status in Controller.player!!.statuses) {
+            for (x in 1..Controller.player!!.checkStatus(status)) {
+                val imageView = status.imageView(this.requireContext())
+                imageView.layoutParams = params
+                llStatusBar.addView(imageView)
             }
+        }
     }
 }
