@@ -54,7 +54,7 @@ class Inventory(): Controllable() {
             Item.MAJOR_CURE_POTION,
             Item.MAJOR_STAMINA_POTION,
             Item.SUPER_HEALING_POTION,
-            Item.POWER_CORE,
+            //Item.POWER_CORE,
             Item.PENDANT_OF_DARK_PACTS,
             Item.ROCKET_BOOTS,
             Item.RING_OF_SKULLS,
