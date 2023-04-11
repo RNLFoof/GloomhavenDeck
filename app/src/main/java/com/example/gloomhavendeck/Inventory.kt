@@ -7,11 +7,9 @@ import kotlinx.serialization.Transient
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-class Inventory(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(
-    controller
-) {
+class Inventory(): Controllable() {
     init {
-        controller.inventory = this
+        Controller.inventory = this
     }
 
     var usableItems = mutableListOf<Item>()
@@ -99,16 +97,16 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
     }
 
     fun useItem(item: Item, fullAutoBehavior: Boolean) {
-        controller.logger?.log("Using a $item...")
-        controller.logger?.let {it.logIndent += 1}
+        Controller.logger?.log("Using a $item...")
+        Controller.logger?.let {it.logIndent += 1}
 
         if (!usableItems.contains(item)) {
             throw Exception("You don't HAVE a $item, dumbass")
         }
 
         try {
-            item.getUsed(controller, fullAutoBehavior)
-            controller.activityConnector?.effectQueue?.addLast(Effect(controller, card = item.graphic, sound = item.sound, selectTopRow = true))
+            item.getUsed(Controller, fullAutoBehavior)
+            Controller.activityConnector?.effectQueue?.addLast(Effect(card = item.graphic, sound = item.sound, selectTopRow = true))
 
             if (item.getsActivated) {
                 activateItem(item)
@@ -119,24 +117,24 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
             displayChangedInventory()
 
         } catch (e: ItemUnusableException) {
-            controller.activityConnector?.effectQueue?.addLast(Effect(controller, sound = SoundBundle.ITEMUNUSABLE))
+            Controller.activityConnector?.effectQueue?.addLast(Effect(sound = SoundBundle.ITEMUNUSABLE))
         }
-        controller.logger?.let {it.logIndent -= 1}
+        Controller.logger?.let {it.logIndent -= 1}
     }
 
     fun deactivateItem(item: Item, fullAutoBehavior: Boolean) {
-        controller.activityConnector?.effectQueue?.addLast(Effect(controller, card = item.graphic, sound = item.sound, selectTopRow = true))
-        controller.logger?.log("Deactivating $item...")
-        controller.logger?.let {it.logIndent += 1}
+        Controller.activityConnector?.effectQueue?.addLast(Effect(card = item.graphic, sound = item.sound, selectTopRow = true))
+        Controller.logger?.log("Deactivating $item...")
+        Controller.logger?.let {it.logIndent += 1}
 
         if (!activeItems.contains(item)) {
             throw Exception("You don't HAVE an active $item, dumbass")
         }
-        item.getDeactivated(controller, fullAutoBehavior)
+        item.getDeactivated(Controller, fullAutoBehavior)
         loseItem(item)
         displayChangedInventory()
 
-        controller.logger?.let {it.logIndent -= 1}
+        Controller.logger?.let {it.logIndent -= 1}
     }
 
     // Analyze
@@ -155,7 +153,7 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
         }
         if (unusableItems.contains(Item.LUCKY_EYE)
         ) {
-            yield(RecoveryCandidate(Item.LUCKY_EYE, !controller.player!!.statuses.contains(Status.STRENGTHEN)))
+            yield(RecoveryCandidate(Item.LUCKY_EYE, !Controller.player!!.statuses.contains(Status.STRENGTHEN)))
         }
         if (unusableItems.contains(Item.MAJOR_STAMINA_POTION)) {
             yield(RecoveryCandidate(Item.MAJOR_STAMINA_POTION, false))
@@ -171,8 +169,8 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
         }
         if (unusableItems.contains(Item.MAJOR_CURE_POTION)
             && (
-                    controller.player!!.statuses.contains(Status.MUDDLE)
-                            || controller.player!!.statuses.contains(Status.POISON)
+                    Controller.player!!.statuses.contains(Status.MUDDLE)
+                            || Controller.player!!.statuses.contains(Status.POISON)
                     )
         ) {
             yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, true))
@@ -181,14 +179,14 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
             yield(RecoveryCandidate(Item.SECOND_CHANCE_RING, false))
         }
         if (unusableItems.contains(Item.SUPER_HEALING_POTION)
-            && controller.player!!.hp <= controller.player!!.hpDangerThreshold) {
+            && Controller.player!!.hp <= Controller.player!!.hpDangerThreshold) {
             yield(RecoveryCandidate(Item.SUPER_HEALING_POTION, true))
         }
         if (unusableItems.contains(Item.MAJOR_CURE_POTION)) {
             yield(RecoveryCandidate(Item.MAJOR_CURE_POTION, false))
         }
         if (unusableItems.contains(Item.SUPER_HEALING_POTION)) {
-            yield(RecoveryCandidate(Item.SUPER_HEALING_POTION, controller.player!!.hp <= 19))
+            yield(RecoveryCandidate(Item.SUPER_HEALING_POTION, Controller.player!!.hp <= 19))
         }
         if (unusableItems.contains(Item.RING_OF_SKULLS)) {
             yield(RecoveryCandidate(Item.RING_OF_SKULLS, false))
@@ -211,27 +209,27 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
         while (true) {
             // Just gonna assume this all exists since you only use this in pipis
             if (usableItems.contains(Item.LUCKY_EYE)
-                && !controller.player!!.statuses.contains(Status.STRENGTHEN)
+                && !Controller.player!!.statuses.contains(Status.STRENGTHEN)
             ) {
                 yield(Item.LUCKY_EYE)
                 continue
             }
             if (usableItems.contains(Item.MAJOR_CURE_POTION)
                 && (
-                        controller.player!!.statuses.contains(Status.MUDDLE)
-                                || controller.player!!.statuses.contains(Status.POISON)
+                        Controller.player!!.statuses.contains(Status.MUDDLE)
+                                || Controller.player!!.statuses.contains(Status.POISON)
                         )
             ) {
                 yield(Item.MAJOR_CURE_POTION)
                 continue
             }
             if (usableItems.contains(Item.SUPER_HEALING_POTION)
-                && controller.player!!.hp <= controller.player!!.maxHp-7) {
+                && Controller.player!!.hp <= Controller.player!!.maxHp-7) {
                 yield(Item.SUPER_HEALING_POTION)
                 continue
             }
             if (usableItems.contains(Item.MAJOR_CURE_POTION)
-                && controller.player!!.statuses.any{it.negative}
+                && Controller.player!!.statuses.any{it.negative}
             ) {
                 yield(Item.MAJOR_CURE_POTION)
                 continue
@@ -244,13 +242,13 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
                 continue
             }
             if (usableItems.contains(Item.SUPER_HEALING_POTION)
-                && controller.player!!.hp < controller.player!!.maxHp
+                && Controller.player!!.hp < Controller.player!!.maxHp
             ) {
                 yield(Item.SUPER_HEALING_POTION)
                 continue
             }
             if (usableItems.contains(Item.MINOR_STAMINA_POTION)
-                && controller.player!!.discardedCards >= 2
+                && Controller.player!!.discardedCards >= 2
             ) {
                 yield(Item.MINOR_STAMINA_POTION)
                 continue
@@ -289,13 +287,13 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
         for (recoveryCandidate in itemsRecovered) {
             if (recoveryCandidate.useImmediately) {
                 useItem(recoveryCandidate.item, true)
-                controller.logger?.log("Recovered and immediately used ${recoveryCandidate.item}")
+                Controller.logger?.log("Recovered and immediately used ${recoveryCandidate.item}")
             } else {
-                controller.logger?.log("Recovered ${recoveryCandidate.item}")
+                Controller.logger?.log("Recovered ${recoveryCandidate.item}")
             }
         }
         if (itemsRecovered.size == 0) {
-            controller.logger?.log("Nothing to recover :c")
+            Controller.logger?.log("Nothing to recover :c")
         }
         return itemsRecovered
     }
@@ -321,13 +319,13 @@ class Inventory(@Transient override var controller: Controller = Controller(dest
     }
 
     fun displayChangedInventory() {
-        controller.activityConnector?.let {
+        Controller.activityConnector?.let {
             if (it.llItemRow.isVisible) {
                 val newItemRowDisplay = mutableListOf<Boolean>()
-                for (item in controller.inventory!!.allItemsSorted()) {
-                    newItemRowDisplay.add(item in controller.inventory!!.usableItems)
+                for (item in Controller.inventory!!.allItemsSorted()) {
+                    newItemRowDisplay.add(item in Controller.inventory!!.usableItems)
                 }
-                it.effectQueue.add(Effect(controller, newItemRowDisplay = newItemRowDisplay))
+                it.effectQueue.add(Effect(newItemRowDisplay = newItemRowDisplay))
             }
         }
     }

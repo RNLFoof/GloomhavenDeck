@@ -6,7 +6,6 @@ import org.junit.Test
 import org.junit.Before
 
 internal class PlayerTest {
-    lateinit var controller: Controller
     lateinit var player: Player
 
     @Test
@@ -37,7 +36,6 @@ internal class PlayerTest {
 
     @Before
     fun setUp() {
-        controller = Controller()
-        player = Player(controller, 26)
+        player = Player(26)
     }
 }

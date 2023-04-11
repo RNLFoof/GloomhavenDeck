@@ -9,7 +9,6 @@ import org.junit.Test
 import org.junit.Before
 
 internal class DeckTest {
-    lateinit var controller: Controller
     lateinit var deck: Deck
 
     @Test
@@ -28,7 +27,7 @@ internal class DeckTest {
 
     @Test
     fun Pipis() {
-        val player = Player(controller, 26)
+        val player = Player(26)
         fun pipisTheseEnemies(enemies: List<Enemy>) {
             if (enemies.size == 0) {
                 return
@@ -63,8 +62,8 @@ internal class DeckTest {
 
     @Before
     fun setUp() {
-        controller = Controller.newFullyStocked()
-        deck = Deck(controller)
+        Controller.fullyStock()
+        deck = Controller.deck!!
         deck.addBaseDeckThreeSpears()
     }
 }

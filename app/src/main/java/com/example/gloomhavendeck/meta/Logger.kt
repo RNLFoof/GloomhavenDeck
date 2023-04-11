@@ -9,12 +9,10 @@ import kotlinx.serialization.Transient
 
 @Serializable
 @RequiresApi(Build.VERSION_CODES.O)
-class Logger(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(
-    controller
-) {
+class Logger(): Controllable() {
 
     init {
-        controller.logger = this
+        Controller.logger = this
     }
 
     var logList = mutableListOf<String>()
@@ -41,7 +39,7 @@ class Logger(@Transient override var controller: Controller = Controller(destroy
             }
             logCount += 1
 
-            controller.activityConnector?.tvLog?.text = getShownLogs().joinToString(separator="\n")
+            Controller.activityConnector?.tvLog?.text = getShownLogs().joinToString(separator="\n")
         }
     }
 

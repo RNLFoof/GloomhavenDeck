@@ -5,15 +5,16 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.gloomhavendeck.Controllable
 import com.example.gloomhavendeck.Controller
+import com.example.gloomhavendeck.SavableController
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 
 @Serializable
 @RequiresApi(Build.VERSION_CODES.O)
-class UndoManager(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable() {
+class UndoManager(): Controllable() {
 
     init {
-        controller.undoManager = this
+        Controller.undoManager = this
     }
 
     @Transient // Honestly unsure why it's transient
@@ -33,15 +34,15 @@ class UndoManager(@Transient override var controller: Controller = Controller(de
     }
 
     fun addUndoPoint() {
-        controller.logger?.log("State saved.")
+        Controller.logger?.log("State saved.")
         // Override any "future" undos
         while (undosBack > 0) {
             undosBack -= 1
             undoPoints.removeLast()
         }
         // Add a new one
-        undoPoints.add(UndoPoint(controller))
+        undoPoints.add(UndoPoint())
         // Save
-        controller.saver?.let { it.saveJsonTo(controller, it.currentStateSavedAt) }
+        Controller.saver?.let { it.saveJsonTo(Controller as SavableController, it.currentStateSavedAt) }
     }
 }

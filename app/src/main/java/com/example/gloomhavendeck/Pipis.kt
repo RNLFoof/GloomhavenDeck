@@ -7,11 +7,9 @@ import kotlinx.serialization.Transient
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Serializable
-class Pipis(@Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true)): Controllable(
-    controller
-) {
+class Pipis(): Controllable() {
     init {
-        controller.pipis = this
+        Controller.pipis = this
     }
 
     companion object {
@@ -28,7 +26,7 @@ class Pipis(@Transient override var controller: Controller = Controller(destroyT
     }
 
     fun generateNerflessCounterparts(enemies: List<Enemy>): HashMap<String, Enemy> {
-        return generateNerflessCounterparts(enemies, this.controller.player?.scenarioLevel ?: 7)
+        return generateNerflessCounterparts(enemies, Controller.player?.scenarioLevel ?: 7)
     }
 }
 

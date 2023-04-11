@@ -11,7 +11,7 @@ import kotlinx.serialization.Transient
 
 @RequiresApi(Build.VERSION_CODES.O)
 class ActivityConnector(
-    @Transient override var controller: Controller = Controller(destroyTheUniverseUponInitiation = true),
+    
     var activity: Activity,
     var llTopCardRow: LinearLayout,
     var llBottomCardRow: LinearLayout,
@@ -20,7 +20,7 @@ class ActivityConnector(
 ): Controllable() {
     var selectedCardRow: LinearLayout = llTopCardRow
     init {
-        controller.activityConnector = this
+        Controller.activityConnector = this
     }
 
     @Transient
