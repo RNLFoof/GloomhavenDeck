@@ -26,6 +26,17 @@ enum class Status(val icon: String, val imageId: Int, val negative: Boolean=fals
         }
     }
 
+    fun getNextAutomaticPosition(currentPosition: Int): Int {
+        return if (currentPosition == 0) {
+            currentPosition
+        }
+        else if (roundBased) {
+            currentPosition -1
+        } else {
+            currentPosition
+        }
+    }
+
     fun imageView(context: Context): ImageView {
         val imageView = ImageView(context)
         imageView.setImageResource(imageId)
