@@ -178,6 +178,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
         )))
         val PENDANTOFDARKPACTS = SoundBundle(R.raw.pendantofdarkpacts_loud_bird)
         val PIERCE = SoundBundle(R.raw.pierce_shield_break)
+        val POISON = SoundBundle(R.raw.poison_ttyd_poisoned)
         val REFRESH = SoundBundle(listOf(
             R.raw.refresh_chest_open,
             R.raw.refresh_h553,
@@ -238,6 +239,105 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
                     SHIELD_WOODDOOR to 0.1f,
         )))
         val SHUFFLE = SoundBundle(R.raw.shuffle_shuffle)
+        val STAREARRING = SoundBundle(R.raw.starearring_ut_save)
+        val STATUS_GAIN_DISARM = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_GAIN_IMMOBILE = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_GAIN_INVISIBLE = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_GAIN_MUDDLE = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_GAIN_POISON = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_GAIN_REGENERATION = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_GAIN_STRENGTHEN = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_GAIN_STUN = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_GAIN_WOUND = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_GAIN = SoundBundle(listOf(
+            STATUS_GAIN_DISARM,
+            STATUS_GAIN_IMMOBILE,
+            STATUS_GAIN_INVISIBLE,
+            STATUS_GAIN_MUDDLE,
+            STATUS_GAIN_POISON,
+            STATUS_GAIN_REGENERATION,
+            STATUS_GAIN_STRENGTHEN,
+            STATUS_GAIN_STUN,
+            STATUS_GAIN_WOUND,
+        ))
+        val STATUS_LOSE_DISARM = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_LOSE_IMMOBILE = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_LOSE_INVISIBLE = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_LOSE_MUDDLE = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_LOSE_POISON = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_LOSE_REGENERATION = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_LOSE_STRENGTHEN = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_LOSE_STUN = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_LOSE_WOUND = SoundBundle(
+            LinkedHashMap(
+                mapOf(
+        )))
+        val STATUS_LOSE = SoundBundle(listOf(
+            STATUS_LOSE_DISARM,
+            STATUS_LOSE_IMMOBILE,
+            STATUS_LOSE_INVISIBLE,
+            STATUS_LOSE_MUDDLE,
+            STATUS_LOSE_POISON,
+            STATUS_LOSE_REGENERATION,
+            STATUS_LOSE_STRENGTHEN,
+            STATUS_LOSE_STUN,
+            STATUS_LOSE_WOUND,
+        ))
+        val STATUS = SoundBundle(listOf(
+            STATUS_GAIN,
+            STATUS_LOSE,
+        ))
         val STRENGTHEN_FANON_NOSE = SoundBundle(listOf(
             R.raw.strengthen_fanon_nose_1,
             R.raw.strengthen_fanon_nose_2,
