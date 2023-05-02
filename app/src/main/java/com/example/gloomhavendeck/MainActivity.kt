@@ -53,6 +53,7 @@ class MainActivity : AppCompatActivity() {
         val btnViewCards = findViewById<Button>(R.id.btnViewCards)
         val btnSimplify = findViewById<Button>(R.id.btnSimplify)
         val btnManage = findViewById<Button>(R.id.btnManage)
+        val btnEndOfRound = findViewById<Button>(R.id.btnEndOfRound)
         val fragStatusBar: StatusBarFragment = fragmentManager.findFragmentById(R.id.fragStatusBar) as StatusBarFragment
 
         Saver(applicationContext.filesDir.canonicalPath)
@@ -624,6 +625,13 @@ vermling scout 7: 1 2 3 n5 6""", Controller.player?.scenarioLevel ?: 7).toMutabl
         btnSimplify.setOnClickListener {
             buttonBehavior(btnSimplify) {
                 simplifyTheGamestate()
+                Controller.undoManager?.addUndoPoint()
+            }
+        }
+
+        btnEndOfRound.setOnClickListener {
+            buttonBehavior(btnEndOfRound) {
+                Controller.player?.endOfRound()
                 Controller.undoManager?.addUndoPoint()
             }
         }

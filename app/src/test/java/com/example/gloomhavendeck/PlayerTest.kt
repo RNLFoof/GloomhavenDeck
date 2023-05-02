@@ -11,8 +11,7 @@ internal class PlayerTest {
 
     @Before
     fun setUp() {
-        controller = Controller()
-        player = Player(controller, 26)
+        player = Player(26)
     }
 
     @Test
