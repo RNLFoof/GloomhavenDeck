@@ -53,8 +53,10 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT,
     RING_OF_DUALITY(R.drawable.card_duality, sound=SoundBundle.RINGOFDUALITY),
     RING_OF_SKULLS(R.drawable.card_skulls, getsActivated = true, sound=SoundBundle.JOHNSON, deactivationSound=SoundBundle.DEATH),
     ROCKET_BOOTS(R.drawable.card_boots, sound=SoundBundle.JUMP, spendOnly = true),
+    SERENE_SANDALS(R.drawable.card_serenesandals, sound=SoundBundle.JUMP, permanent=true),
     SECOND_CHANCE_RING(R.drawable.card_secondchancering, sound=SoundBundle.SECONDCHANCERING),
     SPIKED_SHIELD(R.drawable.card_spiked, spendOnly = true),
+    STAR_EARRING(R.drawable.card_starearring), // TODO this has behavior you can automate
     SUPER_HEALING_POTION(R.drawable.card_healing, sound=SoundBundle.DRINK, getUsed=fun (Controller, fullAutoBehavior) {
         Controller.player?.heal(7, true)
     }),

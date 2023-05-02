@@ -1,7 +1,7 @@
 import os
 
 import PIL.Image as Image
-import ZachsStupidImageLibrary.coolstuff as coolstuff
+import zsil.coolstuff as coolstuff
 
 originaldir = "originals"
 fixeddir = r"..\..\app\src\main\res\drawable-v24"
