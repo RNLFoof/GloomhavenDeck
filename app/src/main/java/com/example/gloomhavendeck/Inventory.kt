@@ -124,7 +124,7 @@ class Inventory(): Controllable() {
     }
 
     fun deactivateItem(item: Item, fullAutoBehavior: Boolean) {
-        Controller.activityConnector?.effectQueue?.addLast(Effect(card = item.graphic, sound = item.sound, selectTopRow = true))
+        Controller.activityConnector?.effectQueue?.addLast(Effect(card = item.graphic, sound = item.deactivationSound, selectTopRow = true))
         Controller.logger?.log("Deactivating $item...")
         Controller.logger?.let {it.logIndent += 1}
 
