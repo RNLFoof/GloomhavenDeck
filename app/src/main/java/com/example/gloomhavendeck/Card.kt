@@ -23,6 +23,7 @@ data class Card(
     val shieldSelf: Int = 0,
     val element: Element? = null,
     val regenerate: Boolean = false,
+    val poison: Boolean = false,
     val curses: Boolean = false,
 ) {
     @RequiresApi(Build.VERSION_CODES.O)
@@ -60,6 +61,8 @@ data class Card(
             Effect(sound=SoundBundle.DARK, card=R.drawable.card_plus2dark)
         else if (regenerate)
             Effect(sound=SoundBundle.REGENERATE, card=R.drawable.card_plus2regenerate)
+        else if (poison)
+            Effect(sound=SoundBundle.POISON, card=R.drawable.card_poison)
         else if (curses)
             Effect(sound=SoundBundle.CURSEADDED, card=R.drawable.card_plus2curse)
 

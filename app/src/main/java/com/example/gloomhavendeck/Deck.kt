@@ -144,6 +144,9 @@ class Deck(): Controllable() {
             Card(flippy = true, pierce = 3),
 
             Card(flippy = true, invisible = true),
+
+            Card( poison = true, flippy = true),
+            Card( poison = true, flippy = true),
         ))
         Controller.undoManager?.addUndoPoint()
     }
