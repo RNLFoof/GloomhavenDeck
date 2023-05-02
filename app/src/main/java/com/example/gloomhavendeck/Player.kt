@@ -112,4 +112,18 @@ class Player(var maxHp: Int): Controllable() {
             )
         )
     }
+
+    fun incrementAllStatusPositions() {
+        for (status in statuses) {
+            updateStatus(status,
+                status.getNextAutomaticPosition(
+                    checkStatus(status)
+                )
+            )
+        }
+    }
+
+    fun endOfRound() {
+        incrementAllStatusPositions()
+    }
 }

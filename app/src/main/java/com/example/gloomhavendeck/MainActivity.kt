@@ -629,6 +629,13 @@ vermling scout 7: 1 2 3 n5 6""", Controller.player?.scenarioLevel ?: 7).toMutabl
             }
         }
 
+        btnEndOfRound.setOnClickListener {
+            buttonBehavior(btnEndOfRound) {
+                Controller.player?.endOfRound()
+                Controller.undoManager?.addUndoPoint()
+            }
+        }
+
         btnManage.setOnClickListener {
             buttonBehavior(btnManage) {
                 class CustomDialogClass(var context: Activity, theme: Int) : Dialog(context, theme) {
