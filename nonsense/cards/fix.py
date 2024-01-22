@@ -1,7 +1,7 @@
 import os
 
 import PIL.Image as Image
-import zsil.coolstuff as coolstuff
+import zsil.cool_stuff as cool_stuff
 
 originaldir = "originals"
 fixeddir = r"..\..\app\src\main\res\drawable-v24"
@@ -10,7 +10,7 @@ for originalfilename in os.listdir(originaldir):
     if originalfilename.endswith("ora"):
         continue
     img = Image.open(os.path.join(originaldir, originalfilename)).convert("RGBA")
-    img = coolstuff.croptocontent(img)
+    img = cool_stuff.crop_to_content(img)
 
     extrawidth = round(img.width * bonussize)
     extraheight = round(img.height * bonussize)

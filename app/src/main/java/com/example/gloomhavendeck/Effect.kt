@@ -3,6 +3,7 @@ package com.example.gloomhavendeck
 import android.annotation.SuppressLint
 import android.graphics.ColorFilter
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Build
 import android.view.View
 import android.widget.ImageView
@@ -23,7 +24,13 @@ class Effect(var sound: SoundBundle? = null, var card: Int? = null, var wipe: Bo
     fun run() {
         if (Controller.activityConnector != null) {
             if (sound != null) {
-                val mediaPlayer: MediaPlayer = MediaPlayer.create(Controller.activityConnector!!.activity, sound!!.getSound() as Int)
+                val mediaPlayer: MediaPlayer = Controller.activityConnector!!.nextMediaPlayer()
+                mediaPlayer.reset()
+                val controller = Controller.activityConnector!!.activity
+                mediaPlayer.setDataSource(
+                    controller,
+                    Uri.parse("android.resource://" + controller.packageName + "/" + sound!!.getSound()))
+                mediaPlayer.prepare()
                 mediaPlayer.start()
             }
             if (card != null) {

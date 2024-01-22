@@ -1,6 +1,7 @@
 package com.example.gloomhavendeck
 
 import android.app.Activity
+import android.media.MediaPlayer
 import android.os.Build
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -23,12 +24,22 @@ class ActivityConnector(
         Controller.activityConnector = this
     }
 
+    // TODO Maybe an effect manager?
     @Transient
     var effectQueue = LinkedList<Effect>()
+    val numberOfMediaPlayers = 5
+    var mediaPlayerTarget = 0
+    @Transient
+    var mediaPlayersForSounds = arrayListOf<MediaPlayer>()
+
     val baseEffectSpeed = 1_000/3L
     var effectSpeed = baseEffectSpeed
 
     init {
+        for (x in 1..numberOfMediaPlayers) {
+            mediaPlayersForSounds.add(MediaPlayer())
+        }
+
         val effectLoop = Thread {
             while (true) {
                 Crap.crashProtector(activity) {
@@ -48,4 +59,9 @@ class ActivityConnector(
         effectLoop.start()
     }
 
+    fun nextMediaPlayer(): MediaPlayer {
+        mediaPlayerTarget += 1
+        mediaPlayerTarget %= numberOfMediaPlayers
+        return mediaPlayersForSounds[mediaPlayerTarget]
+    }
 }

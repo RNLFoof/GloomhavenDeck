@@ -50,6 +50,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
         val MINUS2 = SoundBundle(R.raw.minus2_mario_fall)
         val BLESS = SoundBundle(R.raw.bless_choir)
         val BLINKINGCAPE = SoundBundle(R.raw.blinkingcape_why_are_you_guys_here)
+        val CRATE = SoundBundle(R.raw.crate_krabs)
         val CURSE = SoundBundle(R.raw.curse_ttyd_ghost)
         val CURSEADDED = SoundBundle(R.raw.curseadded_ttyd)
         val DARK_FANON = SoundBundle(R.raw.dark_fanon_nightmaaaaare)
@@ -142,6 +143,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
                     R.raw.extratarget_hamsterball_catapult to 1f,
                     EXTRATARGET_FANON to 0.2f,
         )))
+        val GOLDENJOHNSON = SoundBundle(R.raw.goldenjohnson_goldenjohnson)
         val HEAL = SoundBundle(R.raw.heal_heal)
         val ITEMUNUSABLE = SoundBundle(R.raw.itemunusable_hmm)
         val JOHNSON_FANON = SoundBundle(R.raw.johnson_fanon_expert_race_guitar)
@@ -361,6 +363,7 @@ data class SoundBundle(var weights: LinkedHashMap<Any, Float>) {
             R.raw.summon_sm64_painting,
         ))
         val UTILITYBELT = SoundBundle(R.raw.utilitybelt_metal_falling)
+        val WANJDOFDARKNESS = SoundBundle(R.raw.wanjdofdarkness_snd_mysterygo_pitch_shifted)
         val WARHAMMER = SoundBundle(R.raw.warhammer_hamsterball_ball_break)
         val X2_FANON = SoundBundle(
             LinkedHashMap(

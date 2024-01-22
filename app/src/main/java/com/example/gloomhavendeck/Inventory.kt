@@ -50,15 +50,23 @@ class Inventory(): Controllable() {
 
     fun initializeThreeKnives() {
         usableItems = mutableListOf(
-            //Item.POWER_CORE,
+            //Item.MAJOR_CURE_POTION,
+            //Item.RING_OF_SKULLS,
             Item.CLOAK_OF_PHASING,
-            Item.MAJOR_CURE_POTION,
             Item.MAJOR_STAMINA_POTION,
+            Item.MOVABLE_CRATE,
             Item.PENDANT_OF_DARK_PACTS,
-            Item.RING_OF_SKULLS,
+            Item.POWER_CORE,
             Item.SERENE_SANDALS,
+            Item.SILENT_STILETTO,
             Item.STAR_EARRING,
             Item.SUPER_HEALING_POTION,
+            Item.WAND_OF_DARKNESS,
+        )
+    }
+
+    fun initializeDefault() {
+        usableItems = mutableListOf(
         )
     }
 

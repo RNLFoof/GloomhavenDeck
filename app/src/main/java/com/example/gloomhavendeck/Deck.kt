@@ -131,22 +131,27 @@ class Deck(): Controllable() {
             Card(1),
             Card(1),
 
-            Card(1, flippy = true),
-            Card(1, flippy = true),
-            Card(1, flippy = true),
-            Card(1, flippy = true),
+            Card(1, flippy=true),
+            Card(1, flippy=true),
+            Card(1, flippy=true),
+            Card(1, flippy=true),
+
+            Card(pierce=3, flippy=true),
+            Card(pierce=3, flippy=true),
+
+            Card(poison = true, flippy=true),
+            Card(poison = true, flippy=true),
+            Card(poison = true, flippy=true),
+            Card(poison = true, flippy=true),
+
+            Card(muddle = true, flippy=true),
+            Card(muddle = true, flippy=true),
+
+            Card(invisible = true, flippy=true),
 
             Card(2),
             Card(2),
             Card(2),
-
-            Card(flippy = true, pierce = 3),
-            Card(flippy = true, pierce = 3),
-
-            Card(flippy = true, invisible = true),
-
-            Card( poison = true, flippy = true),
-            Card( poison = true, flippy = true),
         ))
         Controller.undoManager?.addUndoPoint()
     }

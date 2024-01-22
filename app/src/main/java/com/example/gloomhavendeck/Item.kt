@@ -35,6 +35,7 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT,
     MINOR_STAMINA_POTION(R.drawable.card_minorstamina, sound=SoundBundle.DRINK, getUsed=fun (Controller, _) {
         Controller.player!!.discardedCards -= 2
     }),
+    MOVABLE_CRATE(R.drawable.card_crate, sound=SoundBundle.CRATE, spendOnly = true),
     PENDANT_OF_DARK_PACTS(R.drawable.card_pendant, sound=SoundBundle.PENDANTOFDARKPACTS, getUsed=fun (Controller, fullAutoBehavior) {
         if (fullAutoBehavior && Controller.inventory != null) {
             if (Controller.inventory!!.unusableItems.size <= 1
@@ -48,15 +49,16 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT,
         }
         Controller.deck?.curse()
     }),
-    POWER_CORE(R.drawable.card_power_core, getsActivated = true, sound=SoundBundle.DEFAULT, deactivationSound=SoundBundle.DEATH),
+    POWER_CORE(R.drawable.card_power_core, getsActivated = true, sound=SoundBundle.GOLDENJOHNSON, deactivationSound=SoundBundle.DEATH),
     RING_OF_BRUTALITY(R.drawable.card_brutality, sound=SoundBundle.RINGOFBRUTALITY),
     RING_OF_DUALITY(R.drawable.card_duality, sound=SoundBundle.RINGOFDUALITY),
     RING_OF_SKULLS(R.drawable.card_skulls, getsActivated = true, sound=SoundBundle.JOHNSON, deactivationSound=SoundBundle.DEATH),
     ROCKET_BOOTS(R.drawable.card_boots, sound=SoundBundle.JUMP, spendOnly = true),
     SERENE_SANDALS(R.drawable.card_serenesandals, sound=SoundBundle.JUMP, permanent=true),
     SECOND_CHANCE_RING(R.drawable.card_secondchancering, sound=SoundBundle.SECONDCHANCERING),
+    SILENT_STILETTO(R.drawable.card_silentstiletto, permanent = true),
     SPIKED_SHIELD(R.drawable.card_spiked, spendOnly = true),
-    STAR_EARRING(R.drawable.card_starearring), // TODO this has behavior you can automate
+    STAR_EARRING(R.drawable.card_starearring, sound=SoundBundle.STAREARRING), // TODO this has behavior you can automate
     SUPER_HEALING_POTION(R.drawable.card_healing, sound=SoundBundle.DRINK, getUsed=fun (Controller, fullAutoBehavior) {
         Controller.player?.heal(7, true)
     }),
@@ -72,6 +74,7 @@ enum class Item(val graphic: Int, val sound: SoundBundle=SoundBundle.DEFAULT,
         }
     }),
     WALL_SHIELD(R.drawable.card_wallshield, sound=SoundBundle.SHIELD, spendOnly = true),
+    WAND_OF_DARKNESS(R.drawable.card_wandofdarkness, sound=SoundBundle.DARK, spendOnly = true),
     WAR_HAMMER(R.drawable.card_warhammer, sound=SoundBundle.WARHAMMER);
 
     @SuppressLint("UseCompatLoadingForDrawables")
